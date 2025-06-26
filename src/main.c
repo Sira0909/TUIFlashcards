@@ -2,10 +2,11 @@
 #include "window.h"
 #include "WIN.h"
 #include "MENU.h"
-#include "vocabList.h"
+#include "flashcards.h"
 #include "TABLE.h"
 #include <ncurses.h>
 
+//self explanitory
 bool is_all_space(char *string){
     bool allspace = true;
     int i = 0;
@@ -53,9 +54,9 @@ char editkeybinds[13][2][20]= {
     {"l","right"},
     {"<enter>", "edit text"},
     {" ", " "},
-    {"s", "star word"},
-    {"a", "add word"},
-    {"d", "delete word"},
+    {"s", "star flashcard"},
+    {"a", "add flashcard"},
+    {"d", "delete flashcard"},
     {" ", " "},
     {"w", "save"},
     {"q", "quit without save"},
@@ -114,13 +115,12 @@ int main(){
         strncpy(configDIR,confhome, 105);
         strcat(configDIR, "/.config");
     }
-    //add vocabPractice to end of CONFIGDIR
-    strcat(configDIR, "/vocabPractice");
+    strcat(configDIR, "/TUIFlashcards");
 
     //file name for config file
     char cFile[135];
 
-    //start with configDIR, add /config to end. should now be $XDG_CONFIG_DIR/vocabPractice/config
+    //start with configDIR, add /config to end. should now be $XDG_CONFIG_DIR/TUIFlashcards/config
     strcpy(cFile, configDIR); strcat(cFile,"/config");
     FILE *configFile;
 
@@ -141,9 +141,9 @@ int main(){
     // set config struct's configDIR to configDIR
     strcpy(config.configDIR,configDIR);
 
-    // get vocabDIR from config file
-    fgets(config.vocabDIR, 128, configFile);
-    strcpy(config.vocabDIR , trim_whitespaces(config.vocabDIR));
+    // get flashcardDIR from config file
+    fgets(config.flashcardDIR, 128, configFile);
+    strcpy(config.flashcardDIR , trim_whitespaces(config.flashcardDIR));
 
 
     // init ncurses
@@ -196,7 +196,7 @@ void runMainMenu(){
     menu_window = create_newwin(9, 22, (LINES - 7)/2, (COLS - 20)/2);
 
     // init the menu
-    init_menu(&mainmenu, 7, 20,7, &menu_window, "Let's Study Vocab", items);
+    init_menu(&mainmenu, 7, 20,7, &menu_window, "Let's Study!", items);
     wrefresh(mainmenu.p_win->window);
     
     // character from getch()
@@ -273,7 +273,7 @@ char* getString(char* title, int maxsize){
     
     //assign window
     scale_form(Form, &rows, &cols);
-    my_form_win = newwin(rows+4, cols+4,(LINES - rows)/2,(COLS - cols)/2);
+    my_form_win = newwin(rows+4, cols+4,(LINES - rows-2)/2,(COLS - cols-2)/2);
 
     set_form_win(Form, my_form_win);
     set_form_sub(Form, derwin(my_form_win, rows, cols, 3, 2));
@@ -283,7 +283,7 @@ char* getString(char* title, int maxsize){
 
 
     box(my_form_win, 0, 0);
-    wmove(my_form_win, 0, 1); waddch(my_form_win, ACS_RTEE);wprintw(my_form_win, "%s", "double escape to cancel"); waddch(my_form_win, ACS_LTEE);
+    //wmove(my_form_win, 0, 1); waddch(my_form_win, ACS_RTEE);wprintw(my_form_win, "%s", "double escape to cancel"); waddch(my_form_win, ACS_LTEE);
     mvwprintw(my_form_win, 1, (cols-strlen(title)+1)/2, "%s", title);
 
     post_form(Form);
@@ -366,37 +366,37 @@ char* getString(char* title, int maxsize){
     return NULL;
 }
 void editList(char ListName[]){
-    char ListPath[VOCABFILESIZE];
+    char ListPath[FLASHCARDFILESIZE];
     if(ListName[0] == '/' || ListName[0] == '~'){
-        strncpy(ListPath, ListName, VOCABFILESIZE);
+        strncpy(ListPath, ListName, FLASHCARDFILESIZE);
     }
     else{
-        strcpy(ListPath, config.vocabDIR);
-        strncat(ListPath, ListName, VOCABFILESIZE-strnlen(config.vocabDIR, 128));
+        strcpy(ListPath, config.flashcardDIR);
+        strncat(ListPath, ListName, FLASHCARDFILESIZE-strnlen(config.flashcardDIR, 128));
     }
     
-    VocabList* vocablist = create_Vocab_List_Object();
+    FlashcardSet* flashcardset = create_Flashcard_Set_Object();
     
-    if (-1 == fillVocabList(vocablist, ListPath)) {
-        deleteListPointer(&vocablist);
+    if (-1 == fillFlashcardSet(flashcardset, ListPath)) {
+        deleteSetPointer(&flashcardset);
         return;
     }
 
 
-    TABLE vocabTable;
+    TABLE flashcardTable;
 
     int height = max(21, LINES - 5);
     int width = 41;
     WINDOW* edit_list_menu_window = create_newwin(height+2, width+2, (LINES - height)/2-1, (COLS - width)/2);
     WINDOW* tablewindow = derwin(edit_list_menu_window, height, width, 1, 1);
 
-    char (*items)[128] = calloc(vocablist->capacity, sizeof(char[128]));
+    char (*items)[128] = calloc(flashcardset->capacity, sizeof(char[128]));
 
-    char (*defns)[128] = calloc(vocablist->capacity, sizeof(char[128]));
+    char (*defns)[128] = calloc(flashcardset->capacity, sizeof(char[128]));
 
-    char (*starred) = calloc(vocablist->capacity, sizeof(char));
+    char (*starred) = calloc(flashcardset->capacity, sizeof(char));
 
-    getpairslimiter(vocablist, starred, items, defns);
+    getpairslimiter(flashcardset, starred, items, defns);
 
     char (*(table[2]))[128] = {items, defns};
 
@@ -407,8 +407,8 @@ void editList(char ListName[]){
 
     wrefresh(edit_list_menu_window);
     // init the menu
-    init_table(&vocabTable, vocablist->numItems, 2,width, height, &tablewindow, "Editing Flashcards", headers, table);
-    wrefresh(vocabTable.p_win->window);
+    init_table(&flashcardTable, flashcardset->numItems, 2,width, height, &tablewindow, "Editing Flashcards", headers, table);
+    wrefresh(flashcardTable.p_win->window);
     
     // character from getch()
     int ch;
@@ -417,7 +417,7 @@ void editList(char ListName[]){
     bool done = false;
 
 
-    render_table(&vocabTable, starred) ;
+    render_table(&flashcardTable, starred) ;
     box(edit_list_menu_window, 0, 0);
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
     wrefresh(edit_list_menu_window);
@@ -427,38 +427,38 @@ void editList(char ListName[]){
         // refresh menu (see MENU.c)
         switch(ch){
             case 'j': // down
-                changeselect_table(&vocabTable, 1, 0);
+                changeselect_table(&flashcardTable, 1, 0);
                 break;
             case 'k': // up
-                changeselect_table(&vocabTable, -1, 0);
+                changeselect_table(&flashcardTable, -1, 0);
                 break;
             case 'h': // left
-                changeselect_table(&vocabTable, 0, -1);
+                changeselect_table(&flashcardTable, 0, -1);
                 break;
             case 'l': // right
-                changeselect_table(&vocabTable, 0, 1);
+                changeselect_table(&flashcardTable, 0, 1);
                 break;
             case 's': // star
-                vocablist->pairs[vocabTable.selectedrow].is_starred = !vocablist->pairs[vocabTable.selectedrow].is_starred;
-                getpairslimiter(vocablist, starred, items, defns);
+                flashcardset->cards[flashcardTable.selectedrow].is_starred = !flashcardset->cards[flashcardTable.selectedrow].is_starred;
+                getpairslimiter(flashcardset, starred, items, defns);
                 table[0] = items;
                 break;
             case 10: //enter
-                if(vocabTable.selectedcol == 0){
-                    char* Name = getString("Name?", MAX_VOCAB_LIST_ITEM_SIZE);
+                if(flashcardTable.selectedcol == 0){
+                    char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE);
                     if(Name != NULL && !is_all_space(Name)){
-                        strcpy(vocablist->pairs[vocabTable.selectedrow].name, Name);
-                        getpairslimiter(vocablist, starred, items, defns);
+                        strcpy(flashcardset->cards[flashcardTable.selectedrow].name, Name);
+                        getpairslimiter(flashcardset, starred, items, defns);
                         table[0] = items;
                         refresh();
                         free(Name);
                     }
                 }
                 else{
-                    char* Defn = getString("Definition?", MAX_VOCAB_LIST_DEFN_SIZE);
+                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE);
                     if(Defn != NULL && !is_all_space(Defn)){
-                        strcpy(vocablist->pairs[vocabTable.selectedrow].definition, Defn);
-                        getpairslimiter(vocablist, starred, items, defns);
+                        strcpy(flashcardset->cards[flashcardTable.selectedrow].definition, Defn);
+                        getpairslimiter(flashcardset, starred, items, defns);
                         table[1] = defns;
                         refresh();
                         free(Defn);
@@ -472,44 +472,44 @@ void editList(char ListName[]){
                 wattroff(edit_list_menu_window, A_BOLD);
                 wrefresh(edit_list_menu_window);
                 if ('y' == getch()){
-                    deletepair(vocablist, vocabTable.selectedrow);
+                    deletecard(flashcardset, flashcardTable.selectedrow);
                     free(items);
                     free(defns);
-                    items = calloc(vocablist->capacity, sizeof(char[128]));
-                    defns = calloc(vocablist->capacity, sizeof(char[128]));
-                    getpairslimiter(vocablist, starred, items, defns);
+                    items = calloc(flashcardset->capacity, sizeof(char[128]));
+                    defns = calloc(flashcardset->capacity, sizeof(char[128]));
+                    getpairslimiter(flashcardset, starred, items, defns);
                     table[0] = items;
                     table[1] = defns;
-                    vocabTable.numrows = vocablist->numItems;
-                    if (vocabTable.numrows <= vocabTable.selectedrow){
-                        changeselect_table(&vocabTable, -1, 0);
+                    flashcardTable.numrows = flashcardset->numItems;
+                    if (flashcardTable.numrows <= flashcardTable.selectedrow){
+                        changeselect_table(&flashcardTable, -1, 0);
                     }
                 }
                 mvwprintw(edit_list_menu_window, height, 1, "                    ");
                 break;
             case 'a': {
-                char* Name = getString("Name?", MAX_VOCAB_LIST_ITEM_SIZE);
+                char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE);
                 if (Name != NULL){
                     if(is_all_space(Name)){
                         free(Name);
                         break;
                     }
-                    char* Defn = getString("Definition?", MAX_VOCAB_LIST_DEFN_SIZE);
+                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE);
                     if (Defn != NULL){
                         if(is_all_space(Defn)){
                             free(Name);
                             free(Defn);
                             break;
                         }
-                        addpair(vocablist, Name, Defn, 0);
+                        addcard(flashcardset, Name, Defn, 0);
                         free(items);
                         free(defns);
-                        items = calloc(vocablist->capacity, sizeof(char[128]));
-                        defns = calloc(vocablist->capacity, sizeof(char[128]));
-                        getpairslimiter(vocablist, starred, items, defns);
+                        items = calloc(flashcardset->capacity, sizeof(char[128]));
+                        defns = calloc(flashcardset->capacity, sizeof(char[128]));
+                        getpairslimiter(flashcardset, starred, items, defns);
                         table[0] = items;
                         table[1] = defns;
-                        vocabTable.numrows = vocablist->numItems;
+                        flashcardTable.numrows = flashcardset->numItems;
                         refresh();
                         free(Defn);
                     }
@@ -525,19 +525,19 @@ void editList(char ListName[]){
                 switch (getch()){
                     case 'y':
                         done = true;
-                        erasewindow(vocabTable.p_win->window);
+                        erasewindow(flashcardTable.p_win->window);
                         erasewindow(edit_list_menu_window);
                         edit_list_menu_window = NULL;
-                        vocabTable.p_win->window = NULL;
-                        free(vocabTable.p_win);
-                        vocabTable.p_win = NULL;
+                        flashcardTable.p_win->window = NULL;
+                        free(flashcardTable.p_win);
+                        flashcardTable.p_win = NULL;
                         free(items);
                         free(defns);
-                        writeVocabList(vocablist, ListPath, 1);
+                        writeFlashcardSet(flashcardset, ListPath, 1);
                         refresh();
                         return;
                     case 'n':
-                        writeVocabList(vocablist, ListPath, 0);
+                        writeFlashcardSet(flashcardset, ListPath, 0);
                         mvwprintw(edit_list_menu_window, height, 1, "                            ");
                         break;
                     default:
@@ -562,22 +562,22 @@ void editList(char ListName[]){
 
         }
         if(!done){
-            render_table(&vocabTable, starred) ;
+            render_table(&flashcardTable, starred) ;
             box(edit_list_menu_window, 0, 0);
             wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
             wrefresh(edit_list_menu_window);
         }
 
     }
-    erasewindow(vocabTable.p_win->window);
+    erasewindow(flashcardTable.p_win->window);
     erasewindow(edit_list_menu_window);
     edit_list_menu_window = NULL;
-    vocabTable.p_win->window = NULL;
-    free(vocabTable.p_win);
-    vocabTable.p_win = NULL;
+    flashcardTable.p_win->window = NULL;
+    free(flashcardTable.p_win);
+    flashcardTable.p_win = NULL;
     free(items);
     free(defns);
-    deleteListPointer(&vocablist);
+    deleteSetPointer(&flashcardset);
     refresh();
 }
 
@@ -590,16 +590,16 @@ char* _getLists(int start_at, void (*to_call)(char*)){
     struct stat statbuf;
 
     int numfiles = 0;
-    if((dp = opendir(config.vocabDIR)) == NULL) {
-        mkdir(config.vocabDIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-        if((dp = opendir(config.vocabDIR)) == NULL) {
+    if((dp = opendir(config.flashcardDIR)) == NULL) {
+        mkdir(config.flashcardDIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        if((dp = opendir(config.flashcardDIR)) == NULL) {
             int error = errno;
             endwin();
-            printf("ERROR: Could not open or create vocab directory. error description:%s", strerror(error));
+            printf("ERROR: Could not open or create flashcard directory. error description:%s", strerror(error));
             exit(-1);
         }
     }
-    chdir(config.vocabDIR);
+    chdir(config.flashcardDIR);
 
     while((entry = readdir(dp)) !=NULL){
         lstat(entry->d_name, &statbuf);
@@ -613,16 +613,16 @@ char* _getLists(int start_at, void (*to_call)(char*)){
     }
     else{
         char (*files)[128] = calloc(numfiles, sizeof(char[128]));
-        if((dp = opendir(config.vocabDIR)) == NULL) {
-            mkdir(config.vocabDIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-            if((dp = opendir(config.vocabDIR)) == NULL) {
+        if((dp = opendir(config.flashcardDIR)) == NULL) {
+            mkdir(config.flashcardDIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+            if((dp = opendir(config.flashcardDIR)) == NULL) {
                 int error = errno;
                 endwin();
-                printf("ERROR: Could not open or create vocab directory. error description:%s", strerror(error));
+                printf("ERROR: Could not open or create flashcard directory. error description:%s", strerror(error));
                 exit(-1);
             }
         }
-        chdir(config.vocabDIR);
+        chdir(config.flashcardDIR);
 
         int i = 0;
         while((entry = readdir(dp)) != NULL){
@@ -730,13 +730,13 @@ void editLists(){
 
 
 
-// Add new vocab list
+// Add new flashcard list
 void addList(){
 
-    char newfile[VOCABFILESIZE]={0};
-    strcpy(newfile, trim_whitespaces(config.vocabDIR));
+    char newfile[FLASHCARDFILESIZE]={0};
+    strcpy(newfile, trim_whitespaces(config.flashcardDIR));
     char* file = getString("Name new List", 31);
-    if (file == NULL) return;
+    if (file == NULL || is_all_space(file)) return;
     strcat(newfile, trim_whitespaces(file));
     FILE* temp = fopen(newfile, "w");
     fclose(temp);

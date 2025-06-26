@@ -18,7 +18,7 @@
 #include <ncurses.h>
 #include <form.h>
 
-#define VOCABFILESIZE 164
-#define MAX_VOCAB_LIST_ITEM_SIZE 64
-#define MAX_VOCAB_LIST_DEFN_SIZE 128
+#define FLASHCARDFILESIZE 164
+#define MAX_FLASHCARD_SET_ITEM_SIZE 64
+#define MAX_FLASHCARD_SET_DEFN_SIZE 128
 #endif
