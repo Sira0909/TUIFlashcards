@@ -190,7 +190,7 @@ void runMainMenu(){
     MENU mainmenu;
 
     // list of options
-    char items[7][128] = {"Play\0", "\0", "New List\0", "Edit List\0", "\0", "Quit\0", "\0"};
+    char items[7][128] = {"Study\0", "\0", "New List\0", "Edit List\0", "\0", "Quit\0", "\0"};
 
     // create window for menu. this menu object is defined globally, see above
     menu_window = create_newwin(9, 22, (LINES - 7)/2, (COLS - 20)/2);
@@ -223,7 +223,7 @@ void runMainMenu(){
                 wclrtoeol(stdscr);
                 wrefresh(stdscr);
                 switch(mainmenu.selected){
-                    case 0: // "Play"
+                    case 0: // "Study"
                         play();
                         break;
                     case 2: // "New List"
