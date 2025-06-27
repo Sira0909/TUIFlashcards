@@ -166,7 +166,6 @@ int main(){
     cbreak();//change later
     keypad(stdscr, TRUE);
     noecho();
-    curses_trace(1);
     curs_set(0);
 
     // set background
