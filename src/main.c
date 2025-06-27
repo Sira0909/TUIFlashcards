@@ -4,6 +4,7 @@
 #include "MENU.h"
 #include "flashcards.h"
 #include "TABLE.h"
+#include "play.h"
 #include <ncurses.h>
 
 //self explanitory
@@ -78,10 +79,11 @@ char selectionkeybinds[10][2][20] = {
 CONFIGSTRUCT config; // structure instance
 
 void runMainMenu();
-void editLists();
+void editList(char ListName[]);
 void addList();
 
-void play();
+char* getLists(void (*to_call)(char*)) ;
+void play(char* list);
 
 void list_keybinds(int numBinds, char (*keybinds)[2][20]);
 
@@ -224,13 +226,13 @@ void runMainMenu(){
                 wrefresh(stdscr);
                 switch(mainmenu.selected){
                     case 0: // "Study"
-                        play();
+                        getLists(play);
                         break;
                     case 2: // "New List"
                         addList();
                         break;
                     case 3: // "Edit List"
-                        editLists();
+                        getLists(editList);
                         break;
                     case 5: // "Quit"
                         done = true;
@@ -721,14 +723,6 @@ char* getLists(void (*to_call)(char*)) {
     return _getLists(0, to_call);
 }
 
-void editLists(){
-    char* list = getLists(editList);
-    if (list != NULL){
-        editList(list);
-    }
-}
-
-
 
 // Add new flashcard list
 void addList(){
@@ -743,9 +737,7 @@ void addList(){
     editList(newfile);
 }
 
-void play(){
 
-}
 
 void list_keybinds(int numBinds, char (*keybinds)[2][20]){
     WINDOW* helpwindow = create_newwin(numBinds+4, 32, (LINES-numBinds-2)/2, COLS/2 - 15);

@@ -58,6 +58,7 @@ void deletecard(FlashcardSet* flashcardset, int index){
         }
     }
     flashcardset->numItems--;
+    if(flashcardset->numItems<0) flashcardset->numItems = 0;
     strcpy(flashcardset->cards[flashcardset->numItems].name, "");
     strcpy(flashcardset->cards[flashcardset->numItems].definition, "");
     
