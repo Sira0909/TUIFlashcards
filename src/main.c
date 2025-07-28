@@ -153,7 +153,19 @@ int main(){
 
     //start color
     start_color();
-    init_pair(1, COLOR_BLACK , COLOR_BLUE);     // background:          white on blue
+
+
+
+    if (can_change_color()){
+        init_color(COLOR_BLACK, 106, 114, 169);
+        init_color(COLOR_RED, 1000, 459,498);
+        init_color(COLOR_GREEN, 765, 910, 553);
+        init_color(COLOR_YELLOW, 1000, 780, 467);
+        init_color(COLOR_BLUE, 510, 667, 1000);
+        init_color(COLOR_WHITE, 510, 545, 722);
+
+    }
+    init_pair(1, COLOR_YELLOW , COLOR_BLUE);     // background:          white on blue
     init_pair(2, COLOR_BLACK , COLOR_WHITE);    // default window:      black on white
     init_pair(3, COLOR_BLACK , COLOR_RED);      // selection:           white on red
     init_pair(4, COLOR_YELLOW, COLOR_WHITE);      // selection:           white on red
@@ -171,7 +183,9 @@ int main(){
     // set background
     bkgd(COLOR_PAIR(1));
     attron(A_BOLD);
+    attron(COLOR_PAIR(5));
     mvprintw(LINES-1, (COLS-16)/2, "'?' for keybinds");
+    attroff(COLOR_PAIR(5));
     attroff(A_BOLD);
     refresh();
 
