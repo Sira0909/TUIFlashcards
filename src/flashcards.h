@@ -4,18 +4,14 @@
 
 
 
-typedef struct _CONFIG{ //structure to hold config variables
-    char configDIR[128];
-    char flashcardDIR[128];
-} CONFIGSTRUCT;
 
-typedef struct _FLASHCARDPAIR{
+typedef struct _FLASHCARDPAIR{  // flashcard, front and back
     char name[MAX_FLASHCARD_SET_ITEM_SIZE];
     char definition[MAX_FLASHCARD_SET_DEFN_SIZE];
     bool is_starred;
 } Flashcard;
-typedef struct _FLASHCARDSET{
-    int numItems;
+typedef struct _FLASHCARDSET{   // vector of flashcards
+    int num_items;
     int capacity;
     Flashcard* cards;
 } FlashcardSet;
@@ -34,6 +30,6 @@ int fillFlashcardSet(FlashcardSet* flashcardset, char filePath[FLASHCARDFILESIZE
 
 void getpairs(FlashcardSet* flashcardset, char items[][MAX_FLASHCARD_SET_ITEM_SIZE+1],char definitions[][MAX_FLASHCARD_SET_DEFN_SIZE+1]);
 
-void getpairslimiter(FlashcardSet* flashcardset, char (*isstarred), char items[][128],char definitions[][128]);
+void getpairslimiter(FlashcardSet* flashcardset, char isstarred[], char items[][128],char definitions[][128]);
 
 #endif

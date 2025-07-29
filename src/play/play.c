@@ -1,6 +1,9 @@
-#include "play.h"
-#include "window.h"
+#include "main.h"
+#include "../window.h"
 #include <ncurses.h>
+
+
+//unfinished
 void play(char* list){
     WINDOW* mainPlayWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
     wbkgd(mainPlayWindow, COLOR_PAIR(2));

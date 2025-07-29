@@ -1,4 +1,8 @@
 #include "window.h"
+// for basic window operations
+
+
+//creates a window with given values
 WINDOW *create_newwin(int height, int width, int starty, int startx)
 {	WINDOW *local_win;
 
@@ -6,6 +10,9 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
 
 	return local_win;
 }
+
+
+//erases and deletes a window
 void erasewindow(WINDOW* window){
     wbkgd(window, COLOR_PAIR(1));
     werase(window);

@@ -4,42 +4,21 @@
 #include "MENU.h"
 #include "flashcards.h"
 #include "TABLE.h"
-#include "play.h"
+#include "config.h"
+#include "play/main.h"
+#include "helpers.h"
 #include <ncurses.h>
 
-//self explanitory
 bool is_all_space(char *string){
-    bool allspace = true;
-    int i = 0;
-    while(string[i] != '\0'){
-        if(string[i]!= ' ') allspace = false;
-        i++;
+    for (int i = 0; string[i] != '\0'; i++){
+        if(string[i]!= ' ') return false;
     }
-    return allspace;
-}
-static char* trim_whitespaces(char *str) // trims whitespace from a string
-{
-	char *end;
-
-	// trim leading space
-	while(!strcmp(str," "))
-		str++;
-
-	if(*str == '\0') // all spaces?
-		return str;
-
-	// trim trailing space
-	end = str + strnlen(str, 128) - 1;
-
-	while(end > str && (!strcmp(end," ") || !strcmp(end,"\n"))) end--;
-
-	// write new null terminator
-	*(end+1) = '\0';
-
-	return str;
+    return true;
 }
 
-char mainkeybinds[7][2][20] = { 
+
+// lists of keybinds
+char mainkeybinds[7][2][20] = {
     {"h", "left"},
     {"j","down"},
     {"k","up"},
@@ -93,59 +72,7 @@ WINDOW* menu_window; //main menu window ptr
 
 int main(){
 
-    //get directory for config files
-    char *configDIR = (char *) calloc(128, sizeof(char));
-
-    //start by checking $XDG_CONFIG_HOME environment var
-    char *confhome = getenv("XDG_CONFIG_HOME");
-
-    //if $XDG_CONFIG_HOME has been set, set configDIR to it.
-    if(confhome != NULL){
-        strncpy(configDIR,confhome, 113);
-    }
-    else{
-        //else, try $HOME env variable
-        confhome = getenv("HOME");
-        if(confhome == NULL){
-            //if neither exist, error.
-            free(configDIR); 
-            printf("Please set either a $HOME env variable or a $XDG_CONFIG_HOME env variable in order to make a configuration");
-            return -1;
-        }
-
-        // if $HOME does exist, use it, add ".config", and set configDIR to that.
-        strncpy(configDIR,confhome, 105);
-        strcat(configDIR, "/.config");
-    }
-    strcat(configDIR, "/TUIFlashcards");
-
-    //file name for config file
-    char cFile[135];
-
-    //start with configDIR, add /config to end. should now be $XDG_CONFIG_DIR/TUIFlashcards/config
-    strcpy(cFile, configDIR); strcat(cFile,"/config");
-    FILE *configFile;
-
-    //check if file already exists. if not, create it
-    if(!(configFile = fopen(cFile, "r"))){
-        mkdir(configDIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH); // "mkdir configDIR"
-        FILE* writeconfig = fopen(cFile, "w"); // make config file
-
-        fprintf(writeconfig, "%s/Lists/", configDIR);
-
-        fclose(writeconfig);
-        
-        
-        // if file still doesnt exist, error
-        if(!(configFile = fopen(cFile, "r"))){printf("error occured making config file"); free(configDIR); return -1;} 
-
-    }
-    // set config struct's configDIR to configDIR
-    strcpy(config.configDIR,configDIR);
-
-    // get flashcardDIR from config file
-    fgets(config.flashcardDIR, 128, configFile);
-    strcpy(config.flashcardDIR , trim_whitespaces(config.flashcardDIR));
+    get_config_struct(&config);
 
 
     // init ncurses
@@ -157,14 +84,16 @@ int main(){
 
 
     if (can_change_color()){
+        // colorscheme based on tokyonight
         init_color(COLOR_BLACK, 106, 114, 169);
         init_color(COLOR_RED, 1000, 459,498);
-        init_color(COLOR_GREEN, 765, 910, 553);
         init_color(COLOR_YELLOW, 1000, 780, 467);
         init_color(COLOR_BLUE, 510, 667, 1000);
         init_color(COLOR_WHITE, 510, 545, 722);
 
     }
+
+    // colors
     init_pair(1, COLOR_YELLOW , COLOR_BLUE);     // background:          white on blue
     init_pair(2, COLOR_BLACK , COLOR_WHITE);    // default window:      black on white
     init_pair(3, COLOR_BLACK , COLOR_RED);      // selection:           white on red
@@ -193,7 +122,6 @@ int main(){
     runMainMenu();
 
     // clean up
-    free(configDIR);
     endwin();
     
     return 0;
@@ -386,8 +314,8 @@ void editList(char ListName[]){
         strncpy(ListPath, ListName, FLASHCARDFILESIZE);
     }
     else{
-        strcpy(ListPath, config.flashcardDIR);
-        strncat(ListPath, ListName, FLASHCARDFILESIZE-strnlen(config.flashcardDIR, 128));
+        strcpy(ListPath, config.flashcard_dir);
+        strncat(ListPath, ListName, FLASHCARDFILESIZE-strnlen(config.flashcard_dir, 128));
     }
     
     FlashcardSet* flashcardset = create_Flashcard_Set_Object();
@@ -422,7 +350,7 @@ void editList(char ListName[]){
 
     wrefresh(edit_list_menu_window);
     // init the menu
-    init_table(&flashcardTable, flashcardset->numItems, 2,width, height, &tablewindow, "Editing Flashcards", headers, table);
+    init_table(&flashcardTable, flashcardset->num_items, 2,width, height, &tablewindow, "Editing Flashcards", headers, table);
     wrefresh(flashcardTable.p_win->window);
     
     // character from getch()
@@ -454,15 +382,15 @@ void editList(char ListName[]){
                 changeselect_table(&flashcardTable, 0, 1);
                 break;
             case 's': // star
-                flashcardset->cards[flashcardTable.selectedrow].is_starred = !flashcardset->cards[flashcardTable.selectedrow].is_starred;
+                flashcardset->cards[flashcardTable.selected_row].is_starred = !flashcardset->cards[flashcardTable.selected_row].is_starred;
                 getpairslimiter(flashcardset, starred, items, defns);
                 table[0] = items;
                 break;
             case 10: //enter
-                if(flashcardTable.selectedcol == 0){
+                if(flashcardTable.selected_col == 0){
                     char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE);
                     if(Name != NULL && !is_all_space(Name)){
-                        strcpy(flashcardset->cards[flashcardTable.selectedrow].name, Name);
+                        strcpy(flashcardset->cards[flashcardTable.selected_row].name, Name);
                         getpairslimiter(flashcardset, starred, items, defns);
                         table[0] = items;
                         refresh();
@@ -472,7 +400,7 @@ void editList(char ListName[]){
                 else{
                     char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE);
                     if(Defn != NULL && !is_all_space(Defn)){
-                        strcpy(flashcardset->cards[flashcardTable.selectedrow].definition, Defn);
+                        strcpy(flashcardset->cards[flashcardTable.selected_row].definition, Defn);
                         getpairslimiter(flashcardset, starred, items, defns);
                         table[1] = defns;
                         refresh();
@@ -487,7 +415,7 @@ void editList(char ListName[]){
                 wattroff(edit_list_menu_window, A_BOLD);
                 wrefresh(edit_list_menu_window);
                 if ('y' == getch()){
-                    deletecard(flashcardset, flashcardTable.selectedrow);
+                    deletecard(flashcardset, flashcardTable.selected_row);
                     free(items);
                     free(defns);
                     items = calloc(flashcardset->capacity, sizeof(char[128]));
@@ -495,8 +423,8 @@ void editList(char ListName[]){
                     getpairslimiter(flashcardset, starred, items, defns);
                     table[0] = items;
                     table[1] = defns;
-                    flashcardTable.numrows = flashcardset->numItems;
-                    if (flashcardTable.numrows <= flashcardTable.selectedrow){
+                    flashcardTable.num_rows = flashcardset->num_items;
+                    if (flashcardTable.num_rows <= flashcardTable.selected_row){
                         changeselect_table(&flashcardTable, -1, 0);
                     }
                 }
@@ -524,7 +452,7 @@ void editList(char ListName[]){
                         getpairslimiter(flashcardset, starred, items, defns);
                         table[0] = items;
                         table[1] = defns;
-                        flashcardTable.numrows = flashcardset->numItems;
+                        flashcardTable.num_rows = flashcardset->num_items;
                         refresh();
                         free(Defn);
                     }
@@ -605,16 +533,16 @@ char* _getLists(int start_at, void (*to_call)(char*)){
     struct stat statbuf;
 
     int numfiles = 0;
-    if((dp = opendir(config.flashcardDIR)) == NULL) {
-        mkdir(config.flashcardDIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-        if((dp = opendir(config.flashcardDIR)) == NULL) {
+    if((dp = opendir(config.flashcard_dir)) == NULL) {
+        mkdir(config.flashcard_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        if((dp = opendir(config.flashcard_dir)) == NULL) {
             int error = errno;
             endwin();
             printf("ERROR: Could not open or create flashcard directory. error description:%s", strerror(error));
             exit(-1);
         }
     }
-    chdir(config.flashcardDIR);
+    chdir(config.flashcard_dir);
 
     while((entry = readdir(dp)) !=NULL){
         lstat(entry->d_name, &statbuf);
@@ -628,16 +556,16 @@ char* _getLists(int start_at, void (*to_call)(char*)){
     }
     else{
         char (*files)[128] = calloc(numfiles, sizeof(char[128]));
-        if((dp = opendir(config.flashcardDIR)) == NULL) {
-            mkdir(config.flashcardDIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-            if((dp = opendir(config.flashcardDIR)) == NULL) {
+        if((dp = opendir(config.flashcard_dir)) == NULL) {
+            mkdir(config.flashcard_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+            if((dp = opendir(config.flashcard_dir)) == NULL) {
                 int error = errno;
                 endwin();
                 printf("ERROR: Could not open or create flashcard directory. error description:%s", strerror(error));
                 exit(-1);
             }
         }
-        chdir(config.flashcardDIR);
+        chdir(config.flashcard_dir);
 
         int i = 0;
         while((entry = readdir(dp)) != NULL){
@@ -741,7 +669,7 @@ char* getLists(void (*to_call)(char*)) {
 void addList(){
 
     char newfile[FLASHCARDFILESIZE]={0};
-    strcpy(newfile, trim_whitespaces(config.flashcardDIR));
+    strcpy(newfile, trim_whitespaces(config.flashcard_dir));
     char* file = getString("Name new List", 31);
     if (file == NULL || is_all_space(file)) return;
     strcat(newfile, trim_whitespaces(file));
