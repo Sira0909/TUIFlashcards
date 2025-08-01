@@ -6,4 +6,6 @@ typedef struct _CONFIG{ //structure to hold config variables
 } CONFIGSTRUCT;
 
 void get_config_struct(CONFIGSTRUCT *config);
+
+static CONFIGSTRUCT config; // structure instance
 #endif

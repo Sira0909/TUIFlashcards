@@ -55,7 +55,6 @@ char selectionkeybinds[10][2][20] = {
     {"?", "list keybinds"}
 };
 
-CONFIGSTRUCT config; // structure instance
 
 void runMainMenu();
 void editList(char ListName[]);

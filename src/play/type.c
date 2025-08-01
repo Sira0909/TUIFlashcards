@@ -1,2 +1,5 @@
 #include "main.h"
-void type(FlashcardSet *flashcard_set);
+void type(FlashcardSet *flashcard_set){
+
+
+}

@@ -1,6 +1,11 @@
 #include "main.h"
 #include "../window.h"
+#include "../flashcards.h"
+#include "../config.h"
 #include <ncurses.h>
+
+
+//void (*games[2][3])(FlashcardSet*) ={flashcard,  type};
 
 
 //unfinished
@@ -36,6 +41,21 @@ void play(char* list){
     mvwprintw(top, 4, (23 - 4)/2, "type" );
 
 
+    char ListPath[FLASHCARDFILESIZE];
+    if(list[0] == '/' || list[0] == '~'){
+        strncpy(ListPath, list, FLASHCARDFILESIZE);
+    }
+    else{
+        strcpy(ListPath, config.flashcard_dir);
+        strncat(ListPath, list, FLASHCARDFILESIZE-strnlen(config.flashcard_dir, 128));
+    }
+    
+    FlashcardSet* flashcard_set = create_Flashcard_Set_Object();
+    
+    if (-1 == fillFlashcardSet(flashcard_set, ListPath)) {
+        deleteSetPointer(&flashcard_set);
+        return;
+    }
 
 
     wattron(topleft, A_BOLD);
@@ -69,6 +89,10 @@ void play(char* list){
             case 'q':
                 erasewindow(mainPlayWindow);
                 return;
+            case 10:
+                switch(selectedy*3+selectedx){
+                    case 0:
+                        flashcard(flashcard_set);
         }
         for(int i = 0; i < 2; i++){
             for(int j = 0; j < 3; j++){
