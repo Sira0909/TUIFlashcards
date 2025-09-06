@@ -14,7 +14,7 @@ void init_menu(MENU *p_menu, int size, int width, int height, WINDOW** window, c
 }
 
 // draws menu
-void render_menu(MENU *p_menu){
+void render_menu(MENU *p_menu, char* highlighted){
     // the center of available table space
     int ideal = (p_menu->p_win->height) / 2;
     int center;
@@ -58,6 +58,17 @@ void render_menu(MENU *p_menu){
             wchgat(p_menu->p_win->window, -1,A_BOLD, 3, NULL);
         else
             wchgat(p_menu->p_win->window, -1,A_NORMAL, 2, NULL);
+        // starred items are yellow
+        if(highlighted != NULL && highlighted[i] == '*') {
+            // starred selected is yellow on red and bold
+            if (p_menu->selected ==i)
+                    wchgat(p_menu->p_win->window, -1,A_BOLD, 5, NULL);
+                
+            // starred nonselected is yellow on white
+            else
+                wchgat(p_menu->p_win->window, -1 ,A_NORMAL, 4, NULL);
+            
+        }
 
     }
     box(p_menu->p_win->window, 0, 0);

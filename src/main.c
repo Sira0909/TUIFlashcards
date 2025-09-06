@@ -148,7 +148,7 @@ void runMainMenu(){
     bool done = false;
     while(!done){
         // refresh menu (see MENU.c)
-        render_menu(&mainmenu) ;
+        render_menu(&mainmenu, NULL) ;
         ch = getch();
         switch(ch){
             case 'j': // down
@@ -594,7 +594,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
         bool done = false;
         while(!done){
             // refresh menu (see MENU.c)
-            render_menu(&selectmenu) ;
+            render_menu(&selectmenu,NULL) ;
             ch = getch();
             switch(ch){
                 case 'j': // down

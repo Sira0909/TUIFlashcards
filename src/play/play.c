@@ -2,11 +2,77 @@
 #include "../window.h"
 #include "../flashcards.h"
 #include "../config.h"
+#include "../MENU.h"
 #include <ncurses.h>
 
 
 //void (*games[2][3])(FlashcardSet*) ={flashcard,  type};
 
+bool get_settings(bool* starred_only, bool* shuffle){
+    MENU setting_menu;
+
+    char items[5][128] = { "Only starred items  \0", "Shuffle flashcards  \0", "\0", "Continue\0", "\0"};
+
+    // create window for menu. this menu object is defined globally, see above
+    WINDOW* setting_window;
+    setting_window = create_newwin(7, 23, (LINES - 5)/2, (COLS - 20)/2);
+
+    // init the menu
+    init_menu(&setting_menu, 5, 20,5, &setting_window, "Settings", items);
+    wrefresh(setting_menu.p_win->window);
+
+     
+    // character from getch()
+    int ch;
+
+    // so that we can leave while loop
+    bool done = false;
+    char flags[5] = {0,0,0,0,0};
+    while(!done){
+        // refresh menu (see MENU.c)
+        flags[0] = *starred_only ? '*' : 0;
+        items[0][19] = *starred_only ? '*' : ' ';
+        flags[1] = *shuffle ? '*' : 0;
+        items[1][19] = *shuffle ? '*' : ' ';
+        render_menu(&setting_menu, flags) ;
+        ch = getch();
+        switch(ch){
+            case 'j': // down
+                changeselect(&setting_menu, 1);
+                break;
+            case 'k': // up
+                changeselect(&setting_menu, -1);
+                break;
+            case 'q': // quit
+                done = true;
+                setting_menu.p_win->window = NULL;
+                free(setting_menu.p_win);
+                delwin(setting_window);
+                return false;
+            case 10: //enter
+                switch(setting_menu.selected){
+                    case 0:
+                        *starred_only = !(*starred_only);
+                        break;
+                    case 1:
+                        *shuffle = !(*shuffle);
+                        break;
+                    case 3:
+                        // clean up
+                        setting_menu.p_win->window = NULL;
+                        free(setting_menu.p_win);
+                        delwin(setting_window);
+                        return true;
+                }
+                break;
+        }
+    }
+    setting_menu.p_win->window = NULL;
+    free(setting_menu.p_win);
+    delwin(setting_window);
+    return false;
+
+}
 
 //unfinished
 void play(char* list){
@@ -90,9 +156,24 @@ void play(char* list){
                 erasewindow(mainPlayWindow);
                 return;
             case 10:
-                switch(selectedy*3+selectedx){
-                    case 0:
-                        flashcard(flashcard_set);
+                {
+
+                    WINDOW* coverWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
+                    wbkgd(coverWindow, COLOR_PAIR(1));
+                    wrefresh(coverWindow);
+                    bool starred_only = false;
+                    bool shuffle = false;
+                    if (get_settings(&starred_only, &shuffle)){
+                        switch(selectedy*3+selectedx){
+                            case 0:
+                                flashcard(flashcard_set);
+                        }
+                    }
+                    erasewindow(coverWindow);
+                    box(mainPlayWindow, 0, 0);
+                    wrefresh(mainPlayWindow);
+                    break;
+                }
         }
         for(int i = 0; i < 2; i++){
             for(int j = 0; j < 3; j++){

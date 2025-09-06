@@ -13,7 +13,7 @@ typedef struct _menu_struct{
 
 void init_menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char (*menuitems)[]);
 
-void render_menu(MENU *p_menu);
+void render_menu(MENU *p_menu, char* highlighted);
 
 void changeselect(MENU *p_menu, int change);
 #endif
