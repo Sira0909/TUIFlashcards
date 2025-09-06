@@ -1,4 +1,5 @@
 #include <ncurses.h>
+#include "../helpers.h"
 #include "../window.h"
 #include "../flashcards.h"
 void play(char* list);

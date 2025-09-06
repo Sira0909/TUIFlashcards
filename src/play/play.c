@@ -1,11 +1,26 @@
 #include "main.h"
-#include "../window.h"
-#include "../flashcards.h"
 #include "../config.h"
 #include "../MENU.h"
 #include <ncurses.h>
 
+char settingskeybinds[10][2][20] = {
+    {"j","down"},
+    {"k","up"},
+    {" ", " "},
+    {"<enter>", "toggle"},
+    {" ", " "},
+    {"?", "list keybinds"}
+};
 
+char playkeybinds[7][2][20] = {
+    {"h", "left"},
+    {"j","down"},
+    {"k","up"},
+    {"l","right"},
+    {"<enter>", "select"},
+    {" ", " "},
+    {"?", "list keybinds"}
+};
 //void (*games[2][3])(FlashcardSet*) ={flashcard,  type};
 
 bool get_settings(bool* starred_only, bool* shuffle){
@@ -13,11 +28,10 @@ bool get_settings(bool* starred_only, bool* shuffle){
 
     char items[5][128] = { "Only starred items  \0", "Shuffle flashcards  \0", "\0", "Continue\0", "\0"};
 
-    // create window for menu. this menu object is defined globally, see above
+    // create window for menu. 
     WINDOW* setting_window;
     setting_window = create_newwin(7, 23, (LINES - 5)/2, (COLS - 20)/2);
 
-    // init the menu
     init_menu(&setting_menu, 5, 20,5, &setting_window, "Settings", items);
     wrefresh(setting_menu.p_win->window);
 
@@ -25,7 +39,6 @@ bool get_settings(bool* starred_only, bool* shuffle){
     // character from getch()
     int ch;
 
-    // so that we can leave while loop
     bool done = false;
     char flags[5] = {0,0,0,0,0};
     while(!done){
@@ -64,6 +77,9 @@ bool get_settings(bool* starred_only, bool* shuffle){
                         delwin(setting_window);
                         return true;
                 }
+                break;
+            case '?':
+                list_keybinds(6, settingskeybinds);
                 break;
         }
     }
@@ -174,6 +190,11 @@ void play(char* list){
                     wrefresh(mainPlayWindow);
                     break;
                 }
+            case '?':
+                list_keybinds(7, settingskeybinds);
+                box(mainPlayWindow, 0, 0);
+                wrefresh(mainPlayWindow);
+                break;
         }
         for(int i = 0; i < 2; i++){
             for(int j = 0; j < 3; j++){
