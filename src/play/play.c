@@ -182,7 +182,7 @@ void play(char* list){
                     if (get_settings(&starred_only, &shuffle)){
                         switch(selectedy*3+selectedx){
                             case 0:
-                                flashcard(flashcard_set);
+                                flashcard(flashcard_set, starred_only, shuffle);
                         }
                     }
                     erasewindow(coverWindow);
