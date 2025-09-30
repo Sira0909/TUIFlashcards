@@ -26,7 +26,7 @@ char playkeybinds[7][2][20] = {
 bool get_settings(bool* starred_only, bool* shuffle){
     MENU setting_menu;
 
-    char items[5][128] = { "Only starred items  \0", "Shuffle flashcards  \0", "\0", "Continue\0", "\0"};
+    char items[5][128] = { "Only starred items", "Shuffle flashcards", "\0", "Continue\0", "\0"};
 
     // create window for menu. 
     WINDOW* setting_window;
@@ -74,7 +74,7 @@ bool get_settings(bool* starred_only, bool* shuffle){
                         // clean up
                         setting_menu.p_win->window = NULL;
                         free(setting_menu.p_win);
-                        delwin(setting_window);
+                        erasewindow(setting_window);
                         return true;
                 }
                 break;
@@ -85,7 +85,7 @@ bool get_settings(bool* starred_only, bool* shuffle){
     }
     setting_menu.p_win->window = NULL;
     free(setting_menu.p_win);
-    delwin(setting_window);
+    erasewindow(setting_window);
     return false;
 
 }
@@ -183,6 +183,10 @@ void play(char* list){
                         switch(selectedy*3+selectedx){
                             case 0:
                                 flashcard(flashcard_set, starred_only, shuffle);
+                                break;
+                            case 1:
+                                type(flashcard_set, starred_only, shuffle);
+                                break;
                         }
                     }
                     erasewindow(coverWindow);
