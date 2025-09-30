@@ -1,28 +1,50 @@
-#include "main.h"
-#include "../config.h"
-#include "../MENU.h"
+#include <study/modes.h>
+#include <stdlib.h>
+#include <config.h>
 #include <ncurses.h>
+#include <time.h>
+#include <windows/keybinds.h>
+#include <windows/menu.h>
+#include <windows/window.h>
 
-char settingskeybinds[10][2][20] = {
-    {"j","down"},
-    {"k","up"},
-    {" ", " "},
-    {"<enter>", "toggle"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
-
-char playkeybinds[7][2][20] = {
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
-    {"<enter>", "select"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
 //void (*games[2][3])(FlashcardSet*) ={flashcard,  type};
+//
+//
+int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starred_only){
+    srand(time(NULL));
+    int numCards=0;
+    for(int i = 0; i<flashcard_set->num_items;i++){
+        if(!starred_only || flashcard_set->cards[i].is_starred){
+            order[numCards] = i;
+            numCards++;
+        }
+    }
 
+    if(shuffle){
+        for(int i = 0; i<numCards; i++){
+            int swapindex = rand()%numCards;
+            int toswap = order[swapindex];
+            order[swapindex] = order[i];
+            order[i] = toswap;
+        }
+    }
+    if (numCards == 0){
+        WINDOW* errorWin = create_newwin(3, 30, (LINES-1)/2, (COLS-28)/2);
+        wbkgd(errorWin, COLOR_PAIR(7));
+        box(errorWin,0,0);
+        wattron(errorWin,A_BOLD);
+        mvwprintw(errorWin,1,1, "No cards match criteria");
+        wmove(errorWin, 0, 1);
+        waddch(errorWin, ACS_RTEE);
+        wprintw(errorWin, "%s", "Error");
+        waddch(errorWin, ACS_LTEE);
+        wrefresh(errorWin);
+        getch();
+        erasewindow(errorWin);
+        return 0;
+    }
+    return numCards;
+}
 bool get_settings(bool* starred_only, bool* shuffle){
     MENU setting_menu;
 
@@ -33,7 +55,7 @@ bool get_settings(bool* starred_only, bool* shuffle){
     setting_window = create_newwin(7, 23, (LINES - 5)/2, (COLS - 20)/2);
 
     init_menu(&setting_menu, 5, 20,5, &setting_window, "Settings", items);
-    wrefresh(setting_menu.p_win->window);
+    wrefresh(setting_menu.window);
 
      
     // character from getch()
@@ -58,8 +80,8 @@ bool get_settings(bool* starred_only, bool* shuffle){
                 break;
             case 'q': // quit
                 done = true;
-                setting_menu.p_win->window = NULL;
-                free(setting_menu.p_win);
+                setting_menu.window = NULL;
+                free(setting_menu.window);
                 delwin(setting_window);
                 return false;
             case 10: //enter
@@ -72,8 +94,8 @@ bool get_settings(bool* starred_only, bool* shuffle){
                         break;
                     case 3:
                         // clean up
-                        setting_menu.p_win->window = NULL;
-                        free(setting_menu.p_win);
+                        setting_menu.window = NULL;
+                        free(setting_menu.window);
                         erasewindow(setting_window);
                         return true;
                 }
@@ -83,15 +105,15 @@ bool get_settings(bool* starred_only, bool* shuffle){
                 break;
         }
     }
-    setting_menu.p_win->window = NULL;
-    free(setting_menu.p_win);
+    setting_menu.window = NULL;
+    free(setting_menu.window);
     erasewindow(setting_window);
     return false;
 
 }
 
 //unfinished
-void play(char* list){
+void pickMode(char* list){
     WINDOW* mainPlayWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
     wbkgd(mainPlayWindow, COLOR_PAIR(2));
     box(mainPlayWindow, 0, 0);
@@ -121,6 +143,7 @@ void play(char* list){
 
     mvwprintw(topleft, 4, (23- 10)/2, "flashcards" );
     mvwprintw(top, 4, (23 - 4)/2, "type" );
+    mvwprintw(topright, 4, (23 - 15)/2, "Multiple Choice" );
 
 
     char ListPath[FLASHCARDFILESIZE];
@@ -186,6 +209,9 @@ void play(char* list){
                                 break;
                             case 1:
                                 type(flashcard_set, starred_only, shuffle);
+                                break;
+                            case 2:
+                                multipleChoice(flashcard_set, starred_only, shuffle);
                                 break;
                         }
                     }

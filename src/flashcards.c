@@ -1,6 +1,9 @@
-#include "flashcards.h"
-#include "helpers.h"
+
+#include <macros.h>
+#include <stdlib.h>
 #include <stdio.h>
+
+#include <flashcards.h>
 
 //constructor
 FlashcardSet* create_Flashcard_Set_Object(){
@@ -134,4 +137,3 @@ void getpairslimiter(FlashcardSet* flashcard_set, char isstarred[], char items[]
         strncpy(definitions[i],flashcard_set->cards[i].definition,127);
     }
 }
-

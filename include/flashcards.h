@@ -1,7 +1,7 @@
 #ifndef FLASHCARDSH
 #define FLASHCARDSH
-#include "constants.h"
-
+#include "macros.h"
+#include <stdbool.h>
 
 
 
@@ -31,5 +31,6 @@ int fillFlashcardSet(FlashcardSet* flashcardset, char filePath[FLASHCARDFILESIZE
 void getpairs(FlashcardSet* flashcardset, char items[][MAX_FLASHCARD_SET_ITEM_SIZE+1],char definitions[][MAX_FLASHCARD_SET_DEFN_SIZE+1]);
 
 void getpairslimiter(FlashcardSet* flashcardset, char isstarred[], char items[][128],char definitions[][128]);
+
 
 #endif

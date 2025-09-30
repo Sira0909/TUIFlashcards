@@ -1,22 +1,22 @@
-#include "MENU.h"
 #include <ncurses.h>
 #include <string.h>
-#include "helpers.h"
-//constructor
+#include <macros.h>
+#include <stdlib.h>
+#include <windows/menu.h>
+
 void init_menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char (*menuitems)[]){
-    WIN* pwin = malloc(sizeof(WIN)); //init_win_params_simple(p_menu->p_win, height, width, 2);
-    pwin->height = height;
-    pwin->width = width;
-    pwin->window = *window;
-    *p_menu = (MENU){pwin, size, 0, title, menuitems};
-    wbkgd(p_menu->p_win->window, COLOR_PAIR(2));
+    *p_menu = (MENU){*window, width, height, size, 0, title, menuitems};
+    wbkgd(p_menu->window, COLOR_PAIR(2));
 
 }
+
+
+
 
 // draws menu
 void render_menu(MENU *p_menu, char* highlighted){
     // the center of available table space
-    int ideal = (p_menu->p_win->height) / 2;
+    int ideal = (p_menu->height) / 2;
     int center;
 
     // if there aren't enough columns before the selected row, top of table is top row
@@ -28,52 +28,52 @@ void render_menu(MENU *p_menu, char* highlighted){
     // if there are enough columns before and after it, the selected row is placed in the center of the available space
     else center = p_menu->selected;
 
-    for(int i = center - ideal; (i < center - ideal + p_menu->p_win->height) && (i < p_menu->numOptions); i++){
+    for(int i = center - ideal; (i < center - ideal + p_menu->height) && (i < p_menu->numOptions); i++){
         int size = strlen(p_menu->menuitems[i]); 
 
         // too long 
-        if(strlen(p_menu->menuitems[i]) > p_menu->p_win->width){
-            char *item = calloc(p_menu->p_win->width, sizeof(char));
-            strncpy(item, p_menu->menuitems[i], p_menu->p_win->width-3);
+        if(strlen(p_menu->menuitems[i]) > p_menu->width){
+            char *item = calloc(p_menu->width, sizeof(char));
+            strncpy(item, p_menu->menuitems[i], p_menu->width-3);
             // to represent too long
             strcat(item, "...");
 
-            mvwprintw(p_menu->p_win->window, i+1,1, "%s", item);
-            wmove(p_menu->p_win->window, i+1, 1);
+            mvwprintw(p_menu->window, i+1,1, "%s", item);
+            wmove(p_menu->window, i+1, 1);
             free(item);
 
             //selected is bold and red highlight
             if(p_menu->selected ==i) 
-                wchgat(p_menu->p_win->window, -1,A_BOLD, 3, NULL);
+                wchgat(p_menu->window, -1,A_BOLD, 3, NULL);
             else
-                wchgat(p_menu->p_win->window, -1,A_NORMAL, 2, NULL);
+                wchgat(p_menu->window, -1,A_NORMAL, 2, NULL);
 
 
         }
-        mvwprintw(p_menu->p_win->window, i+1,1, "%s", p_menu->menuitems[i]);
-        wmove(p_menu->p_win->window, i+1, 1);
+        mvwprintw(p_menu->window, i+1,1, "%s", p_menu->menuitems[i]);
+        wmove(p_menu->window, i+1, 1);
 
         //selected is bold and red highlight
         if(p_menu->selected ==i) 
-            wchgat(p_menu->p_win->window, -1,A_BOLD, 3, NULL);
+            wchgat(p_menu->window, -1,A_BOLD, 3, NULL);
         else
-            wchgat(p_menu->p_win->window, -1,A_NORMAL, 2, NULL);
+            wchgat(p_menu->window, -1,A_NORMAL, 2, NULL);
         // starred items are yellow
         if(highlighted != NULL && highlighted[i] == '*') {
             // starred selected is yellow on red and bold
             if (p_menu->selected ==i)
-                    wchgat(p_menu->p_win->window, -1,A_BOLD, 5, NULL);
+                    wchgat(p_menu->window, -1,A_BOLD, 5, NULL);
                 
             // starred nonselected is yellow on white
             else
-                wchgat(p_menu->p_win->window, -1 ,A_NORMAL, 4, NULL);
+                wchgat(p_menu->window, -1 ,A_NORMAL, 4, NULL);
             
         }
 
     }
-    box(p_menu->p_win->window, 0, 0);
-    wmove(p_menu->p_win->window, 0, 1); waddch(p_menu->p_win->window, ACS_RTEE);wprintw(p_menu->p_win->window, "%s", p_menu->title); waddch(p_menu->p_win->window, ACS_LTEE);
-    wrefresh(p_menu->p_win->window);
+    box(p_menu->window, 0, 0);
+    wmove(p_menu->window, 0, 1); waddch(p_menu->window, ACS_RTEE);wprintw(p_menu->window, "%s", p_menu->title); waddch(p_menu->window, ACS_LTEE);
+    wrefresh(p_menu->window);
     
 }
 

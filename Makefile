@@ -1,10 +1,10 @@
 all: TUIFlashcards 
-C_SOURCES= ${wildcard src/*.c src/play/*.c}
-HEADERS = ${wildcard src/*.h src/play/*.h} 
-CC?=clang
+C_SOURCES= ${wildcard src/*.c src/*/*.c}
+HEADERS = ${wildcard include/*.h include/*/*.h} 
+CC?=gcc
 
 TUIFlashcards: $(C_SOURCES) $(HEADERS)
-	clang -lform -lncurses $(C_SOURCES) -o $@
+	$(CC) -lform -lncurses $(C_SOURCES) -I ./include/ -o $@
 
 install: TUIFlashcards
 	sudo cp TUIFlashcards /usr/bin/

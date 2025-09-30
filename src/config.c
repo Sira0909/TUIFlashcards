@@ -1,12 +1,11 @@
-#include <ncurses.h>
-#include "config.h"
-#include "helpers.h"
-#include "string.h"
+#include <macros.h>
+
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include <sys/stat.h>
-
+#include <config.h>
 
 void get_config_struct(CONFIGSTRUCT *config){
     //get directory for config files

@@ -1,59 +1,28 @@
-#include "constants.h"
-#include "window.h"
-#include "WIN.h"
-#include "MENU.h"
-#include "flashcards.h"
-#include "TABLE.h"
-#include "config.h"
-#include "play/main.h"
-#include "helpers.h"
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <ncurses.h>
+#include <form.h>
 
-bool is_all_space(char *string){
-    for (int i = 0; string[i] != '\0'; i++){
-        if(string[i]!= ' ') return false;
-    }
-    return true;
-}
+#include <macros.h>
+#include <flashcards.h>
+#include <config.h>
+
+#include <windows/window.h>
+#include <windows/menu.h>
+#include <windows/table.h>
+#include <windows/keybinds.h>
+
+#include <study/modes.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <errno.h>
 
 
-// lists of keybinds
-char mainkeybinds[7][2][20] = {
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
-    {"<enter>", "select"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
-char editkeybinds[13][2][20]= { 
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
-    {"<enter>", "edit text"},
-    {" ", " "},
-    {"s", "star flashcard"},
-    {"a", "add flashcard"},
-    {"d", "delete flashcard"},
-    {" ", " "},
-    {"w", "save"},
-    {"q", "quit without save"},
-    {"?", "list keybinds"}
-};
-char selectionkeybinds[10][2][20] = {
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
-    {"<enter>", "select list"},
-    {" ", " "},
-    {"a", "add list"},
-    {"d", "delete list"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
+
 
 
 void runMainMenu();
@@ -61,34 +30,11 @@ void editList(char ListName[]);
 void addList();
 
 char* getLists(void (*to_call)(char*)) ;
-void play(char* list);
 
 
-void list_keybinds(int numBinds, char (*keybinds)[2][20]){
-    WINDOW* helpwindow = create_newwin(numBinds+4, 32, (LINES-numBinds-2)/2, COLS/2 - 15);
-    wbkgd(helpwindow, COLOR_PAIR(2));
-    wattron(helpwindow, A_BOLD);
-
-    box(helpwindow, 0, 0);
-
-
-    mvwprintw(helpwindow, 1, 1, "keybinds:");
-
-    for(int i = 0; i<numBinds; i++){
-        mvwprintw(helpwindow, 3+i, 1, "%s", keybinds[i][0]);
-        
-        mvwprintw(helpwindow, 3+i, 31-strnlen(keybinds[i][1],20), "%s", keybinds[i][1]);
-    }
-
-    wrefresh(helpwindow);
-    getch();
-    erasewindow(helpwindow);
-
-}
 
 int ListPick();
 
-WINDOW* menu_window; //main menu window ptr
 
 int main(){
 
@@ -156,11 +102,11 @@ void runMainMenu(){
     char items[7][128] = {"Study\0", "\0", "New List\0", "Edit List\0", "\0", "Quit\0", "\0"};
 
     // create window for menu. this menu object is defined globally, see above
-    menu_window = create_newwin(9, 22, (LINES - 7)/2, (COLS - 20)/2);
+    WINDOW* menu_window = create_newwin(9, 22, (LINES - 7)/2, (COLS - 20)/2);
 
     // init the menu
     init_menu(&mainmenu, 7, 20,7, &menu_window, "Let's Study!", items);
-    wrefresh(mainmenu.p_win->window);
+    wrefresh(mainmenu.window);
     
     // character from getch()
     int ch;
@@ -187,7 +133,7 @@ void runMainMenu(){
                 wrefresh(stdscr);
                 switch(mainmenu.selected){
                     case 0: // "Study"
-                        getLists(play);
+                        getLists(pickMode);
                         break;
                     case 2: // "New List"
                         addList();
@@ -211,8 +157,8 @@ void runMainMenu(){
     }
     
     // clean up
-    mainmenu.p_win->window = NULL;
-    free(mainmenu.p_win);
+    mainmenu.window = NULL;
+    free(mainmenu.window);
     delwin(menu_window);
 
 
@@ -371,7 +317,7 @@ void editList(char ListName[]){
     wrefresh(edit_list_menu_window);
     // init the menu
     init_table(&flashcardTable, flashcardset->num_items, 2,width, height, &tablewindow, "Editing Flashcards", headers, table);
-    wrefresh(flashcardTable.p_win->window);
+    wrefresh(flashcardTable.window);
     
     // character from getch()
     int ch;
@@ -488,12 +434,12 @@ void editList(char ListName[]){
                 switch (getch()){
                     case 'y':
                         done = true;
-                        erasewindow(flashcardTable.p_win->window);
+                        erasewindow(flashcardTable.window);
                         erasewindow(edit_list_menu_window);
                         edit_list_menu_window = NULL;
-                        flashcardTable.p_win->window = NULL;
-                        free(flashcardTable.p_win);
-                        flashcardTable.p_win = NULL;
+                        flashcardTable.window = NULL;
+                        free(flashcardTable.window);
+                        flashcardTable.window = NULL;
                         free(items);
                         free(defns);
                         writeFlashcardSet(flashcardset, ListPath, 1);
@@ -532,12 +478,12 @@ void editList(char ListName[]){
         }
 
     }
-    erasewindow(flashcardTable.p_win->window);
+    erasewindow(flashcardTable.window);
     erasewindow(edit_list_menu_window);
     edit_list_menu_window = NULL;
-    flashcardTable.p_win->window = NULL;
-    free(flashcardTable.p_win);
-    flashcardTable.p_win = NULL;
+    flashcardTable.window = NULL;
+    free(flashcardTable.window);
+    flashcardTable.window = NULL;
     free(items);
     free(defns);
     deleteSetPointer(&flashcardset);
@@ -603,7 +549,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
 
         // init the menu
         init_menu(&selectmenu, numfiles, 32,LINES-8, &select_menu_window, "select list", files);
-        wrefresh(selectmenu.p_win->window);
+        wrefresh(selectmenu.window);
 
         selectmenu.selected = start_at;
         if (selectmenu.selected >= numfiles) selectmenu.selected = numfiles-1;
@@ -637,8 +583,8 @@ char* _getLists(int start_at, void (*to_call)(char*)){
                             wattron(select_menu_window, A_BOLD);
                             mvwprintw(select_menu_window, LINES-7, 1, "File deleted.");
                             wattroff(select_menu_window, A_BOLD);
-                            selectmenu.p_win->window = NULL;
-                            free(selectmenu.p_win);
+                            selectmenu.window = NULL;
+                            free(selectmenu.window);
                             free(files);
                             erasewindow(select_menu_window);
                             return _getLists(selectmenu.selected,to_call);
@@ -650,8 +596,8 @@ char* _getLists(int start_at, void (*to_call)(char*)){
                     break;
                 case 'a':
                     addList();
-                    selectmenu.p_win->window = NULL;
-                    free(selectmenu.p_win);
+                    selectmenu.window = NULL;
+                    free(selectmenu.window);
                     free(files);
                     erasewindow(select_menu_window);
                     return _getLists(selectmenu.selected, to_call);
@@ -672,8 +618,8 @@ char* _getLists(int start_at, void (*to_call)(char*)){
             }
                     
         }
-        selectmenu.p_win->window = NULL;
-        free(selectmenu.p_win);
+        selectmenu.window = NULL;
+        free(selectmenu.window);
         free(files);
         erasewindow(select_menu_window);
     }

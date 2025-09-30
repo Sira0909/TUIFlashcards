@@ -1,5 +1,11 @@
-#ifndef HELPERSH
-#define HELPERSH 1
+#ifndef MACROS_H
+#define MACROS_H 1
+
+#define FLASHCARDFILESIZE 164
+#define MAX_FLASHCARD_SET_ITEM_SIZE 64
+#define MAX_FLASHCARD_SET_DEFN_SIZE 128
+
+
 // macro signum function
 #define sign(x) \
     ({ __typeof__ (x) _x = (x); \
@@ -13,7 +19,7 @@
 #define ctrl(x)           ((x) & 0x1f)
 
 #include <string.h>
-void list_keybinds(int numBinds, char (*keybinds)[2][20]);
+
 static char* trim_whitespaces(char *str)
 {
 	char *end;
@@ -39,4 +45,10 @@ static char* trim_whitespaces(char *str)
 	return str;
 }
 
+static int is_all_space(char *string){
+    for (int i = 0; string[i] != '\0'; i++){
+        if(string[i]!= ' ') return 0;
+    }
+    return 1;
+}
 #endif
