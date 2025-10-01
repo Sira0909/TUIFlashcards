@@ -1,4 +1,4 @@
-#include <study/modes.h>
+#include <study.h>
 #include <windows/window.h>
 #include <ncurses.h>
 #include <string.h>
@@ -17,15 +17,16 @@ void flashcard(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
         return;
 
     for(int i = 0; i<numCards;i++){
-        if (strlen(flashcard_set->cards[order[i]].definition)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].definition);
-        }
-        if (strlen(flashcard_set->cards[order[i]].name)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].name);
-        }
+//        if (strlen(flashcard_set->cards[order[i]].definition)>maxlength){
+//            maxlength = strlen(flashcard_set->cards[i].definition);
+//        }
+       // if (strlen(flashcard_set->cards[order[i]].name)>maxlength){
+       //     maxlength = strlen(flashcard_set->cards[i].name);
+       // }
     }
 
     WINDOW* FlashcardWindow = create_newwin((maxlength/4)*2+1, maxlength+4, (LINES-maxlength/2)/2, (COLS-maxlength-4)/2);
+    WINDOW* text = derwin(FlashcardWindow, (maxlength/4)*2-1, maxlength+2, 1, 1);
     wbkgd(FlashcardWindow, COLOR_PAIR(2));
     box(FlashcardWindow, 0, 0);
 
@@ -42,14 +43,15 @@ void flashcard(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
             card_text = flashcard_set->cards[order[currentcard]].definition;
         else
             card_text = flashcard_set->cards[order[currentcard]].name;
-        werase(FlashcardWindow);
-        wbkgd(FlashcardWindow, COLOR_PAIR(2));
-        box(FlashcardWindow, 0, 0);
-        wattron(FlashcardWindow,A_BOLD);
-        mvwprintw(FlashcardWindow, (maxlength)/4, (maxlength+3-strlen(card_text))/2, "%s", card_text);
-        wattroff(FlashcardWindow,A_BOLD);
+        werase(text);
+        touchwin(FlashcardWindow);
+        wbkgd(text, COLOR_PAIR(2));
+        wattron(text,A_BOLD);
+        mvwprintw(text, (maxlength)/4-1, (maxlength+1-strlen(card_text))/2, "%s", card_text);
+        wattroff(text,A_BOLD);
         //wprintw(FlashcardWindow, "%d", order[currentcard]);
         wrefresh(FlashcardWindow);
+
 
         ch = getch();
         switch (ch){

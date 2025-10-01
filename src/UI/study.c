@@ -1,15 +1,34 @@
-#include <study/modes.h>
+#include <study.h>
 #include <stdlib.h>
 #include <config.h>
 #include <ncurses.h>
 #include <time.h>
-#include <windows/keybinds.h>
 #include <windows/menu.h>
 #include <windows/window.h>
 
+#include <UI.h>
 //void (*games[2][3])(FlashcardSet*) ={flashcard,  type};
 //
 //
+char settingskeybinds[10][2][20] = {
+    {"j","down"},
+    {"k","up"},
+    {" ", " "},
+    {"<enter>", "toggle"},
+    {" ", " "},
+    {"?", "list keybinds"}
+};
+
+char playkeybinds[7][2][20] = {
+    {"h", "left"},
+    {"j","down"},
+    {"k","up"},
+    {"l","right"},
+    {"<enter>", "select"},
+    {" ", " "},
+    {"?", "list keybinds"}
+};
+
 int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starred_only){
     srand(time(NULL));
     int numCards=0;

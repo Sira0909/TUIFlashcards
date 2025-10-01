@@ -7,7 +7,7 @@ typedef struct _CONFIG{ //structure to hold config variables
     char flashcard_dir[128];
 } CONFIGSTRUCT;
 
-static CONFIGSTRUCT config; // structure instance
+extern CONFIGSTRUCT config; // structure instance
                            
 
 

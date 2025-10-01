@@ -1,4 +1,4 @@
-#include <study/modes.h>
+#include <study.h>
 #include <windows/window.h>
 #include <ncurses.h>
 #define complete 0

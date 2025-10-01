@@ -1,6 +1,6 @@
 all: TUIFlashcards 
-C_SOURCES= ${wildcard src/*.c src/*/*.c}
-HEADERS = ${wildcard include/*.h include/*/*.h} 
+C_SOURCES= ${wildcard src/*.c src/*/*.c src/*/*/*.c}
+HEADERS = ${wildcard include/*.h} 
 CC?=gcc
 
 TUIFlashcards: $(C_SOURCES) $(HEADERS)
