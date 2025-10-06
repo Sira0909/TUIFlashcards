@@ -161,9 +161,9 @@ void pickMode(char* list){
     wattron(bottom, A_BOLD);
     wattron(bottomright, A_BOLD);
 
-    mvwprintw(topleft, 4, (23- 10)/2, "flashcards" );
-    mvwprintw(top, 4, (23 - 4)/2, "type" );
-    mvwprintw(topright, 4, (23 - 15)/2, "Multiple Choice" );
+    mvwprintw(topleft, 4, (23- 10)/2, "Flashcards" );
+    mvwprintw(top, 4, (23 - 15)/2, "Multiple Choice" );
+    mvwprintw(topright, 4, (23 - 4)/2, "Type" );
 
 
     char ListPath[FLASHCARDFILESIZE];
@@ -229,10 +229,10 @@ void pickMode(char* list){
                                 flashcard(flashcard_set, starred_only, shuffle);
                                 break;
                             case 1:
-                                type(flashcard_set, starred_only, shuffle);
+                                multipleChoice(flashcard_set, starred_only, shuffle);
                                 break;
                             case 2:
-                                multipleChoice(flashcard_set, starred_only, shuffle);
+                                type(flashcard_set, starred_only, shuffle);
                                 break;
                         }
                     }

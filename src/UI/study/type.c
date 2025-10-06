@@ -128,6 +128,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                     wprintctrx(result_win, 6, cols+4, "Correct! Press enter to continue");
                     wrefresh(result_win);
                     getch();
+                    curs_set(1);
                 }
 
 

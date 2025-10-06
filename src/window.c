@@ -18,7 +18,7 @@ void erasewindow(WINDOW* window){
 }
 
 void wprintctr(WINDOW* window, int height, int width, char* string){
-    mvwprintw(window, height/2, (width-strlen(string))/2, "%s", string);
+    mvwprintw(window, (height-strlen(string)/width)/2, (width > strlen(string))?(width-strlen(string))/2 : 1, "%s", string);
 }
 void wprintctrx(WINDOW* window, int y, int width, char* string){
     mvwprintw(window, y, (width-strlen(string))/2, "%s", string);
