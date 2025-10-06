@@ -73,6 +73,7 @@ int main(){
     keypad(stdscr, TRUE);
     noecho();
     curs_set(0);
+    set_escdelay(100);
 
     // set background
     bkgd(COLOR_PAIR(1));
@@ -112,6 +113,7 @@ int main(){
             case 'k': // up
                 changeselect(&mainmenu, -1);
                 break;
+            case 27:
             case 'q': // quit
                 done = true;
                 break;

@@ -207,6 +207,7 @@ void editList(char ListName[]){
                         break;
                 }
                 break;
+            case 27:
             case 'q': // quit
                 wattron(edit_list_menu_window, A_BOLD);
                 mvwprintw(edit_list_menu_window, height, 1, "quit without saving? (y/n): ");

@@ -55,6 +55,7 @@ void flashcard(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
         ch = getch();
         switch (ch){
+            case 27:
             case 'q':
                 erasewindow(FlashcardWindow);
                 return;

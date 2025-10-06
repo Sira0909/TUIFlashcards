@@ -108,6 +108,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
                 case 'k': // up
                     changeselect(&selectmenu, -1);
                     break;
+                case 27:
                 case 'q': // quit
                     done = true;
                     break;

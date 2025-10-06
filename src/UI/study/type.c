@@ -108,9 +108,26 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                         mistakeindex++;
 
                     }
+                    else {
+                        werase(text);
+                        wbkgd(text, COLOR_PAIR(2));
+                        wprintw(text, "%s", flashcard_set->cards[order[currentcard]].definition);
+                        wrefresh(form_win);
+                        break;
+                    }
                     
                     werase(result_win);
                     curs_set(1);
+                }
+                else {
+                    curs_set(0);
+                    wbkgd(result_win, COLOR_PAIR(9));
+                    box(result_win,0,0);
+                    wattron(result_win,A_BOLD);
+                    //wprintctrx(result_win, 5, cols+4, "");
+                    wprintctrx(result_win, 6, cols+4, "Correct! Press enter to continue");
+                    wrefresh(result_win);
+                    getch();
                 }
 
 

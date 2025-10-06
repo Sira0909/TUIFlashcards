@@ -97,6 +97,7 @@ bool get_settings(bool* starred_only, bool* shuffle){
             case 'k': // up
                 changeselect(&setting_menu, -1);
                 break;
+            case 27:
             case 'q': // quit
                 done = true;
                 setting_menu.window = NULL;
@@ -210,6 +211,7 @@ void pickMode(char* list){
                 selectedx = (selectedx + 1) % 3;
                 if (selectedx > 2) selectedx = 0;
                 break;
+            case 27:
             case 'q':
                 erasewindow(mainPlayWindow);
                 return;
