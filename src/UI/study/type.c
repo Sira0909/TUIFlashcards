@@ -94,6 +94,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
                 WINDOW* result_win = newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
                 if(strcmp(answer, correctanswer)!=0){ // incorrect
+                    curs_set(0);
                     wbkgd(result_win, COLOR_PAIR(10));
                     box(result_win,0,0);
                     wattron(result_win,A_BOLD);
@@ -109,6 +110,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                     }
                     
                     werase(result_win);
+                    curs_set(1);
                 }
 
 
