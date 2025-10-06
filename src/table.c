@@ -37,13 +37,38 @@ void render_table(TABLE *p_table, char (*starred)){
 
     // max length of a column
     int max_length = (p_table->width - (p_table->num_cols-1))/p_table->num_cols;
+    int overwrite = 0;
 
-    for(int i = center - ideal; (i < center - ideal + p_table->height) && (i < p_table->num_rows); i++){
-        for (int col = 0; col < p_table->num_cols; col ++){
+
+
+
+    // print headers
+    for (int col = 0; col < p_table->num_cols; col ++){
+        wmove( p_table->window, 0, col*(1 + max_length));
+        wprintw(p_table->window, "%s", p_table->headers[col]);
+    }
+    //underline line with headers
+    wmove( p_table->window, 0, 0);
+    wchgat(p_table->window, p_table->width,A_BOLD | A_UNDERLINE, 2, NULL);
+
+    wattron(p_table->window, A_UNDERLINE);
+    for (int col = 0; col < p_table->num_cols; col ++){
+        //mvwaddch(p_table->window, 0, col*(1+max_length), ACS_TTEE);
+        mvwaddch(p_table->window, 0, col*(1+max_length)-1, ACS_VLINE);
+    }
+
+    wattroff(p_table->window, A_UNDERLINE);
+    for(int i = min(center - ideal + p_table->height, p_table->num_rows)-1; i >= center - ideal ; i--){
+        for (int col = p_table->num_cols-1; col >= 0; col --){
+
+
             // selected item is red
             if (p_table->selected_row ==i && p_table->selected_col == col) {
+                // allow selected items to wrap arround
                 wattron(p_table->window, A_BOLD);
+                wattron(p_table->window, COLOR_PAIR(3));
                 mvwprintw(p_table->window, i+1,col*(1 + max_length), "%s", p_table->table_data[col][i]);
+                wattroff(p_table->window, COLOR_PAIR(3));
                 wattroff(p_table->window, A_BOLD);
                 wmove(p_table->window, i+1, col*(1+max_length));
                 wchgat(p_table->window, max_length,A_BOLD, 3, NULL);
@@ -84,30 +109,11 @@ void render_table(TABLE *p_table, char (*starred)){
                 
             }
 
-        }
-        // put column borders
-        for (int col = 1; col < p_table->num_cols; col ++){
             mvwaddch(p_table->window, i+1, col*(1+max_length)-1, ACS_VLINE);
         }
         
     }
-    // print headers
-    for (int col = 0; col < p_table->num_cols; col ++){
-        wmove( p_table->window, 0, col*(1 + max_length));
-        wprintw(p_table->window, "%s", p_table->headers[col]);
-    }
 
-    //underline line with headers
-    wmove( p_table->window, 0, 0);
-    wchgat(p_table->window, p_table->width,A_BOLD | A_UNDERLINE, 2, NULL);
-
-    wattron(p_table->window, A_UNDERLINE);
-    for (int col = 0; col < p_table->num_cols; col ++){
-        //mvwaddch(p_table->window, 0, col*(1+max_length), ACS_TTEE);
-        mvwaddch(p_table->window, 0, col*(1+max_length)-1, ACS_VLINE);
-    }
-
-    wattroff(p_table->window, A_UNDERLINE);
 
     wrefresh(p_table->window);
     

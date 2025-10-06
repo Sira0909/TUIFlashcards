@@ -65,6 +65,8 @@ int main(){
     init_pair(6, COLOR_BLUE, COLOR_WHITE);      // selection:           white on red
     init_pair(7, COLOR_YELLOW,COLOR_RED);      // error:                red on white
     init_pair(8, COLOR_WHITE , COLOR_BLUE);     // errased window:      white on blue
+    init_pair(9, COLOR_BLACK , COLOR_GREEN);     // correct:            black on green
+    init_pair(10, COLOR_BLACK , COLOR_RED);      // incorrect:          black on red
 
     // set ncurses modes
     cbreak();//change later

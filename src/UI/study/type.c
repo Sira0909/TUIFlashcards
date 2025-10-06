@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <ncurses.h>
 #include <study.h>
 #include <stdlib.h>
@@ -10,6 +11,8 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
     int order[flashcard_set->num_items];
     int maxlength =25;
+    int mistakeorder[flashcard_set->num_items];
+    int mistakeindex = 0;
 
 
 
@@ -53,57 +56,192 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
     // set field atributes
     set_field_back(FileNameField[0], COLOR_PAIR(3));
     field_opts_off(FileNameField[0], O_AUTOSKIP);
+    field_opts_off(FileNameField[0], O_WRAP);
 
     //create form
     Form = new_form(FileNameField);
     
     //assign window
     scale_form(Form, &rows, &cols);
-    WINDOW* my_form_win = newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
+    WINDOW* form_win = newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
 
-    set_form_win(Form, my_form_win);
-    set_form_sub(Form, derwin(my_form_win, rows, cols, 11, 2));
+    set_form_win(Form, form_win);
+    set_form_sub(Form, derwin(form_win, rows, cols, 11, 2));
     
-    WINDOW* text = derwin(my_form_win, 10, cols+2, 1, 1);
+    WINDOW* text = derwin(form_win, 10, cols+2, 1, 1);
     //set form background
-    wbkgd(my_form_win, COLOR_PAIR(2));
+    wbkgd(form_win, COLOR_PAIR(2));
 
 
-    box(my_form_win, 0, 0);
+    box(form_win, 0, 0);
 
     post_form(Form);
     werase(text);
     wbkgd(text, COLOR_PAIR(2));
     wattron(text, A_BOLD);
     wprintw(text, "%s", flashcard_set->cards[order[currentcard]].definition);
-    wrefresh(my_form_win);
+    wrefresh(form_win);
 
     curs_set(1);
 
 
     while((ch = getch())){
-        touchwin(my_form_win);
+        touchwin(form_win);
         switch (ch){
             case 10: //enter
                 //do return stuff
                 form_driver(Form, REQ_NEXT_FIELD);
                 form_driver(Form, REQ_PREV_FIELD);
-                char* string = calloc(maxlength+2, sizeof(char));
-                string = strncpy(string, field_buffer(FileNameField[0],0), maxlength);
+                char* answer = calloc(maxlength+2, sizeof(char));
+                answer = strncpy(answer, field_buffer(FileNameField[0],0), maxlength);
                 int end = maxlength+1;
-                while(string[--end] == '\0' || string[end] == ' '){
+                while(answer[--end] == '\0' || answer[end] == ' '){
                 }
-                string[end+1] = '\0';
+                answer[end+1] = '\0';
                 form_driver(Form, REQ_CLR_FIELD);
+
+                for(char *p = answer; *p; ++p)
+                    *p = tolower(*p);
+                char correctanswer[MAX_FLASHCARD_SET_ITEM_SIZE];
+                strcpy(correctanswer,flashcard_set->cards[order[currentcard]].name);
+                for(char *p = correctanswer; *p; ++p)
+                    *p = tolower(*p);
+
+
+                WINDOW* result_win = newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
+                if(strcmp(answer, correctanswer)!=0){ // incorrect
+                    wbkgd(result_win, COLOR_PAIR(10));
+                    box(result_win,0,0);
+                    wattron(result_win,A_BOLD);
+                    wprintctrx(result_win, 5, cols+4, "Your answer did not match.");
+                    wprintctrx(result_win, 6, cols+4, "Press enter to continue, or");
+                    wprintctrx(result_win, 7, cols+4, "esc to try again immediately");              
+                    wrefresh(result_win);
+                    int c2 = getch();
+                    if(c2 == 10){
+                        order[mistakeindex]=order[currentcard];
+                        mistakeindex++;
+
+                    }
+                    
+                    werase(result_win);
+                }
+
 
                 currentcard++;
                 if(currentcard>=numCards){
-                    currentcard--;
+                    if(mistakeindex>0){
+                        curs_set(0);
+                        WINDOW* coverWindow = create_newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
+                        wbkgd(coverWindow, COLOR_PAIR(1));
+                        wrefresh(coverWindow);
+
+                        WINDOW *ask_review = create_newwin(8,22, (LINES-6)/2, (COLS-20)/2);
+                        wbkgd(ask_review, COLOR_PAIR(2));
+                        box(ask_review, 0, 0);
+                        wprintctrx(ask_review, 1, 22, "quiz complete!");
+
+                        bool currentselect=0;
+                        WINDOW *review =     derwin(ask_review, 4, 10, 3, 1);
+                        WINDOW *return_win = derwin(ask_review, 4, 10, 3, 11);
+
+                        box(review,0,0);
+                        box(return_win, 0, 0);
+
+                        mvwprintw(review, 1, 1, " review ");
+                        mvwprintw(review, 2, 1, "mistakes");
+                        mvwprintw(return_win, 1, 1, " return ");
+                        mvwprintw(return_win, 2, 1, "to menu ");
+                        wbkgd(review, COLOR_PAIR(3));
+                        wrefresh(ask_review);
+
+                        int ch = getch();
+                        while(ch != 10){
+                            switch (ch) {
+                                case 'h':
+                                    currentselect = 0;
+                                    wbkgd(review, COLOR_PAIR(3));
+                                    wbkgd(return_win, COLOR_PAIR(2));
+                                    touchwin(ask_review);
+                                    wrefresh(ask_review);
+                                    break;
+                                case 'l':
+                                    currentselect = 1;
+                                    wbkgd(review, COLOR_PAIR(2));
+                                    wbkgd(return_win, COLOR_PAIR(3));
+                                    touchwin(ask_review);
+                                    wrefresh(ask_review);
+                                    break;
+
+                            }
+                            ch=getch();
+                            
+
+                        }
+
+                    
+                        erasewindow(coverWindow);
+                        erasewindow(review);
+                        erasewindow(return_win);
+                        erasewindow(ask_review);
+                        if(currentselect){
+                            unpost_form(Form);
+                            free_form(Form);
+                            free_field(FileNameField[0]);
+                            wborder(form_win, ' ',' ',' ',' ',' ',' ',' ',' ');
+                            werase(form_win);
+                            delwin(form_win);
+                            refresh();
+                            //return NULL;
+                            // update flashcard and form
+                            return;
+                        }
+                        else{
+                            currentcard = 0;
+                            numCards = mistakeindex;
+                            mistakeindex = 0;
+                        }
+                        touchwin(form_win);
+                    }
+                    else{
+                        curs_set(0);
+                        WINDOW* coverWindow = create_newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
+                        wbkgd(coverWindow, COLOR_PAIR(1));
+                        wrefresh(coverWindow);
+
+                        WINDOW *ask_review = create_newwin(8,22, (LINES-6)/2, (COLS-20)/2);
+                        wbkgd(ask_review, COLOR_PAIR(2));
+                        box(ask_review, 0, 0);
+                        wprintctrx(ask_review, 1, 22, "quiz complete!");
+
+                        WINDOW *return_win = derwin(ask_review, 4, 20, 3, 1);
+                        wbkgd(return_win, COLOR_PAIR(3));
+
+                        box(return_win, 0, 0);
+
+                        wprintctrx(return_win, 1, 20, "return to menu");
+                        wrefresh(ask_review);
+
+                        int ch = getch();
+                        unpost_form(Form);
+                        free_form(Form);
+                        free_field(FileNameField[0]);
+                        wborder(form_win, ' ',' ',' ',' ',' ',' ',' ',' ');
+                        werase(form_win);
+                        delwin(form_win);
+                        refresh();
+                        //return NULL;
+                        // update flashcard and form
+                        return;
+                    }
+                    // say complete
                 }
+
+
                 werase(text);
                 wbkgd(text, COLOR_PAIR(2));
                 wprintw(text, "%s", flashcard_set->cards[order[currentcard]].definition);
-                wrefresh(my_form_win);
+                wrefresh(form_win);
                 break;
             case 27:
 
@@ -111,13 +249,9 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                 unpost_form(Form);
                 free_form(Form);
                 free_field(FileNameField[0]);
-                wborder(my_form_win, ' ',' ',' ',' ',' ',' ',' ',' ');
-                wbkgd(my_form_win, COLOR_PAIR(1));
-                wrefresh(my_form_win);
-                delwin(my_form_win);
+                wborder(form_win, ' ',' ',' ',' ',' ',' ',' ',' ');
+                werase(form_win);
                 refresh();
-                //return NULL;
-                getch();
                 // update flashcard and form
                 return;
 
@@ -147,17 +281,17 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                 form_driver(Form, ch);
                 break;
         }
-        wrefresh(my_form_win);
+        wrefresh(form_win);
     }
     curs_set(0);
 
     unpost_form(Form);
     free_form(Form);
     free_field(FileNameField[0]);
-    wborder(my_form_win, ' ',' ',' ',' ',' ',' ',' ',' ');
-    wbkgd(my_form_win, COLOR_PAIR(1));
-    wrefresh(my_form_win);
-    delwin(my_form_win);
+    wborder(form_win, ' ',' ',' ',' ',' ',' ',' ',' ');
+    wbkgd(form_win, COLOR_PAIR(1));
+    wrefresh(form_win);
+    delwin(form_win);
     refresh();
 
     return ;

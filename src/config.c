@@ -43,7 +43,11 @@ void get_config_struct(CONFIGSTRUCT *config){
 
     //check if file already exists. if not, create it
     if(!(config_File = fopen(cFile, "r"))){
-        mkdir(config_DIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH); // "mkdir configDIR"
+        if (mkdir(config_DIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
+            printf("error occurred while creating config directory. does ~/.config exist?");
+            free(config_DIR); 
+            exit(-1);
+        }
         FILE* writeconfig = fopen(cFile, "w"); // make config file
 
         fprintf(writeconfig, "%s/Lists/", config_DIR);

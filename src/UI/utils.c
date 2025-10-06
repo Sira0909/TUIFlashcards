@@ -9,7 +9,6 @@
 
 #include <ncurses.h>
 #include <form.h>
-
 #include <config.h>
 
 #include <windows/menu.h>
@@ -205,6 +204,7 @@ char* getString(char* title, int maxsize){
     // set field atributes
     set_field_back(FileNameField[0], COLOR_PAIR(3));
     field_opts_off(FileNameField[0], O_AUTOSKIP);
+    field_opts_off(FileNameField[0], O_WRAP);
 
     //create form
     Form = new_form(FileNameField);
