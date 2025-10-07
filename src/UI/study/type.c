@@ -1,4 +1,3 @@
-#include <ctype.h>
 #include <ncurses.h>
 #include <study.h>
 #include <stdlib.h>
@@ -72,6 +71,8 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
     while((ch = getch())){
         touchwin(form_win);
+        move(LINES-3, 0);
+        clrtoeol();
         switch (ch){
             case 10: //enter
                 move(LINES-3, 0);
@@ -117,7 +118,6 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                     }
 
                     form_driver(Form, REQ_DEL_CHAR);
-                    curs_set(1);
                     
                     werase(result_win);
                 }
@@ -266,6 +266,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
 
             default:
+                curs_set(1);
                 form_driver(Form, ch);
                 break;
         }
