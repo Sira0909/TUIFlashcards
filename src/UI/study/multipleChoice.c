@@ -14,6 +14,19 @@ char multipleChoiceKeybinds[7][2][20] = {
     {" ", " "},
     {"?", "list keybinds"}
 };
+#define setallbkgd(x) \
+{ \
+    wbkgd(response_win, COLOR_PAIR(x));\
+    wbkgd(ans_1, COLOR_PAIR(x));\
+    wbkgd(ans_2, COLOR_PAIR(x));\
+    wbkgd(ans_3, COLOR_PAIR(x));\
+    wbkgd(ans_4, COLOR_PAIR(x));\
+    wbkgd(ansBox_1, COLOR_PAIR(x));\
+    wbkgd(ansBox_2, COLOR_PAIR(x));\
+    wbkgd(ansBox_3, COLOR_PAIR(x));\
+    wbkgd(ansBox_4, COLOR_PAIR(x));\
+    wbkgd(text, COLOR_PAIR(x));\
+}
 
 void ensureNotEqual(int* a, int numCards, int b, int c, int d){
     while (*a == b || *a==c ||*a==d){
@@ -200,29 +213,32 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
                 break;
             case 10:
                 {
+                    move(LINES-3, 0);
+                    clrtoeol();
+
                     if(selectedx*2+selectedy != correctans){ // incorrect
-                        wbkgd(response_win, COLOR_PAIR(10));
-                        wbkgd(ans_1, COLOR_PAIR(10));
-                        wbkgd(ans_2, COLOR_PAIR(10));
-                        wbkgd(ans_3, COLOR_PAIR(10));
-                        wbkgd(ans_4, COLOR_PAIR(10));
-                        wbkgd(ansBox_1, COLOR_PAIR(10));
-                        wbkgd(ansBox_2, COLOR_PAIR(10));
-                        wbkgd(ansBox_3, COLOR_PAIR(10));
-                        wbkgd(ansBox_4, COLOR_PAIR(10));
-                        wbkgd(text, COLOR_PAIR(10));
+                        //setallbkgd(10);
+                        attron(COLOR_PAIR(10));
+                        switch(correctans){
+                            case 0:
+                                mvprintw(LINES-3, (COLS-16-strlen(choice1))/2, "Correct answer: %s", choice1);
+                                break;
+                            case 1:
+                                mvprintw(LINES-3, (COLS-16-strlen(choice2))/2, "Correct answer: %s", choice2);
+                                break;
+                            case 2:
+                                mvprintw(LINES-3, (COLS-16-strlen(choice3))/2, "Correct answer: %s", choice3);
+                                break;
+                            case 3:
+                                mvprintw(LINES-3, (COLS-16-strlen(choice4))/2, "Correct answer: %s", choice4);
+                                break;
+                        }
+                        attron(COLOR_PAIR(1));
                     }
                     else {
-                        wbkgd(response_win, COLOR_PAIR(9));
-                        wbkgd(ans_1, COLOR_PAIR(9));
-                        wbkgd(ans_2, COLOR_PAIR(9));
-                        wbkgd(ans_3, COLOR_PAIR(9));
-                        wbkgd(ans_4, COLOR_PAIR(9));
-                        wbkgd(ansBox_1, COLOR_PAIR(9));
-                        wbkgd(ansBox_2, COLOR_PAIR(9));
-                        wbkgd(ansBox_3, COLOR_PAIR(9));
-                        wbkgd(ansBox_4, COLOR_PAIR(9));
-                        wbkgd(text , COLOR_PAIR(9));
+                        attron(COLOR_PAIR(9));
+                        mvprintw(LINES-3, (COLS-8)/2, "Correct!");
+                        attron(COLOR_PAIR(1));
                     }
 
                     touchwin(response_win);
@@ -286,14 +302,7 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
                 break;
         }
         if(ch !=10){
-            for(int i = 0; i < 2; i++){
-                for(int j = 0; j < 2; j++){
-                    wbkgd(ans[i][j], COLOR_PAIR(2));
-                    wbkgd(ansBox[i][j], COLOR_PAIR(2));
-                }
-            }
-            wbkgd(response_win, COLOR_PAIR(2));
-            wbkgd(text , COLOR_PAIR(2));
+            setallbkgd(2);
         }
         wbkgd(ans[selectedy][selectedx], COLOR_PAIR(3));
         wbkgd(ansBox[selectedy][selectedx], COLOR_PAIR(3));

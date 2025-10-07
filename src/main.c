@@ -79,7 +79,9 @@ int main(){
     bkgd(COLOR_PAIR(1));
     attron(A_BOLD);
     attron(COLOR_PAIR(5));
-    mvprintw(LINES-1, (COLS-16)/2, "'?' for keybinds");
+    mvprintw(LINES-4, (COLS-16)/2, "                ");
+    mvprintw(LINES-3, (COLS-16)/2, "'?' for keybinds");
+    mvprintw(LINES-2, (COLS-16)/2, "                ");
     attroff(COLOR_PAIR(5));
     attroff(A_BOLD);
     refresh();
@@ -118,8 +120,8 @@ int main(){
                 done = true;
                 break;
             case 10: // enter
-                wmove(stdscr, LINES-1, 0);
-                wclrtoeol(stdscr);
+                wmove(stdscr, LINES-3, 0);
+                wclrtobot(stdscr);
                 wrefresh(stdscr);
                 switch(mainmenu.selected){
                     case 0: // "Study"

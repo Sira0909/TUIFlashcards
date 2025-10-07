@@ -1,7 +1,7 @@
 #include <study.h>
 #include <windows/window.h>
 #include <ncurses.h>
-#include <string.h>
+//#include <string.h>
 
 
 void flashcard(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
