@@ -9,6 +9,8 @@ A TUI program for studying flashcards, using the NCURSES library. not done yet
 - multiple choice quizes <br />
 
 <h1> TO BE ADDED:</h1>
+- show correct answer on incorrect type response
+- allow starring from within quiz
 - more modes of study
 - maybe word wrap eventually
 

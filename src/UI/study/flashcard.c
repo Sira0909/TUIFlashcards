@@ -47,7 +47,7 @@ void flashcard(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
         touchwin(FlashcardWindow);
         wbkgd(text, COLOR_PAIR(2));
         wattron(text,A_BOLD);
-        mvwprintw(text, (maxlength)/4-1, (maxlength+1-strlen(card_text))/2, "%s", card_text);
+        wprintctr(text, (maxlength/4)*2-1, maxlength+1,  card_text);
         wattroff(text,A_BOLD);
         //wprintw(FlashcardWindow, "%d", order[currentcard]);
         wrefresh(FlashcardWindow);
