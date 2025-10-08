@@ -27,6 +27,7 @@ char multipleChoiceKeybinds[7][2][20] = {
     wbkgd(ansBox_4, COLOR_PAIR(x));\
     wbkgd(text, COLOR_PAIR(x));\
 }
+#define currentFlashcard flashcard_set->cards[order[currentcard]]
 
 void ensureNotEqual(int* a, int numCards, int b, int c, int d){
     while (*a == b || *a==c ||*a==d){
@@ -36,8 +37,8 @@ void ensureNotEqual(int* a, int numCards, int b, int c, int d){
 int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int* order, int side, char** question, char** choice1,char** choice2,char** choice3,char** choice4){
     srand(time(0));
     *question =    (side) 
-                        ?flashcard_set->cards[order[currentcard]].name
-                        :flashcard_set->cards[order[currentcard]].definition;
+                        ?currentFlashcard.name
+                        :currentFlashcard.definition;
 
     int op1 = currentcard;
     int op2 = rand()%numCards;
@@ -188,6 +189,8 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
     
     while (1 == 1){
         ch = getch();
+        move(LINES-3, 0);
+        clrtoeol();
         switch(ch){
             case 'h': 
                 selectedx = (selectedx - 1);
@@ -204,6 +207,21 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
             case 'l':
                 selectedx = (selectedx + 1) % 2;
                 if (selectedx > 1) selectedx = 0;
+                break;
+            case 'S': //star previous
+                if(currentcard>0){
+                    attron(COLOR_PAIR(1));
+                    flashcard_set->cards[order[currentcard-1]].is_starred = !flashcard_set->cards[order[currentcard-1]].is_starred;
+                    wprintctrx(stdscr, LINES-3, COLS, (flashcard_set->cards[order[currentcard-1]].is_starred) ? "Previous flashcard has been starred" : "Previous flashcard has been unstarred");
+                    attron(COLOR_PAIR(1));
+                    break;
+                }
+                // stars current when this is first flashcard
+            case 's': //star current
+                attron(COLOR_PAIR(1));
+                currentFlashcard.is_starred = !currentFlashcard.is_starred;
+                wprintctrx(stdscr, LINES-3, COLS, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
+                attron(COLOR_PAIR(1));
                 break;
             case 27:
             case 'q':

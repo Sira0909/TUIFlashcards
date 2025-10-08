@@ -64,6 +64,7 @@ void get_config_struct(CONFIGSTRUCT *config){
 
     // get flashcardDIR from config file
     fgets(config->flashcard_dir, 128, config_File);
-    strcpy(config->flashcard_dir , trim_whitespaces(config->flashcard_dir));
+    trim_whitespaces(config->flashcard_dir);
+    //strcpy(config->flashcard_dir , trim_whitespaces(config->flashcard_dir));
     free(config_DIR);
 }

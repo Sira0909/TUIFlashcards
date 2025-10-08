@@ -236,6 +236,7 @@ void pickMode(char* list){
                                 break;
                         }
                     }
+                    writeFlashcardSet(flashcard_set, ListPath,0);
                     erasewindow(coverWindow);
                     box(mainPlayWindow, 0, 0);
                     wrefresh(mainPlayWindow);

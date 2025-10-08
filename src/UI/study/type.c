@@ -5,6 +5,15 @@
 
 
 #include <form.h>
+
+#define currentFlashcard flashcard_set->cards[order[currentcard]]
+
+void printProgress(WINDOW* win, int currentcard, int maxcards){
+    wmove(win, 0, 1); 
+    mvwaddch(win, 0, 1, ACS_RTEE);
+    wprintw(win, "%d/%d", currentcard, maxcards);
+    waddch(win, ACS_LTEE);
+}
 void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
     int order[flashcard_set->num_items];
@@ -57,12 +66,13 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
 
     box(form_win, 0, 0);
+    printProgress(form_win, currentcard, numCards);
 
     post_form(Form);
     werase(text);
     wbkgd(text, COLOR_PAIR(2));
     wattron(text, A_BOLD);
-    wprintw(text, "%s", flashcard_set->cards[order[currentcard]].definition);
+    wprintw(text, "%s", currentFlashcard.definition);
     wrefresh(form_win);
 
     curs_set(1);
@@ -71,12 +81,27 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
     while((ch = getch())){
         touchwin(form_win);
+        int x,y;
+        getyx(stdscr, y,x);
         move(LINES-3, 0);
         clrtoeol();
+        move(y,x);
         switch (ch){
+            case 19: // ctrl+s
+                if(currentcard>0){
+                    attron(COLOR_PAIR(1));
+                    flashcard_set->cards[order[currentcard-1]].is_starred = !flashcard_set->cards[order[currentcard-1]].is_starred;
+                    wprintctrx(stdscr, LINES-3, COLS, (flashcard_set->cards[order[currentcard-1]].is_starred) ? "Previous flashcard has been starred" : "Previous flashcard has been unstarred");
+                    attron(COLOR_PAIR(1));
+                    break;
+                }
+                // stars current when this is first flashcard
+                attron(COLOR_PAIR(1));
+                currentFlashcard.is_starred = !currentFlashcard.is_starred;
+                wprintctrx(stdscr, LINES-3, COLS, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
+                attron(COLOR_PAIR(1));
+                break;
             case 10: //enter
-                move(LINES-3, 0);
-                clrtoeol();
                 //do return stuff
                 form_driver(Form, REQ_NEXT_FIELD);
                 form_driver(Form, REQ_PREV_FIELD);
@@ -87,7 +112,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                 answer[end+1] = '\0';
                 form_driver(Form, REQ_CLR_FIELD);
 
-                char *correctanswer=flashcard_set->cards[order[currentcard]].name;
+                char *correctanswer=currentFlashcard.name;
 
 
                 WINDOW* result_win = newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
@@ -102,6 +127,18 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                     box(result_win,0,0);
                     wrefresh(result_win);
                     int c2 = getch();
+                    
+                    if(c2== 's'){ //star mistake
+                        attron(COLOR_PAIR(1));
+                        currentFlashcard.is_starred = !flashcard_set->cards[order[currentcard]].is_starred;
+                        wprintctrx(stdscr, LINES-3, COLS, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
+                        attron(COLOR_PAIR(1));
+                        c2 = getch();
+                        getyx(stdscr, y,x);
+                        move(LINES-3, 0);
+                        clrtoeol();
+                        move(y,x);
+                    }
                     if(c2 == 10){
                         order[mistakeindex++]=order[currentcard];
                         attron(COLOR_PAIR(3));
@@ -110,9 +147,11 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
                     }
                     else {
+                        box(form_win, 0, 0);
+                        printProgress(form_win, currentcard, numCards);
                         werase(text);
                         wbkgd(text, COLOR_PAIR(2));
-                        wprintw(text, "%s", flashcard_set->cards[order[currentcard]].definition);
+                        wprintw(text, "%s", currentFlashcard.definition);
                         wrefresh(form_win);
                         break;
                     }
@@ -122,6 +161,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                     werase(result_win);
                 }
                 else {
+                    curs_set(0);
                     //wprintctrx(result_win, 5, cols+4, "");
                     attron(COLOR_PAIR(9));
                     mvprintw(LINES-3, (COLS-7)/2, "Correct");
@@ -226,9 +266,11 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                 }
 
 
+                box(form_win, 0, 0);
+                printProgress(form_win, currentcard, numCards);
                 werase(text);
                 wbkgd(text, COLOR_PAIR(2));
-                wprintw(text, "%s", flashcard_set->cards[order[currentcard]].definition);
+                wprintw(text, "%s", currentFlashcard.definition);
                 wrefresh(form_win);
                 break;
             case 27:
@@ -237,8 +279,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                 unpost_form(Form);
                 free_form(Form);
                 free_field(FileNameField[0]);
-                wborder(form_win, ' ',' ',' ',' ',' ',' ',' ',' ');
-                werase(form_win);
+                erasewindow(form_win);
                 refresh();
                 // update flashcard and form
                 return;
