@@ -1,8 +1,9 @@
 #ifndef _CONFIGH
 #define _CONFIGH
+
 #include <limits.h>
 #ifndef PATH_MAX
-#define PATH_MAX 128
+#define PATH_MAX 164
 #endif
 
 

@@ -166,13 +166,13 @@ void pickMode(char* list){
     mvwprintw(topright, 4, (23 - 4)/2, "Type" );
 
 
-    char ListPath[FLASHCARDFILESIZE];
+    char ListPath[PATH_MAX];
     if(list[0] == '/' || list[0] == '~'){
-        strncpy(ListPath, list, FLASHCARDFILESIZE);
+        strncpy(ListPath, list, PATH_MAX);
     }
     else{
         strcpy(ListPath, config.flashcard_dir);
-        strncat(ListPath, list, FLASHCARDFILESIZE-strnlen(config.flashcard_dir, 128));
+        strncat(ListPath, list, PATH_MAX-strnlen(config.flashcard_dir, 128));
     }
     
     FlashcardSet* flashcard_set = create_Flashcard_Set_Object();

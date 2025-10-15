@@ -71,7 +71,7 @@ void deleteSetPointer(FlashcardSet **flashcard_set){
 }
 
 // writes flashcard set to file 
-int writeFlashcardSet(FlashcardSet* flashcard_set, char filePath[FLASHCARDFILESIZE], int todelete){
+int writeFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX], int todelete){
     FILE* VocabFile = fopen(filePath, "w");
 
     if(VocabFile == NULL){
@@ -89,7 +89,7 @@ int writeFlashcardSet(FlashcardSet* flashcard_set, char filePath[FLASHCARDFILESI
 }
 
 // gets flashcard set from file
-int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[FLASHCARDFILESIZE]){
+int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
     FILE *VocabFile = fopen(filePath, "r");
     
     if(VocabFile == NULL){

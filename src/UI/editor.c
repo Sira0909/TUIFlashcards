@@ -26,13 +26,13 @@ char editkeybinds[13][2][20]= {
     {"?", "list keybinds"}
 };
 void editList(char ListName[]){
-    char ListPath[FLASHCARDFILESIZE];
+    char ListPath[PATH_MAX];
     if(ListName[0] == '/' || ListName[0] == '~'){
-        strncpy(ListPath, ListName, FLASHCARDFILESIZE);
+        strncpy(ListPath, ListName, PATH_MAX);
     }
     else{
         strcpy(ListPath, config.flashcard_dir);
-        strncat(ListPath, ListName, FLASHCARDFILESIZE-strnlen(config.flashcard_dir, 128));
+        strncat(ListPath, ListName, PATH_MAX-strnlen(config.flashcard_dir, 128));
     }
     
     FlashcardSet* flashcardset = create_Flashcard_Set_Object();
@@ -255,7 +255,7 @@ void editList(char ListName[]){
 // Add new flashcard list
 void addList(){
 
-    char newfile[FLASHCARDFILESIZE]={0};
+    char newfile[PATH_MAX]={0};
     strcpy(newfile, trim_whitespaces(config.flashcard_dir));
 
     char* file = getString("Name new List", 31);

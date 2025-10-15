@@ -1,9 +1,13 @@
 #ifndef MACROS_H
 #define MACROS_H 1
 
-#define FLASHCARDFILESIZE 164
 #define MAX_FLASHCARD_SET_ITEM_SIZE 64
 #define MAX_FLASHCARD_SET_DEFN_SIZE 128
+
+#include <limits.h>
+#ifndef PATH_MAX
+#define PATH_MAX 164
+#endif
 
 
 // macro signum function
