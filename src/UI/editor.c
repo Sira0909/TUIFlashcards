@@ -106,6 +106,8 @@ void editList(char ListName[]){
             case 10: //enter
                 if(flashcardTable.selected_col == 0){
                     char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE);
+                    if(Name==NULL)
+                        break;
                     if(is_all_space(Name))
                         free(Name);
                     else if(Name != NULL){
@@ -118,6 +120,8 @@ void editList(char ListName[]){
                 }
                 else{
                     char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE);
+                    if(Defn==NULL)
+                        break;
                     if(is_all_space(Defn))
                         free(Defn);
                     else if(Defn != NULL){

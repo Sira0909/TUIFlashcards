@@ -1,4 +1,3 @@
-#include <stdlib.h>
 
 #include <ncurses.h>
 #include <form.h>
@@ -153,9 +152,9 @@ int main(){
     }
     
     // clean up
-    mainmenu.window = NULL;
-    free(mainmenu.window);
     delwin(menu_window);
+    //free(mainmenu.window);
+    //mainmenu.window = NULL;
 
 
     // clean up

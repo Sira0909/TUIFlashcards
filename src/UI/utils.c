@@ -54,6 +54,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
             numfiles++;
         }
     }
+    closedir(dp);
     if(numfiles == 0){
         addList();
         return NULL;
@@ -79,6 +80,8 @@ char* _getLists(int start_at, void (*to_call)(char*)){
                 i++;
             }
         }
+        closedir(dp);
+
         MENU selectmenu;
 
 

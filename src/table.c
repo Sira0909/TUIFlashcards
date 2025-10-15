@@ -82,6 +82,7 @@ void render_table(TABLE *p_table, char (*starred)){
                 mvwprintw(p_table->window, i+1,col*(1 + max_length), "%s", item);
                 wmove(p_table->window, i+1, col*(1+max_length));
                 wchgat(p_table->window, max_length,A_NORMAL, 2, NULL);
+                free(item);
             }
             
             // print normally
