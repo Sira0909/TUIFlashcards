@@ -1,17 +1,22 @@
 #ifndef _CONFIGH
 #define _CONFIGH
+#include <limits.h>
+#ifndef PATH_MAX
+#define PATH_MAX 128
+#endif
 
 
 typedef struct _CONFIG{ //structure to hold config variables
-    char config_dir[128];
-    char flashcard_dir[128];
+    char config_dir[PATH_MAX];
+    char flashcard_dir[PATH_MAX];
+    int showKeybindsTop;
 } CONFIGSTRUCT;
 
 extern CONFIGSTRUCT config; // structure instance
                            
 
 
-void get_config_struct(CONFIGSTRUCT *config);
+int get_config_struct(CONFIGSTRUCT *config);
 
 
 #endif

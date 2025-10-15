@@ -106,7 +106,9 @@ void editList(char ListName[]){
             case 10: //enter
                 if(flashcardTable.selected_col == 0){
                     char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE);
-                    if(Name != NULL && !is_all_space(Name)){
+                    if(is_all_space(Name))
+                        free(Name);
+                    else if(Name != NULL){
                         strcpy(flashcardset->cards[flashcardTable.selected_row].name, Name);
                         getpairslimiter(flashcardset, starred, items, defns);
                         table[0] = items;
@@ -116,7 +118,9 @@ void editList(char ListName[]){
                 }
                 else{
                     char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE);
-                    if(Defn != NULL && !is_all_space(Defn)){
+                    if(is_all_space(Defn))
+                        free(Defn);
+                    else if(Defn != NULL){
                         strcpy(flashcardset->cards[flashcardTable.selected_row].definition, Defn);
                         getpairslimiter(flashcardset, starred, items, defns);
                         table[1] = defns;
@@ -135,8 +139,10 @@ void editList(char ListName[]){
                     deletecard(flashcardset, flashcardTable.selected_row);
                     free(items);
                     free(defns);
+                    free(starred);
                     items = calloc(flashcardset->capacity, sizeof(char[128]));
                     defns = calloc(flashcardset->capacity, sizeof(char[128]));
+                    starred = calloc(flashcardset->capacity, sizeof(char));
                     getpairslimiter(flashcardset, starred, items, defns);
                     table[0] = items;
                     table[1] = defns;
@@ -164,8 +170,10 @@ void editList(char ListName[]){
                         addcard(flashcardset, Name, Defn, 0);
                         free(items);
                         free(defns);
+                        free(starred);
                         items = calloc(flashcardset->capacity, sizeof(char[128]));
                         defns = calloc(flashcardset->capacity, sizeof(char[128]));
+                        starred = calloc(flashcardset->capacity, sizeof(char));
                         getpairslimiter(flashcardset, starred, items, defns);
                         table[0] = items;
                         table[1] = defns;
@@ -193,6 +201,7 @@ void editList(char ListName[]){
                         flashcardTable.window = NULL;
                         free(items);
                         free(defns);
+                        free(starred);
                         writeFlashcardSet(flashcardset, ListPath, 1);
                         refresh();
                         return;
@@ -238,6 +247,7 @@ void editList(char ListName[]){
     flashcardTable.window = NULL;
     free(items);
     free(defns);
+    free(starred);
     deleteSetPointer(&flashcardset);
     refresh();
 }
@@ -247,9 +257,16 @@ void addList(){
 
     char newfile[FLASHCARDFILESIZE]={0};
     strcpy(newfile, trim_whitespaces(config.flashcard_dir));
+
     char* file = getString("Name new List", 31);
-    if (file == NULL || is_all_space(file)) return;
+    if (file == NULL) return;
+    if(is_all_space(file)){
+        free(file);
+        return;
+    }
     strcat(newfile, trim_whitespaces(file));
+    free(file);
+
     FILE* temp = fopen(newfile, "w");
     fclose(temp);
     editList(newfile);

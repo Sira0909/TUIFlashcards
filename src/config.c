@@ -1,3 +1,4 @@
+#include <linux/limits.h>
 #include <macros.h>
 
 #include <string.h>
@@ -7,7 +8,7 @@
 #include <sys/stat.h>
 #include <config.h>
 
-void get_config_struct(CONFIGSTRUCT *config){
+FILE* get_config_file(CONFIGSTRUCT *config){
     //get directory for config files
     char *config_DIR = (char *) calloc(128, sizeof(char));
 
@@ -50,7 +51,8 @@ void get_config_struct(CONFIGSTRUCT *config){
         }
         FILE* writeconfig = fopen(cFile, "w"); // make config file
 
-        fprintf(writeconfig, "%s/Lists/", config_DIR);
+        fprintf(writeconfig, "flashcard_dir: %s/Lists/\n", config_DIR);
+        fprintf(writeconfig, "show_keybinds_top: 1");
 
         fclose(writeconfig);
         
@@ -59,12 +61,67 @@ void get_config_struct(CONFIGSTRUCT *config){
         if(!(config_File = fopen(cFile, "r"))){printf("error occured making config file"); free(config_DIR); exit(-1);} 
 
     }
-    // set config struct's config_DIR to configDIR
     strcpy(config->config_dir,config_DIR);
-
-    // get flashcardDIR from config file
-    fgets(config->flashcard_dir, 128, config_File);
-    trim_whitespaces(config->flashcard_dir);
-    //strcpy(config->flashcard_dir , trim_whitespaces(config->flashcard_dir));
     free(config_DIR);
+    return(config_File);
+
+}
+void fill_defaults(CONFIGSTRUCT *config){
+    char cardDir[PATH_MAX];
+    strcpy(cardDir,config->config_dir);
+    strcat(cardDir, "/Lists");
+    strcpy(config->flashcard_dir, cardDir);
+    config->showKeybindsTop = 1;
+}
+int get_config_struct(CONFIGSTRUCT *config){
+    FILE *config_File = get_config_file(config);
+
+    char line[128];
+    int countUndefconfigs =0;
+    while(1){
+        if(fgets(line, 128, config_File)==NULL) break;
+        //if(line[strlen(line)-1]=='\n') line[strlen(line)-1]='\0';
+        if(*trim_whitespaces(line)=='\0')
+            continue;
+        if(line[0] == '/' && line[1] == '/'){
+            continue; //comment
+        }
+        else{
+            char setting[128];
+            char* trimmedsetting;
+            strcpy(setting, line);
+            int i =0;for(;i<128&&setting[i]!=':'; i++);
+            trimmedsetting=trim_whitespaces(setting);
+            if(i==128){
+                printf("%s\n", line);
+                countUndefconfigs++;
+            }
+            else{
+                setting[i]='\0';
+                if(strcmp(trimmedsetting, "flashcard_dir")==0){
+                    strcpy(config->flashcard_dir,line+i+2);
+                }
+                else if(strcmp(trimmedsetting, "show_keybinds_top")==0){
+                    if(line[i+2]=='1')
+                        config->showKeybindsTop=1;
+                    else if(line[i+2]=='0')
+                        config->showKeybindsTop=0;
+                    else {
+                        printf("%s\n", line);
+                        countUndefconfigs++;
+                    }
+                }
+                else {
+                    printf("%s\n", line);
+                    countUndefconfigs++;
+                }
+
+            }
+
+        }
+        
+
+    }
+    //strcpy(config->flashcard_dir , trim_whitespaces(config->flashcard_dir));
+    return countUndefconfigs;
 }

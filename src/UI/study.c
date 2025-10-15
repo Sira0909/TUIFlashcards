@@ -214,6 +214,7 @@ void pickMode(char* list){
             case 27:
             case 'q':
                 erasewindow(mainPlayWindow);
+                deleteSetPointer(&flashcard_set);
                 return;
             case 10:
                 {
@@ -262,4 +263,5 @@ void pickMode(char* list){
     }
     getch();
     erasewindow(mainPlayWindow);
+    deleteSetPointer(&flashcard_set);
 }

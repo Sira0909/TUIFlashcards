@@ -29,7 +29,7 @@ static char* trim_whitespaces(char *str)
 	char *end;
 
 	// trim leading space
-	while(!strcmp(str," "))
+	while(!strcmp(str," ") || !strcmp(str, "\n"))
 		str++;
 
 	if(*str == '\0') // all spaces?

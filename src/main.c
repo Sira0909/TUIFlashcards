@@ -35,7 +35,11 @@ char mainkeybinds[7][2][20] = {
 
 int main(){
 
-    get_config_struct(&config);
+    int conferrors = get_config_struct(&config);
+    if(conferrors>0){
+        printf("there are %d errors in your config file. certain values might not be what you want", conferrors);
+        getc(stdin);
+    }
 
 
     // init ncurses
@@ -77,14 +81,14 @@ int main(){
 
     // set background
     bkgd(COLOR_PAIR(1));
-    attron(A_BOLD);
-    attron(COLOR_PAIR(5));
-    mvprintw(LINES-4, (COLS-16)/2, "                ");
-    mvprintw(LINES-3, (COLS-16)/2, "'?' for keybinds");
-    mvprintw(LINES-2, (COLS-16)/2, "                ");
-    attroff(COLOR_PAIR(5));
-    attroff(A_BOLD);
+
+    // keybind helper window
+    WINDOW* keybindHelp = create_newwin(3, 18, LINES-4, (COLS-18)/2);
+    wattron(keybindHelp, A_BOLD | COLOR_PAIR(5));
+    box(keybindHelp, 0,0);
+    mvwprintw(keybindHelp, 1, 1, "'?' for keybinds");
     refresh();
+    wrefresh(keybindHelp);
 
     // create MENU object for main menu (see MENU.c, MENU.h)
     MENU mainmenu;
@@ -120,9 +124,9 @@ int main(){
                 done = true;
                 break;
             case 10: // enter
-                wmove(stdscr, LINES-3, 0);
-                wclrtobot(stdscr);
-                wrefresh(stdscr);
+                if (keybindHelp != NULL) // erase keybinds now
+                    erasewindow(keybindHelp);
+                keybindHelp=NULL;
                 switch(mainmenu.selected){
                     case 0: // "Study"
                         getLists(pickMode);
