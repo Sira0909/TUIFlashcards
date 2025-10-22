@@ -87,25 +87,20 @@ void editList(char ListName[]){
         // refresh menu (see MENU.c)
         switch(ch){
             case 'j': // down
-                changeselect_table(&flashcardTable, 1, 0);
-                break;
+                changeselect_table(&flashcardTable, 1, 0); break;
             case 'k': // up
-                changeselect_table(&flashcardTable, -1, 0);
-                break;
+                changeselect_table(&flashcardTable, -1, 0); break;
             case 'h': // left
-                changeselect_table(&flashcardTable, 0, -1);
-                break;
+                changeselect_table(&flashcardTable, 0, -1); break;
             case 'l': // right
-                changeselect_table(&flashcardTable, 0, 1);
-                break;
+                changeselect_table(&flashcardTable, 0, 1); break;
             case 's': // star
                 flashcardset->cards[flashcardTable.selected_row].is_starred = !flashcardset->cards[flashcardTable.selected_row].is_starred;
-                getpairslimiter(flashcardset, starred, items, defns);
-                table[0] = items;
+                starred[flashcardTable.selected_row]=(flashcardset->cards[flashcardTable.selected_row].is_starred)? '*': ' ';
                 break;
             case 10: //enter
                 if(flashcardTable.selected_col == 0){
-                    char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE);
+                    char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE, flashcardset->cards[flashcardTable.selected_row].name);
                     if(Name==NULL)
                         break;
                     if(is_all_space(Name))
@@ -119,7 +114,7 @@ void editList(char ListName[]){
                     }
                 }
                 else{
-                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE);
+                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, flashcardset->cards[flashcardTable.selected_row].definition);
                     if(Defn==NULL)
                         break;
                     if(is_all_space(Defn))
@@ -158,13 +153,13 @@ void editList(char ListName[]){
                 mvwprintw(edit_list_menu_window, height, 1, "                    ");
                 break;
             case 'a': {
-                char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE);
+                char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
                 if (Name != NULL){
                     if(is_all_space(Name)){
                         free(Name);
                         break;
                     }
-                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE);
+                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, NULL);
                     if (Defn != NULL){
                         if(is_all_space(Defn)){
                             free(Name);
@@ -262,7 +257,7 @@ void addList(){
     char newfile[PATH_MAX]={0};
     strcpy(newfile, trim_whitespaces(config.flashcard_dir));
 
-    char* file = getString("Name new List", 31);
+    char* file = getString("Name new List", 31, NULL);
     if (file == NULL) return;
     if(is_all_space(file)){
         free(file);

@@ -1,84 +1,48 @@
 #include <ncurses.h>
+#include <stdlib.h>
 #include <string.h>
 #include <macros.h>
-#include <stdlib.h>
 #include <windows/menu.h>
+#include <UI.h>
 
-void init_menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char (*menuitems)[]){
-    *p_menu = (MENU){*window, width, height, size, 0, title, menuitems};
+void init_Menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char* highlighted, char (*menuitems)[]){
+    *p_menu = (MENU){*window, width, height, size, 0, title, menuitems, highlighted, 0, 1, malloc(sizeof(struct hook))};
     wbkgd(p_menu->window, COLOR_PAIR(2));
 
 }
 
 
-
-
-// draws menu
-void render_menu(MENU *p_menu, char* highlighted){
-    // the center of available table space
-    int ideal = (p_menu->height) / 2;
-    int center;
-
-    // if there aren't enough columns before the selected row, top of table is top row
-    if (p_menu->selected < ideal) center = ideal;
-
-    // if there aren't enough columns after the selected row, bottom of table is bottom row
-    else if(p_menu->selected + ideal > p_menu->numOptions) center = p_menu->numOptions-ideal;
-
-    // if there are enough columns before and after it, the selected row is placed in the center of the available space
-    else center = p_menu->selected;
-
-    for(int i = center - ideal; (i < center - ideal + p_menu->height) && (i < p_menu->numOptions); i++){
-        int size = strlen(p_menu->menuitems[i]); 
-
-        // too long 
-        if(strlen(p_menu->menuitems[i]) > p_menu->width){
-            char *item = calloc(p_menu->width, sizeof(char));
-            strncpy(item, p_menu->menuitems[i], p_menu->width-3);
-            // to represent too long
-            strcat(item, "...");
-
-            mvwprintw(p_menu->window, i+1,1, "%s", item);
-            wmove(p_menu->window, i+1, 1);
-            free(item);
-
-            //selected is bold and red highlight
-            if(p_menu->selected ==i) 
-                wchgat(p_menu->window, -1,A_BOLD, 3, NULL);
-            else
-                wchgat(p_menu->window, -1,A_NORMAL, 2, NULL);
-
-
+void addHook_Menu(MENU *p_menu, struct hook hook){
+    if(p_menu->hookcount == p_menu->maxhooks){
+        p_menu->hooks = realloc(p_menu->hooks, p_menu->maxhooks*2* sizeof(struct hook));
+        if(p_menu->hooks==NULL){
+            printf("error in realloc");
+            exit(-1);
         }
-        mvwprintw(p_menu->window, i+1,1, "%s", p_menu->menuitems[i]);
-        wmove(p_menu->window, i+1, 1);
-
-        //selected is bold and red highlight
-        if(p_menu->selected ==i) 
-            wchgat(p_menu->window, -1,A_BOLD, 3, NULL);
-        else
-            wchgat(p_menu->window, -1,A_NORMAL, 2, NULL);
-        // starred items are yellow
-        if(highlighted != NULL && highlighted[i] == '*') {
-            // starred selected is yellow on red and bold
-            if (p_menu->selected ==i)
-                    wchgat(p_menu->window, -1,A_BOLD, 5, NULL);
-                
-            // starred nonselected is yellow on white
-            else
-                wchgat(p_menu->window, -1 ,A_NORMAL, 4, NULL);
-            
-        }
-
+        p_menu->maxhooks*=2;
     }
-    box(p_menu->window, 0, 0);
-    wmove(p_menu->window, 0, 1); waddch(p_menu->window, ACS_RTEE);wprintw(p_menu->window, "%s", p_menu->title); waddch(p_menu->window, ACS_LTEE);
-    wrefresh(p_menu->window);
-    
+    p_menu->hooks[p_menu->hookcount] = hook;
+    p_menu->hookcount++;
+};
+
+void run_Menu(MENU* p_menu){
+    while(1){
+        render_Menu(p_menu, p_menu->highlighted);
+        int ch = getch();
+        for(int i = 0; i<p_menu->hookcount; i++){
+            if(ch == p_menu->hooks[i].trigger){
+                if(p_menu->hooks[i].effect(p_menu)==-1){
+                    return;
+                }
+            }
+
+        }
+    }
+
 }
 
 // changes selected item
-void changeselect(MENU *p_menu, int change){
+void changeselect_Menu(MENU *p_menu, int change){
     p_menu->selected += change;
 
     //overflow checks

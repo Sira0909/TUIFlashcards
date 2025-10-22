@@ -58,7 +58,8 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
     WINDOW* form_win = newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
 
     set_form_win(Form, form_win);
-    set_form_sub(Form, derwin(form_win, rows, cols, 11, 2));
+    WINDOW* form_sub = derwin(form_win, rows, cols, 11, 2);
+    set_form_sub(Form, form_sub);
     
     WINDOW* text = derwin(form_win, 10, cols+2, 1, 1);
     //set form background
@@ -78,14 +79,21 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
     curs_set(1);
 
 
+    WINDOW* starWin = NULL;
+    WINDOW* resultWin = NULL;
 
     while((ch = getch())){
         touchwin(form_win);
-        int x,y;
-        getyx(stdscr, y,x);
-        move(LINES-3, 0);
-        clrtoeol();
-        move(y,x);
+        if(starWin!=NULL){
+            erasewindow(starWin);
+            starWin=NULL;
+        }
+        if(resultWin!=NULL){
+            erasewindow(resultWin);
+            resultWin=NULL;
+        }
+        
+        wrefresh(form_sub);
         switch (ch){
             case 19: // ctrl+s
                 if(currentcard>0){
@@ -115,38 +123,33 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                 char *correctanswer=currentFlashcard.name;
 
 
-                WINDOW* result_win = newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
                 if(strcmp(answer, correctanswer)!=0){ // incorrect
+                    resultWin = create_newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2);
                     curs_set(0);
-                    wbkgd(result_win, COLOR_PAIR(10));
-                    wattron(result_win,A_BOLD);
-                    wprintctrx(result_win, 5, cols+4, "Your answer did not match.");
-                    wprintctrx(result_win, 6, cols+4, "Press enter to continue, or");
-                    wprintctrx(result_win, 7, cols+4, "esc to try again immediately");              
-                    wattroff(result_win,A_BOLD);
-                    box(result_win,0,0);
-                    wrefresh(result_win);
+                    wbkgd(resultWin, COLOR_PAIR(10));
+                    wattron(resultWin,A_BOLD);
+                    wprintctrx(resultWin, 5, cols+4, "Your answer did not match.");
+                    wprintctrx(resultWin, 6, cols+4, "Press enter to continue, or");
+                    wprintctrx(resultWin, 7, cols+4, "esc to try again immediately");              
+                    wattroff(resultWin,A_BOLD);
+                    box(resultWin,0,0);
+                    wrefresh(resultWin);
                     int c2 = getch();
+                    erasewindow(resultWin);
                     
                     if(c2== 's'){ //star mistake
-                        attron(COLOR_PAIR(1));
+                        starWin = create_newwin(3, 30, (LINES-11)/2+15, (COLS-28)/2);
+                        wbkgd(starWin, COLOR_PAIR(2));
+                        box(starWin,0,0);
                         currentFlashcard.is_starred = !flashcard_set->cards[order[currentcard]].is_starred;
-                        wprintctrx(stdscr, LINES-3, COLS, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
-                        attron(COLOR_PAIR(1));
-                        c2 = getch();
-                        getyx(stdscr, y,x);
-                        move(LINES-3, 0);
-                        clrtoeol();
-                        move(y,x);
+                        wattron(starWin,COLOR_PAIR(4));
+                        wprintctrx(starWin, 1, 30, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
+                        wattroff(starWin,COLOR_PAIR(4));
+                        wrefresh(form_win);
+                        wrefresh(starWin);
+                        //c2 = getch();
                     }
-                    if(c2 == 10){
-                        order[mistakeindex++]=order[currentcard];
-                        attron(COLOR_PAIR(3));
-                        mvprintw(LINES-3, (COLS-16-strlen(correctanswer))/2, "Correct answer: %s", correctanswer);
-                        attron(COLOR_PAIR(1));
-
-                    }
-                    else {
+                    if(c2 == 27){
                         box(form_win, 0, 0);
                         printProgress(form_win, currentcard, numCards);
                         werase(text);
@@ -154,18 +157,27 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                         wprintw(text, "%s", currentFlashcard.definition);
                         wrefresh(form_win);
                         break;
+
+                    }
+                    else {
+                        order[mistakeindex++]=order[currentcard];
+                        resultWin = create_newwin(1, 16+strlen(correctanswer), LINES-3, (COLS-16-strlen(correctanswer))/2);
+                        wbkgd(resultWin, COLOR_PAIR(3));
+                        mvwprintw(resultWin, 0, 0, "Correct answer: %s", correctanswer);
+                        wrefresh(resultWin);
                     }
 
                     form_driver(Form, REQ_DEL_CHAR);
                     
-                    werase(result_win);
                 }
                 else {
                     curs_set(0);
                     //wprintctrx(result_win, 5, cols+4, "");
-                    attron(COLOR_PAIR(9));
-                    mvprintw(LINES-3, (COLS-7)/2, "Correct");
-                    attron(COLOR_PAIR(1));
+
+                    resultWin = create_newwin(1, 7, LINES-3, (COLS-5)/2);
+                    wbkgd(resultWin, COLOR_PAIR(9));
+                    mvwprintw(resultWin, 0, 0, "Correct");
+                    wrefresh(resultWin);
                     refresh();
                 }
 

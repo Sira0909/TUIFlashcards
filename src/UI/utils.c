@@ -29,6 +29,56 @@ char selectionkeybinds[10][2][20] = {
     {" ", " "},
     {"?", "list keybinds"}
 };
+
+char (*glofiles)[128];
+char* toreturn;
+void (*call)(char*);
+char* _getLists(int start_at, void (*to_call)(char*));
+
+int getLists_j(void* menu){changeselect_Menu((MENU*) menu, 1); return 1;}
+int getLists_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
+int getLists_keybinds(void* menu){list_keybinds(10, selectionkeybinds);return 1;}
+int getLists_quit(void* menu){
+        free(glofiles);
+        erasewindow(((MENU*)menu)->window);
+        ((MENU*)menu)->window= NULL;
+        return -1;
+}
+int getLists_delete(void* menu){
+        wattron(((MENU*)menu)->window, A_BOLD);
+        mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Really delete (needs capital Y)?");
+        wattroff(((MENU*)menu)->window, A_BOLD);
+        wrefresh(((MENU*)menu)->window);
+        if (getch()=='Y'){
+            if(remove(glofiles[((MENU*)menu)->selected]) == 0){
+
+                wattron(((MENU*)menu)->window, A_BOLD);
+                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "File deleted.");
+                wattroff(((MENU*)menu)->window, A_BOLD);
+
+
+
+                getLists_quit(menu);
+                toreturn = _getLists(((MENU*)menu)->selected,call);
+                return -1;
+            }
+        }
+        mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
+        wrefresh(((MENU*)menu)->window);
+        return 1;
+}
+int getLists_addlist(void* menu){addList(); getLists_quit(menu); toreturn = _getLists(((MENU*)menu)->selected,call);return -1;}
+int getLists_select(void* menu){
+        if (call == NULL){ toreturn = glofiles[((MENU*)menu)->selected]; getLists_quit(menu); return -1;}
+        else{
+            wbkgd(((MENU*)menu)->window, COLOR_PAIR(8));
+            werase(((MENU*)menu)->window);
+            wrefresh(((MENU*)menu)->window);
+            call(glofiles[((MENU*)menu)->selected]);
+            wbkgd(((MENU*)menu)->window, COLOR_PAIR(2));
+            return 1;
+        }
+}
 char* _getLists(int start_at, void (*to_call)(char*)){
 
     DIR *dp;
@@ -89,81 +139,26 @@ char* _getLists(int start_at, void (*to_call)(char*)){
         WINDOW* select_menu_window = create_newwin(LINES-5, 34, 3, (COLS - 32)/2);
 
         // init the menu
-        init_menu(&selectmenu, numfiles, 32,LINES-8, &select_menu_window, "select list", files);
+        init_Menu(&selectmenu, numfiles, 32,LINES-8, &select_menu_window, "select list", NULL, files);
         wrefresh(selectmenu.window);
 
         selectmenu.selected = start_at;
         if (selectmenu.selected >= numfiles) selectmenu.selected = numfiles-1;
         
-        // character from getch()
-        int ch;
+        glofiles = files;
+        call = to_call;
 
-        // so that we can leave while loop
-        bool done = false;
-        while(!done){
-            // refresh menu (see MENU.c)
-            render_menu(&selectmenu,NULL) ;
-            ch = getch();
-            switch(ch){
-                case 'j': // down
-                    changeselect(&selectmenu, 1);
-                    break;
-                case 'k': // up
-                    changeselect(&selectmenu, -1);
-                    break;
-                case 27:
-                case 'q': // quit
-                    done = true;
-                    break;
-                case 'd':
-                    wattron(select_menu_window, A_BOLD);
-                    mvwprintw(select_menu_window, LINES-7, 1, "Really delete (needs capital Y)?");
-                    wattroff(select_menu_window, A_BOLD);
-                    wrefresh(select_menu_window);
-                    if (getch()=='Y'){
-                        if(remove(files[selectmenu.selected]) == 0){
-                            wattron(select_menu_window, A_BOLD);
-                            mvwprintw(select_menu_window, LINES-7, 1, "File deleted.");
-                            wattroff(select_menu_window, A_BOLD);
-                            selectmenu.window = NULL;
-                            free(selectmenu.window);
-                            free(files);
-                            erasewindow(select_menu_window);
-                            return _getLists(selectmenu.selected,to_call);
-                        }
-                    }
-                    mvwprintw(select_menu_window, LINES-7, 1, "                                ");
-                    wrefresh(select_menu_window);
+        addHook_Menu(&selectmenu, (struct hook){'j', &getLists_j});
+        addHook_Menu(&selectmenu, (struct hook){'k', &getLists_k});
+        addHook_Menu(&selectmenu, (struct hook){'q', &getLists_quit});
+        addHook_Menu(&selectmenu, (struct hook){27,  &getLists_quit});
+        addHook_Menu(&selectmenu, (struct hook){'d', &getLists_delete});
+        addHook_Menu(&selectmenu, (struct hook){'a', &getLists_addlist});
+        addHook_Menu(&selectmenu, (struct hook){10, &getLists_select});
+        addHook_Menu(&selectmenu, (struct hook){'?', &getLists_keybinds});
+        run_Menu(&selectmenu);
 
-                    break;
-                case 'a':
-                    addList();
-                    selectmenu.window = NULL;
-                    free(selectmenu.window);
-                    free(files);
-                    erasewindow(select_menu_window);
-                    return _getLists(selectmenu.selected, to_call);
-                case 10: // enter
-                    if (to_call == NULL){
-                        return files[selectmenu.selected];
-                    }
-                    else{
-                        wbkgd(select_menu_window, COLOR_PAIR(8));
-                        werase(select_menu_window);
-                        wrefresh(select_menu_window);
-                        to_call(files[selectmenu.selected]);
-                        wbkgd(select_menu_window, COLOR_PAIR(2));
-                    }
-                    break;
-                case '?':
-                    list_keybinds(10, selectionkeybinds);
-            }
-                    
-        }
-        selectmenu.window = NULL;
-        free(selectmenu.window);
-        free(files);
-        erasewindow(select_menu_window);
+        return toreturn;
     }
     return NULL;
 
@@ -195,7 +190,7 @@ void list_keybinds(int numBinds, char (*keybinds)[2][20]){
 
 }
 
-char* getString(char* title, int maxsize){
+char* getString(char* title, int maxsize, char* startingText){
     WINDOW *my_form_win;
     FIELD *FileNameField[2];
     FORM *Form;
@@ -216,6 +211,11 @@ char* getString(char* title, int maxsize){
     //assign window
     scale_form(Form, &rows, &cols);
     my_form_win = newwin(rows+4, cols+4,(LINES - rows-2)/2,(COLS - cols-2)/2);
+
+    if(startingText!=NULL){
+        set_field_buffer(FileNameField[0], 0, startingText);
+        //form_driver(Form, REQ_END_FIELD);
+    }
 
     set_form_win(Form, my_form_win);
     set_form_sub(Form, derwin(my_form_win, rows, cols, 3, 2));

@@ -64,71 +64,113 @@ int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starr
     }
     return numCards;
 }
+
+
+bool settings_done;
+bool* starred;
+bool* shuffled;
+int settings_j(void* menu){changeselect_Menu((MENU*) menu, 1); return 1;}
+int settings_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
+int settings_keybinds(void* menu){list_keybinds(6, settingskeybinds);return 1;}
+int settings_quit(void* menu){erasewindow(((MENU*)menu)->window);settings_done = false;return -1;}
+int settings_select(void* menu){
+    switch(((MENU*)menu)->selected){
+        case 0:
+            *starred = !(*starred);
+            ((MENU*)menu)->highlighted[0] = *starred ? '*' : 0;
+            ((MENU*)menu)->menuitems[0][19] = *starred ? '*' : ' ';
+            break;
+        case 1:
+            *shuffled = !(*shuffled);
+            ((MENU*)menu)->highlighted[1] = *shuffled ? '*' : 0;
+            ((MENU*)menu)->menuitems[1][19] = *shuffled ? '*' : ' ';
+            break;
+        case 3:
+            // clean up
+            erasewindow(((MENU*)menu)->window);
+            settings_done=true;
+            return -1;
+    }
+    return 1;
+}
+
+
 bool get_settings(bool* starred_only, bool* shuffle){
+    starred = starred_only;
+    shuffled = shuffle;
     MENU setting_menu;
 
     char items[5][128] = { "Only starred items", "Shuffle flashcards", "\0", "Continue\0", "\0"};
+    char flags[5] = {0,0,0,0,0};
 
     // create window for menu. 
     WINDOW* setting_window;
     setting_window = create_newwin(7, 23, (LINES - 5)/2, (COLS - 20)/2);
 
-    init_menu(&setting_menu, 5, 20,5, &setting_window, "Settings", items);
+    init_Menu(&setting_menu, 5, 20,5, &setting_window, "Settings", flags, items);
     wrefresh(setting_menu.window);
 
      
     // character from getch()
     int ch;
+    flags[0] = *starred_only ? '*' : 0;
+    items[0][19] = *starred_only ? '*' : ' ';
+    flags[1] = *shuffle ? '*' : 0;
+    items[1][19] = *shuffle ? '*' : ' ';
 
-    bool done = false;
-    char flags[5] = {0,0,0,0,0};
-    while(!done){
-        // refresh menu (see MENU.c)
-        flags[0] = *starred_only ? '*' : 0;
-        items[0][19] = *starred_only ? '*' : ' ';
-        flags[1] = *shuffle ? '*' : 0;
-        items[1][19] = *shuffle ? '*' : ' ';
-        render_menu(&setting_menu, flags) ;
-        ch = getch();
-        switch(ch){
-            case 'j': // down
-                changeselect(&setting_menu, 1);
-                break;
-            case 'k': // up
-                changeselect(&setting_menu, -1);
-                break;
-            case 27:
-            case 'q': // quit
-                done = true;
-                setting_menu.window = NULL;
-                free(setting_menu.window);
-                delwin(setting_window);
-                return false;
-            case 10: //enter
-                switch(setting_menu.selected){
-                    case 0:
-                        *starred_only = !(*starred_only);
-                        break;
-                    case 1:
-                        *shuffle = !(*shuffle);
-                        break;
-                    case 3:
-                        // clean up
-                        setting_menu.window = NULL;
-                        free(setting_menu.window);
-                        erasewindow(setting_window);
-                        return true;
-                }
-                break;
-            case '?':
-                list_keybinds(6, settingskeybinds);
-                break;
-        }
-    }
-    setting_menu.window = NULL;
-    free(setting_menu.window);
-    erasewindow(setting_window);
-    return false;
+    addHook_Menu(&setting_menu, (struct hook){'j', &settings_j});
+    addHook_Menu(&setting_menu, (struct hook){'k', &settings_k});
+    addHook_Menu(&setting_menu, (struct hook){27, &settings_quit});
+    addHook_Menu(&setting_menu, (struct hook){'q', &settings_quit});
+    addHook_Menu(&setting_menu, (struct hook){'?', &settings_keybinds});
+    addHook_Menu(&setting_menu, (struct hook){10, &settings_select});
+    run_Menu(&setting_menu);
+    return settings_done;
+
+//    bool done = false;
+//    while(!done){
+//        // refresh menu (see MENU.c)
+//        render_Menu(&setting_menu, flags) ;
+//        ch = getch();
+//        switch(ch){
+//            case 'j': // down
+//                changeselect_Menu(&setting_menu, 1);
+//                break;
+//            case 'k': // up
+//                changeselect_Menu(&setting_menu, -1);
+//                break;
+//            case 27:
+//            case 'q': // quit
+//                done = true;
+//                erasewindow(setting_window);
+//                setting_menu.window = NULL;
+//                return false;
+//            case 10: //enter
+//                switch(setting_menu.selected){
+//                    case 0:
+//                        *starred_only = !(*starred_only);
+//                        flags[0] = *starred_only ? '*' : 0;
+//                        items[0][19] = *starred_only ? '*' : ' ';
+//                        break;
+//                    case 1:
+//                        *shuffle = !(*shuffle);
+//                        flags[1] = *shuffle ? '*' : 0;
+//                        items[1][19] = *shuffle ? '*' : ' ';
+//                        break;
+//                    case 3:
+//                        // clean up
+//                        setting_menu.window = NULL;
+//                        free(setting_menu.window);
+//                        erasewindow(setting_window);
+//                        return true;
+//                }
+//                break;
+//            case '?':
+//                list_keybinds(6, settingskeybinds);
+//                break;
+//        }
+//    }
+//    return false;
 
 }
 

@@ -2,6 +2,7 @@
 #define MENUH
 
 #include <ncurses.h>
+#include <UI.h>
 
 typedef struct _menu_struct{
     WINDOW *window;             // the underlying window
@@ -11,13 +12,22 @@ typedef struct _menu_struct{
     int selected;
     char *title;
     char (*menuitems)[128];
+    char *highlighted;
+    int hookcount;
+    int maxhooks;
+    struct hook *hooks;
+
 } MENU;
 
-void init_menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char (*menuitems)[]);
+void init_Menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char* highlighted, char (*menuitems)[]);
+
+void addHook_Menu(MENU *p_menu, struct hook hook);
+
+void run_Menu(MENU* p_menu);
 
 // draws menu
-void render_menu(MENU *p_menu, char* highlighted);
+void render_Menu(MENU *p_menu, char* highlighted);
 
 // changes selected item
-void changeselect(MENU *p_menu, int change);
+void changeselect_Menu(MENU *p_menu, int change);
 #endif
