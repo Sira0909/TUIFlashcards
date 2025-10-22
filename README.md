@@ -9,7 +9,6 @@ A TUI program for studying flashcards, using the NCURSES library. not done yet
 - multiple choice quizes <br />
 
 <h1> TO BE ADDED:</h1>
-- when changing flashcard fields, form starts with old field instead of empty
 - study particular sides or both
 - more modes of study
 - maybe word wrap eventually
