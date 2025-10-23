@@ -1,4 +1,4 @@
-#include <linux/limits.h>
+#include <limits.h>
 #include <macros.h>
 
 #include <string.h>

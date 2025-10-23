@@ -1,3 +1,4 @@
+#include <stdlib.h>
 
 #include <ncurses.h>
 #include <form.h>
@@ -34,34 +35,12 @@ char mainkeybinds[7][2][20] = {
 
 WINDOW* keybindHelp;
 
-int main_menu_j(void* menu){changeselect_Menu((MENU*) menu, 1); return 1;}
-int main_menu_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
-int main_menu_quit(void* menu){return -1;}
-int main_menu_select(void * menu){
-    if (keybindHelp != NULL) // erase keybinds now
-        erasewindow(keybindHelp);
-    keybindHelp=NULL;
-    switch(((MENU*)menu)->selected){
-        case 0: // "Study"
-            getLists(pickMode);
-            break;
-        case 2: // "New List"
-            addList();
-            break;
-        case 3: // "Edit List"
-            getLists(editList);
-            break;
-        case 5: // "Quit"
-            return -1;
-            break;
-        default:// error, debug info will be printed
-            mvwprintw(stdscr, 1,1, "error: accidentally picked %d", ((MENU*)menu)->selected);
-            break;
-    }
-    return 1;
-}
-int main_menu_keybinds(void* menu){list_keybinds(7, mainkeybinds); return 1;}
 
+int main_menu_j(void* menu);
+int main_menu_k(void* menu);
+int main_menu_quit(void* menu);
+int main_menu_select(void * menu);
+int main_menu_keybinds(void* menu);
 
 int main(){
 
@@ -131,73 +110,64 @@ int main(){
 
     // init the menu
     init_Menu(&mainmenu, 7, 20,7, &menu_window, "Let's Study!", NULL, items);
-    //wrefresh(mainmenu.window);
     
 
+    // add commands to menu, see below and menu.c
     addHook_Menu(&mainmenu, (struct hook){'j', &main_menu_j});
     addHook_Menu(&mainmenu, (struct hook){'k', &main_menu_k});
     addHook_Menu(&mainmenu, (struct hook){'q', &main_menu_quit});
     addHook_Menu(&mainmenu, (struct hook){27,  &main_menu_quit});
     addHook_Menu(&mainmenu, (struct hook){10,  &main_menu_select});
     addHook_Menu(&mainmenu, (struct hook){'?', &main_menu_keybinds});
+
+
+    // run
     run_Menu(&mainmenu);
+    free(mainmenu.hooks);
     
-    
-//    // character from getch()
-//    int ch;
-//
-//    // so that we can leave while loop
-//    bool done = false;
-//    while(!done){
-//        // refresh menu (see MENU.c)
-//        render_menu(&mainmenu, NULL) ;
-//        ch = getch();
-//        switch(ch){
-//            case 'j': // down
-//                changeselect(&mainmenu, 1);
-//                break;
-//            case 'k': // up
-//                changeselect(&mainmenu, -1);
-//                break;
-//            case 27:
-//            case 'q': // quit
-//                done = true;
-//                break;
-//            case 10: // enter
-//                if (keybindHelp != NULL) // erase keybinds now
-//                    erasewindow(keybindHelp);
-//                keybindHelp=NULL;
-//                switch(mainmenu.selected){
-//                    case 0: // "Study"
-//                        getLists(pickMode);
-//                        break;
-//                    case 2: // "New List"
-//                        addList();
-//                        break;
-//                    case 3: // "Edit List"
-//                        getLists(editList);
-//                        break;
-//                    case 5: // "Quit"
-//                        done = true;
-//                        break;
-//                    default:// error, debug info will be printed
-//                        wprintw(menu_window, "%d", mainmenu.selected);
-//                        break;
-//                }
-//                break;
-//            case '?':
-//                list_keybinds(7, mainkeybinds);
-//                break;
-//        }
-//                
-//    }
     
     // clean up
     delwin(menu_window);
-    //free(mainmenu.window);
-    //mainmenu.window = NULL;
 
 
     // clean up
     endwin();
 }
+
+
+
+//see menu.c for how these work
+
+// j moves down
+int main_menu_j(void* menu){changeselect_Menu((MENU*) menu, 1); return 1;}
+// k moves up
+int main_menu_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
+// when quit
+int main_menu_quit(void* menu){return -1;}
+
+// select option
+int main_menu_select(void * menu){
+    if (keybindHelp != NULL) // erase keybinds now
+        erasewindow(keybindHelp);
+    keybindHelp=NULL;
+    switch(((MENU*)menu)->selected){
+        case 0: // "Study"
+            getLists(pickMode);
+            break;
+        case 2: // "New List"
+            addList();
+            break;
+        case 3: // "Edit List"
+            getLists(editList);
+            break;
+        case 5: // "Quit"
+            return -1;
+            break;
+        default:// error, debug info will be printed
+            mvwprintw(stdscr, 1,1, "error: accidentally picked %d", ((MENU*)menu)->selected);
+            break;
+    }
+    return 1;
+}
+//display keybinds
+int main_menu_keybinds(void* menu){list_keybinds(7, mainkeybinds); return 1;}

@@ -5,6 +5,9 @@
 #include <ncurses.h>
 #include <UI.h>
 
+
+//TODO: fix this spaghetti
+
 char multipleChoiceKeybinds[7][2][20] = {
     {"h", "left"},
     {"j","down"},
@@ -275,14 +278,14 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
                         WINDOW *ask_review = create_newwin(8,22, (LINES-6)/2, (COLS-20)/2);
                         wbkgd(ask_review, COLOR_PAIR(2));
                         box(ask_review, 0, 0);
-                        wprintctrx(ask_review, 1, 22, "quiz complete!");
+                        wprintctrx(ask_review, 1, 22, "Quiz complete!");
 
                         WINDOW *return_win = derwin(ask_review, 4, 20, 3, 1);
                         wbkgd(return_win, COLOR_PAIR(3));
 
                         box(return_win, 0, 0);
 
-                        wprintctrx(return_win, 1, 20, "return to menu");
+                        wprintctrx(return_win, 1, 20, "Return to menu");
                         wrefresh(ask_review);
 
                         int ch = getch();

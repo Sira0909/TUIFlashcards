@@ -130,7 +130,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                     wattron(resultWin,A_BOLD);
                     wprintctrx(resultWin, 5, cols+4, "Your answer did not match.");
                     wprintctrx(resultWin, 6, cols+4, "Press enter to continue, or");
-                    wprintctrx(resultWin, 7, cols+4, "esc to try again immediately");              
+                    wprintctrx(resultWin, 7, cols+4, "ESC to try again immediately");              
                     wattroff(resultWin,A_BOLD);
                     box(resultWin,0,0);
                     wrefresh(resultWin);
@@ -190,14 +190,14 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
                         WINDOW *ask_review = create_newwin(8,22, (LINES-6)/2, (COLS-20)/2); wbkgd(ask_review, COLOR_PAIR(2));
                         box(ask_review, 0, 0);
-                        wprintctrx(ask_review, 1, 22, "quiz complete!");
+                        wprintctrx(ask_review, 1, 22, "Quiz complete!");
 
                         bool currentselect=0;
                         WINDOW *review =     derwin(ask_review, 4, 10, 3, 1);     wbkgd(review, COLOR_PAIR(3));
                         WINDOW *return_win = derwin(ask_review, 4, 10, 3, 11);
 
-                        mvwprintw(review, 1, 1, " review\n mistakes");
-                        mvwprintw(return_win, 1, 1, " return \n to menu");
+                        mvwprintw(review, 1, 1, " Review\n mistakes");
+                        mvwprintw(return_win, 1, 1, " Return \n to menu");
                         box(review,0,0);
                         box(return_win, 0, 0);
 
@@ -254,14 +254,14 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                         WINDOW *ask_review = create_newwin(8,22, (LINES-6)/2, (COLS-20)/2);
                         wbkgd(ask_review, COLOR_PAIR(2));
                         box(ask_review, 0, 0);
-                        wprintctrx(ask_review, 1, 22, "quiz complete!");
+                        wprintctrx(ask_review, 1, 22, "Quiz complete!");
 
                         WINDOW *return_win = derwin(ask_review, 4, 20, 3, 1);
                         wbkgd(return_win, COLOR_PAIR(3));
 
                         box(return_win, 0, 0);
 
-                        wprintctrx(return_win, 1, 20, "return to menu");
+                        wprintctrx(return_win, 1, 20, "Return to menu");
                         wrefresh(ask_review);
 
                         int ch = getch();

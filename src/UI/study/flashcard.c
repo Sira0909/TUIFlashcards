@@ -11,19 +11,11 @@ void flashcard(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
 
 
-    //no cards match criteria
     int numCards = getOrder(flashcard_set, order, shuffle, starred_only);
+
+    //no cards match criteria
     if (!numCards)
         return;
-
-    for(int i = 0; i<numCards;i++){
-//        if (strlen(flashcard_set->cards[order[i]].definition)>maxlength){
-//            maxlength = strlen(flashcard_set->cards[i].definition);
-//        }
-       // if (strlen(flashcard_set->cards[order[i]].name)>maxlength){
-       //     maxlength = strlen(flashcard_set->cards[i].name);
-       // }
-    }
 
     WINDOW* FlashcardWindow = create_newwin((maxlength/4)*2+1, maxlength+4, (LINES-maxlength/2)/2, (COLS-maxlength-4)/2);
     WINDOW* text = derwin(FlashcardWindow, (maxlength/4)*2-1, maxlength+2, 1, 1);

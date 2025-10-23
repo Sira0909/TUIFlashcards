@@ -52,11 +52,10 @@ int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starr
         wbkgd(errorWin, COLOR_PAIR(7));
         box(errorWin,0,0);
         wattron(errorWin,A_BOLD);
+
         mvwprintw(errorWin,1,1, "No cards match criteria");
-        wmove(errorWin, 0, 1);
-        waddch(errorWin, ACS_RTEE);
-        wprintw(errorWin, "%s", "Error");
-        waddch(errorWin, ACS_LTEE);
+        mvwprintw(errorWin,0,1, "%c%s%c", ACS_RTEE, "Error", ACS_LTEE);      
+
         wrefresh(errorWin);
         getch();
         erasewindow(errorWin);
@@ -71,19 +70,27 @@ bool* starred;
 bool* shuffled;
 int settings_j(void* menu){changeselect_Menu((MENU*) menu, 1); return 1;}
 int settings_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
-int settings_keybinds(void* menu){list_keybinds(6, settingskeybinds);return 1;}
-int settings_quit(void* menu){erasewindow(((MENU*)menu)->window);settings_done = false;return -1;}
+int settings_keybinds(void* menu){
+    list_keybinds(6, settingskeybinds);                         return 1;
+}
+
+int settings_quit(void* menu){
+    erasewindow(((MENU*)menu)->window);
+    settings_done = false;                                      return -1;
+}
+
 int settings_select(void* menu){
-    switch(((MENU*)menu)->selected){
+    MENU* settingsmenu = menu;
+    switch(settingsmenu->selected){
         case 0:
             *starred = !(*starred);
-            ((MENU*)menu)->highlighted[0] = *starred ? '*' : 0;
-            ((MENU*)menu)->menuitems[0][19] = *starred ? '*' : ' ';
+            settingsmenu->highlighted[0] = *starred ? '*' : 0;
+            settingsmenu->menuitems[0][19] = *starred ? '*' : ' ';
             break;
         case 1:
             *shuffled = !(*shuffled);
-            ((MENU*)menu)->highlighted[1] = *shuffled ? '*' : 0;
-            ((MENU*)menu)->menuitems[1][19] = *shuffled ? '*' : ' ';
+            settingsmenu->highlighted[1] = *shuffled ? '*' : 0;
+            settingsmenu->menuitems[1][19] = *shuffled ? '*' : ' ';
             break;
         case 3:
             // clean up
@@ -125,56 +132,13 @@ bool get_settings(bool* starred_only, bool* shuffle){
     addHook_Menu(&setting_menu, (struct hook){'?', &settings_keybinds});
     addHook_Menu(&setting_menu, (struct hook){10, &settings_select});
     run_Menu(&setting_menu);
+    free(setting_menu.hooks);
     return settings_done;
 
-//    bool done = false;
-//    while(!done){
-//        // refresh menu (see MENU.c)
-//        render_Menu(&setting_menu, flags) ;
-//        ch = getch();
-//        switch(ch){
-//            case 'j': // down
-//                changeselect_Menu(&setting_menu, 1);
-//                break;
-//            case 'k': // up
-//                changeselect_Menu(&setting_menu, -1);
-//                break;
-//            case 27:
-//            case 'q': // quit
-//                done = true;
-//                erasewindow(setting_window);
-//                setting_menu.window = NULL;
-//                return false;
-//            case 10: //enter
-//                switch(setting_menu.selected){
-//                    case 0:
-//                        *starred_only = !(*starred_only);
-//                        flags[0] = *starred_only ? '*' : 0;
-//                        items[0][19] = *starred_only ? '*' : ' ';
-//                        break;
-//                    case 1:
-//                        *shuffle = !(*shuffle);
-//                        flags[1] = *shuffle ? '*' : 0;
-//                        items[1][19] = *shuffle ? '*' : ' ';
-//                        break;
-//                    case 3:
-//                        // clean up
-//                        setting_menu.window = NULL;
-//                        free(setting_menu.window);
-//                        erasewindow(setting_window);
-//                        return true;
-//                }
-//                break;
-//            case '?':
-//                list_keybinds(6, settingskeybinds);
-//                break;
-//        }
-//    }
-//    return false;
 
 }
 
-//unfinished
+//TODO: add more modes
 void pickMode(char* list){
     WINDOW* mainPlayWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
     wbkgd(mainPlayWindow, COLOR_PAIR(2));

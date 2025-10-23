@@ -35,9 +35,13 @@ char* toreturn;
 void (*call)(char*);
 char* _getLists(int start_at, void (*to_call)(char*));
 
-int getLists_j(void* menu){changeselect_Menu((MENU*) menu, 1); return 1;}
+int getLists_j(void* menu){changeselect_Menu((MENU*) menu, 1);  return 1;}
 int getLists_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
-int getLists_keybinds(void* menu){list_keybinds(10, selectionkeybinds);return 1;}
+
+int getLists_keybinds(void* menu){
+    list_keybinds(10, selectionkeybinds);                       return 1;
+}
+
 int getLists_quit(void* menu){
         free(glofiles);
         erasewindow(((MENU*)menu)->window);
@@ -157,6 +161,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
         addHook_Menu(&selectmenu, (struct hook){10, &getLists_select});
         addHook_Menu(&selectmenu, (struct hook){'?', &getLists_keybinds});
         run_Menu(&selectmenu);
+        free(selectmenu.hooks);
 
         return toreturn;
     }
