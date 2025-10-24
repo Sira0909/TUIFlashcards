@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <windows/menu.h>
+#include <macros.h>
 #include <string.h>
 #include <stdlib.h>
 // draws menu
@@ -12,7 +13,7 @@ void render_Menu(MENU *p_menu, char* highlighted){
     if (p_menu->selected < ideal) center = ideal;
 
     // if there aren't enough columns after the selected row, bottom of table is bottom row
-    else if(p_menu->selected + ideal > p_menu->numOptions) center = p_menu->numOptions-ideal;
+    else if(p_menu->selected + ideal > p_menu->numOptions) center = max(ideal,p_menu->numOptions-ideal);
 
     // if there are enough columns before and after it, the selected row is placed in the center of the available space
     else center = p_menu->selected;

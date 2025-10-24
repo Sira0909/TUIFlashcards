@@ -30,7 +30,7 @@ void render_table(TABLE *p_table, char (*starred)){
     if (p_table->selected_row < ideal) center = ideal;
     
     // if there aren't enough columns after the selected row, bottom of table is bottom row
-    else if(p_table->selected_row + ideal > p_table->num_rows) center = p_table->num_rows-ideal;
+    else if(p_table->selected_row + ideal > p_table->num_rows) center = max(ideal,p_table->num_rows-ideal+1);
 
     // if there are enough columns before it, the selected row is placed in the center of the available space
     else center = p_table->selected_row;
@@ -41,43 +41,27 @@ void render_table(TABLE *p_table, char (*starred)){
 
 
 
+    for(int i = min(p_table->height, p_table->num_rows)-1; i >= 0; i--){
 
-    // print headers
-    for (int col = 0; col < p_table->num_cols; col ++){
-        wmove( p_table->window, 0, col*(1 + max_length));
-        wprintw(p_table->window, "%s", p_table->headers[col]);
-    }
-    //underline line with headers
-    wmove( p_table->window, 0, 0);
-    wchgat(p_table->window, p_table->width,A_BOLD | A_UNDERLINE, 2, NULL);
-
-    wattron(p_table->window, A_UNDERLINE);
-    for (int col = 0; col < p_table->num_cols; col ++){
-        //mvwaddch(p_table->window, 0, col*(1+max_length), ACS_TTEE);
-        mvwaddch(p_table->window, 0, col*(1+max_length)-1, ACS_VLINE);
-    }
-
-    wattroff(p_table->window, A_UNDERLINE);
-    for(int i = min(center - ideal + p_table->height, p_table->num_rows)-1; i >= center - ideal ; i--){
         for (int col = p_table->num_cols-1; col >= 0; col --){
 
 
             // selected item is red
-            if (p_table->selected_row ==i && p_table->selected_col == col) {
+            if (p_table->selected_row ==center - ideal + i && p_table->selected_col == col) {
+                
                 // allow selected items to wrap arround
-                wattron(p_table->window, A_BOLD);
-                wattron(p_table->window, COLOR_PAIR(3));
-                mvwprintw(p_table->window, i+1,col*(1 + max_length), "%s", p_table->table_data[col][i]);
-                wattroff(p_table->window, COLOR_PAIR(3));
-                wattroff(p_table->window, A_BOLD);
+                //wattron(p_table->window, A_BOLD | COLOR_PAIR(3));
+                mvwprintw(p_table->window, i+1,col*(1 + max_length), "%s", p_table->table_data[col][center - ideal +i]);
+                //wattroff(p_table->window, A_BOLD | COLOR_PAIR(3));
                 wmove(p_table->window, i+1, col*(1+max_length));
                 wchgat(p_table->window, max_length,A_BOLD, 3, NULL);
+                
             }
 
             // if non-selected item is longer than length, trim it to length
-            else if(strlen(p_table->table_data[col][i]) > max_length){
+            else if(strlen(p_table->table_data[col][center - ideal +i]) > max_length){
                 char *item = calloc(p_table->width, sizeof(char));
-                strncpy(item, p_table->table_data[col][i], max_length-3);
+                strncpy(item, p_table->table_data[col][center - ideal +i], max_length-3);
                 strcat(item, "...");
                 mvwprintw(p_table->window, i+1,col*(1 + max_length), "%s", item);
                 wmove(p_table->window, i+1, col*(1+max_length));
@@ -87,21 +71,26 @@ void render_table(TABLE *p_table, char (*starred)){
             
             // print normally
             else{
-                mvwprintw(p_table->window, i+1,col*(1 + max_length), "%s", p_table->table_data[col][i]);
+                mvwprintw(p_table->window, i+1,col*(1 + max_length), "%s", p_table->table_data[col][center - ideal +i]);
                 wmove(p_table->window, i+1, col*(1+max_length));
-                wchgat(p_table->window, max_length,A_NORMAL, 2, NULL);
+                if(p_table->selected_row == center-ideal + i){ // bold if in same row as selected
+                    wchgat(p_table->window, max_length,A_BOLD, 2, NULL);
+                }
+                else{
+                    wchgat(p_table->window, max_length,A_NORMAL, 2, NULL);
+                }
             }
 
             wmove(p_table->window, i+1, col*(1+max_length));
             
             // starred items are yellow
-            if(starred != NULL && starred[i] == '*') {
+            if(starred != NULL && starred[center - ideal +i] == '*') {
                 // starred selected is yellow on red and bold
-                if (p_table->selected_row ==i && p_table->selected_col == col)
+                if (p_table->selected_row ==center - ideal +i && p_table->selected_col == col)
                         wchgat(p_table->window, max_length,A_BOLD, 5, NULL);
                 
                 // starred in same row as selected is bold yellow on white
-                else if(p_table->selected_row ==i)
+                else if(p_table->selected_row ==center - ideal +i)
                         wchgat(p_table->window, max_length,A_BOLD, 4, NULL);
                     
                 // starred nonselected is yellow on white
@@ -114,6 +103,22 @@ void render_table(TABLE *p_table, char (*starred)){
         }
         
     }
+    
+    
+    // print headers
+    for (int col = 0; col < p_table->num_cols; col ++){
+        wmove( p_table->window, 0, col*(1 + max_length));
+        wprintw(p_table->window, "%s", p_table->headers[col]);
+    }
+
+    //underline line with headers
+    wmove( p_table->window, 0, 0);
+    wchgat(p_table->window, p_table->width,A_BOLD | A_UNDERLINE, 2, NULL);
+
+    for (int col = 0; col < p_table->num_cols; col ++){
+        mvwaddch(p_table->window, 0, col*(1+max_length)-1, ACS_VLINE);
+    }
+    
 
 
     wrefresh(p_table->window);

@@ -4,7 +4,7 @@ HEADERS = ${wildcard include/*.h}
 CC?=gcc
 
 TUIFlashcards: $(C_SOURCES) $(HEADERS)
-	$(CC) -lform -lncurses $(C_SOURCES) -I ./include/ -o $@ -g
+	$(CC) -lformw -lncursesw $(C_SOURCES) -I ./include/ -o $@ -g
 
 install: TUIFlashcards
 	sudo cp TUIFlashcards /usr/bin/
