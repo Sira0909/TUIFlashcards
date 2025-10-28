@@ -25,6 +25,149 @@ char editkeybinds[13][2][20]= {
     {"q", "quit without save"},
     {"?", "list keybinds"}
 };
+
+FlashcardSet* flashcardset;
+
+
+int edit_j(void* table){changeselect_Table((TABLE*) table, 1,  0); return 1;}
+int edit_k(void* table){changeselect_Table((TABLE*) table, -1, 0); return 1;}
+int edit_h(void* table){changeselect_Table((TABLE*) table, 0, -1); return 1;}
+int edit_l(void* table){changeselect_Table((TABLE*) table, 0,  1); return 1;}
+int edit_s(void* table){
+                flashcardset->cards[((TABLE*)table)->selected_row].is_starred = !flashcardset->cards[((TABLE*)table)->selected_row].is_starred;
+                ((TABLE*)table)->highlighted[((TABLE*)table)->selected_row]=(flashcardset->cards[((TABLE*)table)->selected_row].is_starred)? '*': ' ';
+                return 1;
+}
+int edit_select(void* table){
+                TABLE* Table = (TABLE*)table;
+                if(Table->selected_col == 0){
+                    char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE, flashcardset->cards[(Table)->selected_row].name);
+                    if(Name==NULL)
+                        return 1;
+                    if(is_all_space(Name))
+                        free(Name);
+                    else if(Name != NULL){
+                        strcpy(flashcardset->cards[Table->selected_row].name, Name);
+                        getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
+                        refresh();
+                        free(Name);
+                    }
+                }
+                else{
+                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, flashcardset->cards[(Table)->selected_row].definition);
+                    if(Defn==NULL)
+                        return 1;
+                    if(is_all_space(Defn))
+                        free(Defn);
+                    else if(Defn != NULL){
+                        strcpy(flashcardset->cards[(Table)->selected_row].definition, Defn);
+                        getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
+                        refresh();
+                        free(Defn);
+                    }
+                }
+                return 1;
+}
+int edit_delete(void* table){
+                TABLE* Table = (TABLE*)table;
+                wattron(Table->window, A_BOLD);
+                mvwprintw(Table->window, Table->height-1, 0, "really delete? (y/n)");
+                wattroff(Table->window, A_BOLD);
+                wrefresh(Table->window);
+                if ('y' == getch()){
+                    deletecard(flashcardset, Table->selected_row);
+                    free(Table->table_data[0]);
+                    free(Table->table_data[1]);
+                    free(Table->highlighted);
+                    Table->table_data[0] = calloc(flashcardset->capacity, sizeof(char[128]));
+                    Table->table_data[1] = calloc(flashcardset->capacity, sizeof(char[128]));
+                    Table->highlighted = calloc(flashcardset->capacity, sizeof(char));
+                    getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
+                    Table->num_rows = flashcardset->num_items;
+                    if (Table->num_rows <= Table->selected_row){
+                        changeselect_Table(Table, -1, 0);
+                    }
+                }
+                mvwprintw(Table->window, Table->height-1, 1, "                    ");
+                return 1;
+}
+int edit_add(void* table){
+                TABLE* Table = (TABLE*) table;
+                char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
+                if (Name != NULL){
+                    if(is_all_space(Name)){
+                        free(Name);
+                        return 1;
+                    }
+                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, NULL);
+                    if (Defn != NULL){
+                        if(is_all_space(Defn)){
+                            free(Name);
+                            free(Defn);
+                            return 1;
+                        }
+                        addcard(flashcardset, Name, Defn, 0);
+                        free(Table->table_data[0]);
+                        free(Table->table_data[1]);
+                        free(Table->highlighted);
+                        Table->table_data[0] = calloc(flashcardset->capacity, sizeof(char[128]));
+                        Table->table_data[1] = calloc(flashcardset->capacity, sizeof(char[128]));
+                        Table->highlighted = calloc(flashcardset->capacity, sizeof(char));
+                        getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
+                        Table->num_rows = flashcardset->num_items;
+                        refresh();
+                        free(Defn);
+                    }
+                    free(Name);
+                }
+                return 1;
+}
+char* filename;
+int edit_write(void* table){
+                TABLE* Table = (TABLE*) table;
+            wattron(Table->window, A_BOLD);
+            mvwprintw(Table->window, Table->height-1, 1, "quit after write? (y/n):");
+            wattroff(Table->window, A_BOLD);
+                wrefresh(Table->window);
+                switch (getch()){
+                    case 'y':
+                        free(Table->table_data[0]);
+                        free(Table->table_data[1]);
+                        free(Table->highlighted);
+                        writeFlashcardSet(flashcardset, filename, 1);
+                        refresh();
+                        return -1;
+                    case 'n':
+                        writeFlashcardSet(flashcardset, filename, 0);
+                        mvwprintw(Table->window, Table->height-1, 1, "                            ");
+                        return 1;
+                    default:
+                        mvwprintw(Table->window, Table->height-1, 1, "Did not write.              ");
+                        wrefresh(Table->window);
+                        return 1;
+                }
+                return 1;
+}
+int edit_quit(void* table){
+                TABLE* Table = (TABLE*) table;
+                wattron(Table->window, A_BOLD);
+                mvwprintw(Table->window, Table->height-1, 1, "quit without saving? (y/n): ");
+                wattroff(Table->window, A_BOLD);
+                wrefresh(Table->window);
+                if ('y' == getch()){
+                    free(Table->table_data[0]);
+                    free(Table->table_data[1]);
+                    free(Table->highlighted);
+                    deleteSetPointer(&flashcardset);
+                    return -1;
+                }
+                mvwprintw(Table->window, Table->height, 1, "                            ");
+                return 1;
+}
+int edit_keybinds(void* table){
+                list_keybinds(13, editkeybinds);
+                return 1;
+}
 void editList(char ListName[]){
     char ListPath[PATH_MAX];
     if(ListName[0] == '/' || ListName[0] == '~'){
@@ -34,8 +177,9 @@ void editList(char ListName[]){
         strcpy(ListPath, config.flashcard_dir);
         strncat(ListPath, ListName, PATH_MAX-strnlen(config.flashcard_dir, 128));
     }
+    filename = ListPath;
     
-    FlashcardSet* flashcardset = create_Flashcard_Set_Object();
+    flashcardset = create_Flashcard_Set_Object();
     
     if (-1 == fillFlashcardSet(flashcardset, ListPath)) {
         deleteSetPointer(&flashcardset);
@@ -67,7 +211,7 @@ void editList(char ListName[]){
 
     wrefresh(edit_list_menu_window);
     // init the menu
-    init_table(&flashcardTable, flashcardset->num_items, 2,width, height, &tablewindow, "Editing Flashcards", headers, table);
+    init_Table(&flashcardTable, flashcardset->num_items, 2,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
     wrefresh(flashcardTable.window);
     
     // character from getch()
@@ -82,18 +226,34 @@ void editList(char ListName[]){
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
     wrefresh(edit_list_menu_window);
 
+    addHook_Table(&flashcardTable, (struct hook){'h', edit_h });
+    addHook_Table(&flashcardTable, (struct hook){'j', edit_j });
+    addHook_Table(&flashcardTable, (struct hook){'k', edit_k });
+    addHook_Table(&flashcardTable, (struct hook){'l', edit_l });
+    addHook_Table(&flashcardTable, (struct hook){'s', edit_s });
+    addHook_Table(&flashcardTable, (struct hook){10, edit_select });
+    addHook_Table(&flashcardTable, (struct hook){'q', edit_quit });
+    addHook_Table(&flashcardTable, (struct hook){27,  edit_quit });
+    addHook_Table(&flashcardTable, (struct hook){'?',  edit_keybinds });
+    addHook_Table(&flashcardTable, (struct hook){'d',  edit_delete });
+    addHook_Table(&flashcardTable, (struct hook){'a',  edit_add });
+    addHook_Table(&flashcardTable, (struct hook){'w',  edit_write });
+
+    run_Table(&flashcardTable);
+
+    /*
     while(!done){
         ch = getch();
         // refresh menu (see MENU.c)
         switch(ch){
             case 'j': // down
-                changeselect_table(&flashcardTable, 1, 0); break;
+                changeselect_Table(&flashcardTable, 1, 0); break;
             case 'k': // up
-                changeselect_table(&flashcardTable, -1, 0); break;
+                changeselect_Table(&flashcardTable, -1, 0); break;
             case 'h': // left
-                changeselect_table(&flashcardTable, 0, -1); break;
+                changeselect_Table(&flashcardTable, 0, -1); break;
             case 'l': // right
-                changeselect_table(&flashcardTable, 0, 1); break;
+                changeselect_Table(&flashcardTable, 0, 1); break;
             case 's': // star
                 flashcardset->cards[flashcardTable.selected_row].is_starred = !flashcardset->cards[flashcardTable.selected_row].is_starred;
                 starred[flashcardTable.selected_row]=(flashcardset->cards[flashcardTable.selected_row].is_starred)? '*': ' ';
@@ -145,9 +305,10 @@ void editList(char ListName[]){
                     getpairslimiter(flashcardset, starred, items, defns);
                     table[0] = items;
                     table[1] = defns;
+                    flashcardTable.highlighted=starred;
                     flashcardTable.num_rows = flashcardset->num_items;
                     if (flashcardTable.num_rows <= flashcardTable.selected_row){
-                        changeselect_table(&flashcardTable, -1, 0);
+                        changeselect_Table(&flashcardTable, -1, 0);
                     }
                 }
                 mvwprintw(edit_list_menu_window, height, 1, "                    ");
@@ -176,6 +337,7 @@ void editList(char ListName[]){
                         getpairslimiter(flashcardset, starred, items, defns);
                         table[0] = items;
                         table[1] = defns;
+                        flashcardTable.highlighted=starred;
                         flashcardTable.num_rows = flashcardset->num_items;
                         refresh();
                         free(Defn);
@@ -238,16 +400,12 @@ void editList(char ListName[]){
         }
 
     }
+    */
+
     erasewindow(flashcardTable.window);
     erasewindow(edit_list_menu_window);
     edit_list_menu_window = NULL;
     flashcardTable.window = NULL;
-    free(flashcardTable.window);
-    flashcardTable.window = NULL;
-    free(items);
-    free(defns);
-    free(starred);
-    deleteSetPointer(&flashcardset);
     refresh();
 }
 

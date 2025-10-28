@@ -14,12 +14,20 @@ typedef struct _table_struct{
     char *title;                // window title, displayed at top
     char (*headers)[128];       // column headers
     char (**table_data)[128];    // the data in the table
+    char *highlighted;
+    int hookcount;
+    int maxhooks;
+    struct hook *hooks;
 } TABLE;
 
 
-void init_table(TABLE *p_table, int rows, int cols, int width, int height, WINDOW** window, char *title, char (*headers)[128], char (**table_data)[128]);
+void init_Table(TABLE *p_table, int rows, int cols, int width, int height, WINDOW** window, char *title, char (*headers)[128], char (**table_data)[128], char* highlighted);
+
+void addHook_Table(TABLE *p_table, struct hook hook);
+
+void run_Table(TABLE* p_table);
 
 void render_table(TABLE *p_table, char (*starred));
 
-void changeselect_table(TABLE *p_table, int changerow, int changecol);
+void changeselect_Table(TABLE *p_table, int changerow, int changecol);
 #endif
