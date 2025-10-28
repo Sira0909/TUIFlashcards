@@ -136,6 +136,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                     wrefresh(resultWin);
                     int c2 = getch();
                     erasewindow(resultWin);
+                    resultWin=NULL;
                     
                     if(c2== 's'){ //star mistake
                         starWin = create_newwin(3, 30, (LINES-11)/2+15, (COLS-28)/2);
