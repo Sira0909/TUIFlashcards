@@ -23,7 +23,7 @@ void render_Menu(MENU *p_menu, char* highlighted){
         int size = strlen(p_menu->menuitems[i]); 
 
         // too long 
-        if(strlen(p_menu->menuitems[i]) > p_menu->width){
+        if(size > p_menu->width){
             char *item = calloc(p_menu->width, sizeof(char));
             strncpy(item, p_menu->menuitems[i], p_menu->width-3);
             // to represent too long
@@ -90,7 +90,6 @@ void render_table(TABLE *p_table, char (*starred)){
 
     // max length of a column
     int max_length = (p_table->width - (p_table->num_cols-1))/p_table->num_cols;
-    int overwrite = 0;
 
 
 

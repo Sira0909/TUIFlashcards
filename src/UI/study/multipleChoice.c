@@ -145,7 +145,7 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
     wbkgd(response_win, COLOR_PAIR(2));
     box(response_win, 0,0);
 
-    int texty=(maxlength/3-11)/2;
+    //int texty=(maxlength/3-11)/2;
     //wprintctrx(response_win, texty, maxlength+2, question);
     wrefresh(response_win);
 
@@ -288,7 +288,7 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
                         wprintctrx(return_win, 1, 20, "Return to menu");
                         wrefresh(ask_review);
 
-                        int ch = getch();
+                        getch();
                         erasewindow(response_win);
                         refresh();
                         //return NULL;

@@ -19,7 +19,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
     int order[flashcard_set->num_items];
     int maxlength =25;
-    int mistakeorder[flashcard_set->num_items];
+    //int mistakeorder[flashcard_set->num_items];
     int mistakeindex = 0;
 
 
@@ -269,7 +269,7 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
                         wprintctrx(return_win, 1, 20, "Return to menu");
                         wrefresh(ask_review);
 
-                        int ch = getch();
+                        getch();
                         unpost_form(Form);
                         free_form(Form);
                         free_field(FileNameField[0]);

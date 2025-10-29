@@ -235,7 +235,7 @@ char* getString(char* title, int maxsize, char* startingText){
     int ch, rows, cols;
 
     //create 1 element form
-    FileNameField[0] = new_field(1, 30, 0, 0, maxsize - 31, 0);
+    FileNameField[0] = new_field(1, 30, 0, 0, (maxsize - 1)/30, 0);
     FileNameField[1] = NULL;
 
     // set field atributes
@@ -279,7 +279,7 @@ char* getString(char* title, int maxsize, char* startingText){
                 form_driver(Form, REQ_PREV_FIELD);
                 char* string = calloc(maxsize+1, sizeof(char));
                 string = strncpy(string, field_buffer(FileNameField[0],0), maxsize);
-                int end = maxsize;
+                int end = maxsize-1;
                 while(string[--end] == '\0' || string[end] == ' '){
                 }
                 string[end+1] = '\0';

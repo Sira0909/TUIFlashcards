@@ -120,7 +120,6 @@ bool get_settings(bool* starred_only, bool* shuffle){
 
      
     // character from getch()
-    int ch;
     flags[0] = *starred_only ? '*' : 0;
     items[0][19] = *starred_only ? '*' : ' ';
     flags[1] = *shuffle ? '*' : 0;

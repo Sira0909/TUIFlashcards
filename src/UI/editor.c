@@ -213,12 +213,6 @@ void editList(char ListName[]){
     init_Table(&flashcardTable, flashcardset->num_items, 2,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
     wrefresh(flashcardTable.window);
     
-    // character from getch()
-    int ch;
-
-    // so that we can leave while loop
-    bool done = false;
-
 
     render_table(&flashcardTable, starred) ;
     box(edit_list_menu_window, 0, 0);
