@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
+#include <macros.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
@@ -15,6 +16,38 @@
 #include <windows/window.h>
 
 #include <UI.h>
+
+char* trim_whitespaces(char *str)
+{
+	char *end;
+
+	// trim leading space
+	while(!strcmp(str," ") || !strcmp(str, "\n"))
+		str++;
+
+	if(*str == '\0') // all spaces?
+		return str;
+
+	// trim trailing space
+	end = str + strnlen(str, 128) - 1;
+
+	while(end > str 
+        &&   (!strcmp(end," ")      // trim space
+        ||    !strcmp(end,"\n")))   // trim newline
+                    end--;
+
+	// write new null terminator
+	*(end+1) = '\0';
+
+	return str;
+}
+
+int is_all_space(char *string){
+    for (int i = 0; string[i] != '\0'; i++){
+        if(string[i]!= ' ') return 0;
+    }
+    return 1;
+}
 
 
 char selectionkeybinds[10][2][20] = {
@@ -238,7 +271,6 @@ char* getString(char* title, int maxsize, char* startingText){
 
     curs_set(1);
 
-    int length = 0;
     while((ch = getch())){
         switch (ch){
             case 10: //enter

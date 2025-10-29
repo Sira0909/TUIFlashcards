@@ -2,6 +2,7 @@
 #include <macros.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <flashcards.h>
 

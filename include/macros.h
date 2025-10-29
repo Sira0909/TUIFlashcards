@@ -1,6 +1,5 @@
 #ifndef MACROS_H
 #define MACROS_H 1
-
 #define MAX_FLASHCARD_SET_ITEM_SIZE 64
 #define MAX_FLASHCARD_SET_DEFN_SIZE 128
 
@@ -26,37 +25,8 @@
 //for keybinds
 #define ctrl(x)           ((x) & 0x1f)
 
-#include <string.h>
+char* trim_whitespaces(char *str);
 
-static char* trim_whitespaces(char *str)
-{
-	char *end;
+int is_all_space(char *string);
 
-	// trim leading space
-	while(!strcmp(str," ") || !strcmp(str, "\n"))
-		str++;
-
-	if(*str == '\0') // all spaces?
-		return str;
-
-	// trim trailing space
-	end = str + strnlen(str, 128) - 1;
-
-	while(end > str 
-        &&   (!strcmp(end," ")      // trim space
-        ||    !strcmp(end,"\n")))   // trim newline
-                    end--;
-
-	// write new null terminator
-	*(end+1) = '\0';
-
-	return str;
-}
-
-static int is_all_space(char *string){
-    for (int i = 0; string[i] != '\0'; i++){
-        if(string[i]!= ' ') return 0;
-    }
-    return 1;
-}
 #endif

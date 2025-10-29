@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+#include <termios.h>
+#include <unistd.h>
 #include <ncurses.h>
 #include <form.h>
 
@@ -87,6 +89,15 @@ int main(){
     noecho();
     curs_set(0);
     set_escdelay(100);
+
+    //allow ctrl+s
+    struct termios term;
+    tcgetattr(STDIN_FILENO, &term);
+    term.c_lflag &= ~(ICANON | ECHO);
+    //term.c_cc[VMIN] = 1;
+    term.c_cc[VSTOP] = _POSIX_VDISABLE;
+    term.c_cc[VSUSP] = _POSIX_VDISABLE;
+    tcsetattr(STDIN_FILENO, TCSANOW, &term);
 
     // set background
     bkgd(COLOR_PAIR(1));

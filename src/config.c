@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <linux/limits.h>
 #include <macros.h>
 
 #include <string.h>
@@ -10,14 +11,14 @@
 
 FILE* get_config_file(CONFIGSTRUCT *config){
     //get directory for config files
-    char *config_DIR = (char *) calloc(128, sizeof(char));
+    char *config_DIR = (char *) calloc(PATH_MAX, sizeof(char));
 
     //start by checking $XDG_CONFIG_HOME environment var
     char *conf_home = getenv("XDG_CONFIG_HOME");
 
     //if $XDG_CONFIG_HOME has been set, set config_DIR to it.
     if(conf_home != NULL){
-        strncpy(config_DIR,conf_home, 113);
+        strncpy(config_DIR,conf_home, PATH_MAX);
     }
     else{
         //else, try $HOME env variable
@@ -30,13 +31,13 @@ FILE* get_config_file(CONFIGSTRUCT *config){
         }
 
         // if $HOME does exist, use it, add ".config", and set config_DIR to that.
-        strncpy(config_DIR,conf_home, 105);
+        strncpy(config_DIR,conf_home, PATH_MAX);
         strcat(config_DIR, "/.config");
     }
     strcat(config_DIR, "/TUIFlashcards");
 
     //file name for config file
-    char cFile[135];
+    char cFile[PATH_MAX];
 
     //start with config_DIR, add /config to end. should now be $XDG_CONFIG_DIR/TUIFlashcards/config
     strcpy(cFile, config_DIR); strcat(cFile,"/config");
@@ -73,13 +74,14 @@ void fill_defaults(CONFIGSTRUCT *config){
     strcpy(config->flashcard_dir, cardDir);
     config->showKeybindsTop = 1;
 }
+#define LINE_MAX_SIZE 128
 int get_config_struct(CONFIGSTRUCT *config){
     FILE *config_File = get_config_file(config);
 
-    char line[128];
+    char line[LINE_MAX_SIZE];
     int countUndefconfigs =0;
     while(1){
-        if(fgets(line, 128, config_File)==NULL) break;
+        if(fgets(line, LINE_MAX_SIZE, config_File)==NULL) break;
         //if(line[strlen(line)-1]=='\n') line[strlen(line)-1]='\0';
         if(*trim_whitespaces(line)=='\0')
             continue;
@@ -87,10 +89,10 @@ int get_config_struct(CONFIGSTRUCT *config){
             continue; //comment
         }
         else{
-            char setting[128];
+            char setting[LINE_MAX_SIZE];
             char* trimmedsetting;
             strcpy(setting, line);
-            int i =0;for(;i<128&&setting[i]!=':'; i++);
+            int i =0;for(;i<LINE_MAX_SIZE&&setting[i]!=':'; i++);
             trimmedsetting=trim_whitespaces(setting);
             if(i==128){
                 printf("%s\n", line);

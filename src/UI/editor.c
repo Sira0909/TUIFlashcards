@@ -161,7 +161,6 @@ int edit_quit(void* table){
                     deleteSetPointer(&flashcardset);
                     return -1;
                 }
-                mvwprintw(Table->window, Table->height, 1, "                            ");
                 return 1;
 }
 int edit_keybinds(void* table){
@@ -241,171 +240,11 @@ void editList(char ListName[]){
 
     run_Table(&flashcardTable);
 
-    /*
-    while(!done){
-        ch = getch();
-        // refresh menu (see MENU.c)
-        switch(ch){
-            case 'j': // down
-                changeselect_Table(&flashcardTable, 1, 0); break;
-            case 'k': // up
-                changeselect_Table(&flashcardTable, -1, 0); break;
-            case 'h': // left
-                changeselect_Table(&flashcardTable, 0, -1); break;
-            case 'l': // right
-                changeselect_Table(&flashcardTable, 0, 1); break;
-            case 's': // star
-                flashcardset->cards[flashcardTable.selected_row].is_starred = !flashcardset->cards[flashcardTable.selected_row].is_starred;
-                starred[flashcardTable.selected_row]=(flashcardset->cards[flashcardTable.selected_row].is_starred)? '*': ' ';
-                break;
-            case 10: //enter
-                if(flashcardTable.selected_col == 0){
-                    char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE, flashcardset->cards[flashcardTable.selected_row].name);
-                    if(Name==NULL)
-                        break;
-                    if(is_all_space(Name))
-                        free(Name);
-                    else if(Name != NULL){
-                        strcpy(flashcardset->cards[flashcardTable.selected_row].name, Name);
-                        getpairslimiter(flashcardset, starred, items, defns);
-                        table[0] = items;
-                        refresh();
-                        free(Name);
-                    }
-                }
-                else{
-                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, flashcardset->cards[flashcardTable.selected_row].definition);
-                    if(Defn==NULL)
-                        break;
-                    if(is_all_space(Defn))
-                        free(Defn);
-                    else if(Defn != NULL){
-                        strcpy(flashcardset->cards[flashcardTable.selected_row].definition, Defn);
-                        getpairslimiter(flashcardset, starred, items, defns);
-                        table[1] = defns;
-                        refresh();
-                        free(Defn);
-                    }
-                }
-                break;
-
-            case 'd':
-                wattron(edit_list_menu_window, A_BOLD);
-                mvwprintw(edit_list_menu_window, height, 1, "really delete? (y/n)");
-                wattroff(edit_list_menu_window, A_BOLD);
-                wrefresh(edit_list_menu_window);
-                if ('y' == getch()){
-                    deletecard(flashcardset, flashcardTable.selected_row);
-                    free(items);
-                    free(defns);
-                    free(starred);
-                    items = calloc(flashcardset->capacity, sizeof(char[128]));
-                    defns = calloc(flashcardset->capacity, sizeof(char[128]));
-                    starred = calloc(flashcardset->capacity, sizeof(char));
-                    getpairslimiter(flashcardset, starred, items, defns);
-                    table[0] = items;
-                    table[1] = defns;
-                    flashcardTable.highlighted=starred;
-                    flashcardTable.num_rows = flashcardset->num_items;
-                    if (flashcardTable.num_rows <= flashcardTable.selected_row){
-                        changeselect_Table(&flashcardTable, -1, 0);
-                    }
-                }
-                mvwprintw(edit_list_menu_window, height, 1, "                    ");
-                break;
-            case 'a': {
-                char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
-                if (Name != NULL){
-                    if(is_all_space(Name)){
-                        free(Name);
-                        break;
-                    }
-                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, NULL);
-                    if (Defn != NULL){
-                        if(is_all_space(Defn)){
-                            free(Name);
-                            free(Defn);
-                            break;
-                        }
-                        addcard(flashcardset, Name, Defn, 0);
-                        free(items);
-                        free(defns);
-                        free(starred);
-                        items = calloc(flashcardset->capacity, sizeof(char[128]));
-                        defns = calloc(flashcardset->capacity, sizeof(char[128]));
-                        starred = calloc(flashcardset->capacity, sizeof(char));
-                        getpairslimiter(flashcardset, starred, items, defns);
-                        table[0] = items;
-                        table[1] = defns;
-                        flashcardTable.highlighted=starred;
-                        flashcardTable.num_rows = flashcardset->num_items;
-                        refresh();
-                        free(Defn);
-                    }
-                    free(Name);
-                }
-                      }
-                break;
-            case 'w': // write
-                wattron(edit_list_menu_window, A_BOLD);
-                mvwprintw(edit_list_menu_window, height, 1, "quit after write? (y/n):");
-                wattroff(edit_list_menu_window, A_BOLD);
-                wrefresh(edit_list_menu_window);
-                switch (getch()){
-                    case 'y':
-                        done = true;
-                        erasewindow(flashcardTable.window);
-                        erasewindow(edit_list_menu_window);
-                        edit_list_menu_window = NULL;
-                        flashcardTable.window = NULL;
-                        free(flashcardTable.window);
-                        flashcardTable.window = NULL;
-                        free(items);
-                        free(defns);
-                        free(starred);
-                        writeFlashcardSet(flashcardset, ListPath, 1);
-                        refresh();
-                        return;
-                    case 'n':
-                        writeFlashcardSet(flashcardset, ListPath, 0);
-                        mvwprintw(edit_list_menu_window, height, 1, "                            ");
-                        break;
-                    default:
-                        mvwprintw(edit_list_menu_window, height, 1, "Did not write.              ");
-                        wrefresh(edit_list_menu_window);
-                        continue;
-                        break;
-                }
-                break;
-            case 27:
-            case 'q': // quit
-                wattron(edit_list_menu_window, A_BOLD);
-                mvwprintw(edit_list_menu_window, height, 1, "quit without saving? (y/n): ");
-                wattroff(edit_list_menu_window, A_BOLD);
-                wrefresh(edit_list_menu_window);
-                if ('y' == getch())
-                    done = true;
-                mvwprintw(edit_list_menu_window, height, 1, "                            ");
-                break;
-            case '?':
-                list_keybinds(13, editkeybinds);
-                break;
-
-        }
-        if(!done){
-            render_table(&flashcardTable, starred) ;
-            box(edit_list_menu_window, 0, 0);
-            wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
-            wrefresh(edit_list_menu_window);
-        }
-
-    }
-    */
-
     erasewindow(flashcardTable.window);
     erasewindow(edit_list_menu_window);
     edit_list_menu_window = NULL;
     flashcardTable.window = NULL;
+    filename = NULL;
     refresh();
 }
 

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <ncurses.h>
 #include <study.h>
 #include <stdlib.h>
@@ -96,18 +97,21 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
         wrefresh(form_sub);
         switch (ch){
             case 19: // ctrl+s
+                starWin = create_newwin(3, 39, (LINES-5), (COLS-37)/2);
+                wbkgd(starWin, COLOR_PAIR(2));
+                box(starWin,0,0);
+                wattron(starWin, COLOR_PAIR(4));
                 if(currentcard>0){
-                    attron(COLOR_PAIR(1));
                     flashcard_set->cards[order[currentcard-1]].is_starred = !flashcard_set->cards[order[currentcard-1]].is_starred;
-                    wprintctrx(stdscr, LINES-3, COLS, (flashcard_set->cards[order[currentcard-1]].is_starred) ? "Previous flashcard has been starred" : "Previous flashcard has been unstarred");
-                    attron(COLOR_PAIR(1));
+                    wprintctrx(starWin, 1, 39, (flashcard_set->cards[order[currentcard-1]].is_starred) ? "Previous flashcard has been starred" : "Previous flashcard has been unstarred");
+                    wrefresh(starWin);
                     break;
                 }
                 // stars current when this is first flashcard
-                attron(COLOR_PAIR(1));
                 currentFlashcard.is_starred = !currentFlashcard.is_starred;
-                wprintctrx(stdscr, LINES-3, COLS, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
-                attron(COLOR_PAIR(1));
+                wprintctrx(starWin, 1, 39, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
+                //wattroff(starWin,COLOR_PAIR(1));
+                wrefresh(starWin);
                 break;
             case 10: //enter
                 //do return stuff
@@ -339,7 +343,3 @@ void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
 
     return ;
 }
-
-
-
-

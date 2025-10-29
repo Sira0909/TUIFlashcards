@@ -1,10 +1,10 @@
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <study.h>
 #include <windows/window.h>
 #include <ncurses.h>
 #include <UI.h>
-
 
 //TODO: fix this spaghetti
 
@@ -332,7 +332,4 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
     }
     getch();
     erasewindow(response_win);
-
-
-    
 }
