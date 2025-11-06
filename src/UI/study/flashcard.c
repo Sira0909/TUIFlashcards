@@ -4,7 +4,15 @@
 //#include <string.h>
 
 
-void flashcard(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
+void flashcard(FlashcardSet *flashcard_set){
+
+    bool starred_only = false;
+    bool shuffle = false;
+    if (!get_settings(&starred_only, &shuffle)){
+        return;
+    }
+
+
 
     int order[flashcard_set->num_items];
     int maxlength =25;

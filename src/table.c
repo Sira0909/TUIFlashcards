@@ -64,3 +64,7 @@ void changeselect_Table(TABLE *p_table, int changerow, int changecol){
     }
 }
 
+int table_down (void* table){changeselect_Table((TABLE*) table, 1,  0); return 1;}
+int table_up   (void* table){changeselect_Table((TABLE*) table, -1, 0); return 1;}
+int table_left (void* table){changeselect_Table((TABLE*) table, 0, -1); return 1;}
+int table_right(void* table){changeselect_Table((TABLE*) table, 0,  1); return 1;}

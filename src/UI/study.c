@@ -69,8 +69,6 @@ int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starr
 bool settings_done;
 bool* starred;
 bool* shuffled;
-int settings_j(void* menu){changeselect_Menu((MENU*) menu, 1); return 1;}
-int settings_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
 int settings_keybinds(void* menu){
     list_keybinds(6, settingskeybinds);                         return 1;
 }
@@ -125,8 +123,8 @@ bool get_settings(bool* starred_only, bool* shuffle){
     flags[1] = *shuffle ? '*' : 0;
     items[1][19] = *shuffle ? '*' : ' ';
 
-    addHook_Menu(&setting_menu, (struct hook){'j', &settings_j});
-    addHook_Menu(&setting_menu, (struct hook){'k', &settings_k});
+    addHook_Menu(&setting_menu, (struct hook){'j', &menu_down});
+    addHook_Menu(&setting_menu, (struct hook){'k', &menu_up});
     addHook_Menu(&setting_menu, (struct hook){27, &settings_quit});
     addHook_Menu(&setting_menu, (struct hook){'q', &settings_quit});
     addHook_Menu(&setting_menu, (struct hook){'?', &settings_keybinds});
@@ -228,20 +226,16 @@ void pickMode(char* list){
                     WINDOW* coverWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
                     wbkgd(coverWindow, COLOR_PAIR(1));
                     wrefresh(coverWindow);
-                    bool starred_only = false;
-                    bool shuffle = false;
-                    if (get_settings(&starred_only, &shuffle)){
-                        switch(selectedy*3+selectedx){
-                            case 0:
-                                flashcard(flashcard_set, starred_only, shuffle);
-                                break;
-                            case 1:
-                                multipleChoice(flashcard_set, starred_only, shuffle);
-                                break;
-                            case 2:
-                                type(flashcard_set, starred_only, shuffle);
-                                break;
-                        }
+                    switch(selectedy*3+selectedx){
+                        case 0:
+                            flashcard(flashcard_set);
+                            break;
+                        case 1:
+                            multipleChoice(flashcard_set);
+                            break;
+                        case 2:
+                            type(flashcard_set);
+                            break;
                     }
                     writeFlashcardSet(flashcard_set, ListPath,0);
                     erasewindow(coverWindow);

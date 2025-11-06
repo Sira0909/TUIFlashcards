@@ -85,10 +85,16 @@ int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int*
 }
 
 
-void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
+void multipleChoice(FlashcardSet *flashcard_set){
+    bool starred_only = 0;
+    bool shuffle = 0;
+    if (!get_settings(&starred_only, &shuffle)){
+        return;
+    }
 
     int order[flashcard_set->num_items];
-    int maxlength =51;
+#define MIN_LEN 51
+    int maxlength = MIN_LEN;
 
 
 
@@ -151,16 +157,20 @@ void multipleChoice(FlashcardSet *flashcard_set, bool starred_only, bool shuffle
 
 
     int ch;
+    int boxHeight = maxlength/3;
+    int ansBoxHeight = 5;
+    int ansBoxWidth = maxlength/2;
+    int text_height = boxHeight-2-(ansBoxHeight*2);
 
-    WINDOW* text  = derwin(response_win, maxlength/3-12, maxlength, 1, 1);
-    WINDOW* ans_1 = derwin(response_win, 5, maxlength/2, (maxlength/3)-11,  1               );
-    WINDOW* ans_2 = derwin(response_win, 5, maxlength/2, (maxlength/3)-6,   1               );
-    WINDOW* ans_3 = derwin(response_win, 5, maxlength/2, (maxlength/3)-11,  2+maxlength/2   );
-    WINDOW* ans_4 = derwin(response_win, 5, maxlength/2, (maxlength/3)-6,   2+maxlength/2   );
-    WINDOW* ansBox_1 = derwin(response_win, 3, maxlength/2-2, (maxlength/3)-10,  2               );
-    WINDOW* ansBox_2 = derwin(response_win, 3, maxlength/2-2, (maxlength/3)-5,   2               );
-    WINDOW* ansBox_3 = derwin(response_win, 3, maxlength/2-2, (maxlength/3)-10,  3+maxlength/2   );
-    WINDOW* ansBox_4 = derwin(response_win, 3, maxlength/2-2, (maxlength/3)-5,   3+maxlength/2   );
+    WINDOW* text  = derwin(response_win, text_height, maxlength, 1, 1);
+    WINDOW* ans_1 = derwin(response_win, ansBoxHeight, ansBoxWidth, (boxHeight)-(2*ansBoxHeight+1),  1               );
+    WINDOW* ans_2 = derwin(response_win, ansBoxHeight, ansBoxWidth, (boxHeight)-(ansBoxHeight+1),   1               );
+    WINDOW* ans_3 = derwin(response_win, ansBoxHeight, ansBoxWidth, (boxHeight)-(2*ansBoxHeight+1),  2+maxlength/2   );
+    WINDOW* ans_4 = derwin(response_win, ansBoxHeight, ansBoxWidth, (boxHeight)-(ansBoxHeight+1),   2+maxlength/2   );
+    WINDOW* ansBox_1 = derwin(response_win, ansBoxHeight-2, ansBoxWidth-2, (boxHeight)-ansBoxHeight*2,   2               );
+    WINDOW* ansBox_2 = derwin(response_win, ansBoxHeight-2, ansBoxWidth-2, (boxHeight)-ansBoxHeight  ,   2               );
+    WINDOW* ansBox_3 = derwin(response_win, ansBoxHeight-2, ansBoxWidth-2, (boxHeight)-ansBoxHeight*2,   3+maxlength/2   );
+    WINDOW* ansBox_4 = derwin(response_win, ansBoxHeight-2, ansBoxWidth-2, (boxHeight)-ansBoxHeight  ,   3+maxlength/2   );
     WINDOW *ans[2][2] = { {ans_1, ans_3}, {ans_2, ans_4} };
     WINDOW *ansBox[2][2] = { {ansBox_1, ansBox_3}, {ansBox_2, ansBox_4} };
 

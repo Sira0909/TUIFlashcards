@@ -102,9 +102,9 @@ void render_table(TABLE *p_table, char (*starred)){
             if (p_table->selected_row ==center - ideal + i && p_table->selected_col == col) {
                 
                 // allow selected items to wrap arround
-                //wattron(p_table->window, A_BOLD | COLOR_PAIR(3));
+                wattron(p_table->window, A_BOLD | COLOR_PAIR(3));
                 mvwprintw(p_table->window, i+1,col*(1 + max_length), "%s", p_table->table_data[col][center - ideal +i]);
-                //wattroff(p_table->window, A_BOLD | COLOR_PAIR(3));
+                wattroff(p_table->window, A_BOLD | COLOR_PAIR(3));
                 wmove(p_table->window, i+1, col*(1+max_length));
                 wchgat(p_table->window, max_length,A_BOLD, 3, NULL);
                 
@@ -119,6 +119,12 @@ void render_table(TABLE *p_table, char (*starred)){
                 wmove(p_table->window, i+1, col*(1+max_length));
                 wchgat(p_table->window, max_length,A_NORMAL, 2, NULL);
                 free(item);
+                if(p_table->selected_row == center-ideal + i){ // bold if in same row as selected
+                    wchgat(p_table->window, max_length,A_BOLD, 2, NULL);
+                }
+                else{
+                    wchgat(p_table->window, max_length,A_NORMAL, 2, NULL);
+                }
             }
             
             // print normally

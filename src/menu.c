@@ -55,3 +55,5 @@ void changeselect_Menu(MENU *p_menu, int change){
         if (!(p_menu->selected<p_menu->numOptions)){ p_menu->selected = p_menu->numOptions-1; change = -1;}
     }
 }
+int menu_up   (void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
+int menu_down (void* menu){changeselect_Menu((MENU*) menu,  1); return 1;}

@@ -30,4 +30,9 @@ void run_Table(TABLE* p_table);
 void render_table(TABLE *p_table, char (*starred));
 
 void changeselect_Table(TABLE *p_table, int changerow, int changecol);
+
+int table_down (void* table);
+int table_up   (void* table);
+int table_left (void* table);
+int table_right(void* table);
 #endif

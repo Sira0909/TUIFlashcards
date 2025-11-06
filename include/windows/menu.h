@@ -30,4 +30,7 @@ void render_Menu(MENU *p_menu, char* highlighted);
 
 // changes selected item
 void changeselect_Menu(MENU *p_menu, int change);
+
+int menu_up   (void* menu);
+int menu_down (void* menu);
 #endif

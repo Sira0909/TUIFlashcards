@@ -29,10 +29,6 @@ char editkeybinds[13][2][20]= {
 FlashcardSet* flashcardset;
 
 
-int edit_j(void* table){changeselect_Table((TABLE*) table, 1,  0); return 1;}
-int edit_k(void* table){changeselect_Table((TABLE*) table, -1, 0); return 1;}
-int edit_h(void* table){changeselect_Table((TABLE*) table, 0, -1); return 1;}
-int edit_l(void* table){changeselect_Table((TABLE*) table, 0,  1); return 1;}
 int edit_s(void* table){
                 flashcardset->cards[((TABLE*)table)->selected_row].is_starred = !flashcardset->cards[((TABLE*)table)->selected_row].is_starred;
                 ((TABLE*)table)->highlighted[((TABLE*)table)->selected_row]=(flashcardset->cards[((TABLE*)table)->selected_row].is_starred)? '*': ' ';
@@ -219,10 +215,10 @@ void editList(char ListName[]){
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
     wrefresh(edit_list_menu_window);
 
-    addHook_Table(&flashcardTable, (struct hook){'h', edit_h });
-    addHook_Table(&flashcardTable, (struct hook){'j', edit_j });
-    addHook_Table(&flashcardTable, (struct hook){'k', edit_k });
-    addHook_Table(&flashcardTable, (struct hook){'l', edit_l });
+    addHook_Table(&flashcardTable, (struct hook){'h', table_left });
+    addHook_Table(&flashcardTable, (struct hook){'j', table_down });
+    addHook_Table(&flashcardTable, (struct hook){'k', table_up });
+    addHook_Table(&flashcardTable, (struct hook){'l', table_right });
     addHook_Table(&flashcardTable, (struct hook){'s', edit_s });
     addHook_Table(&flashcardTable, (struct hook){10, edit_select });
     addHook_Table(&flashcardTable, (struct hook){'q', edit_quit });

@@ -15,7 +15,12 @@ void printProgress(WINDOW* win, int currentcard, int maxcards){
     wprintw(win, "%d/%d", currentcard, maxcards);
     waddch(win, ACS_LTEE);
 }
-void type(FlashcardSet *flashcard_set, bool starred_only, bool shuffle){
+void type(FlashcardSet *flashcard_set){
+    bool starred_only = false;
+    bool shuffle = false;
+    if (!get_settings(&starred_only, &shuffle)){
+        return;
+    }
 
     int order[flashcard_set->num_items];
     int maxlength =25;

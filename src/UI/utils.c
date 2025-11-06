@@ -68,8 +68,6 @@ char* toreturn;
 void (*call)(char*);
 char* _getLists(int start_at, void (*to_call)(char*));
 
-int getLists_j(void* menu){changeselect_Menu((MENU*) menu, 1);  return 1;}
-int getLists_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
 
 int getLists_keybinds(void* menu){
     list_keybinds(10, selectionkeybinds);                       return 1;
@@ -185,8 +183,8 @@ char* _getLists(int start_at, void (*to_call)(char*)){
         glofiles = files;
         call = to_call;
 
-        addHook_Menu(&selectmenu, (struct hook){'j', &getLists_j});
-        addHook_Menu(&selectmenu, (struct hook){'k', &getLists_k});
+        addHook_Menu(&selectmenu, (struct hook){'j', &menu_down});
+        addHook_Menu(&selectmenu, (struct hook){'k', &menu_up});
         addHook_Menu(&selectmenu, (struct hook){'q', &getLists_quit});
         addHook_Menu(&selectmenu, (struct hook){27,  &getLists_quit});
         addHook_Menu(&selectmenu, (struct hook){'d', &getLists_delete});
