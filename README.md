@@ -13,7 +13,7 @@ A TUI program for studying flashcards, using the NCURSES library. not done yet
 - more modes of study <br />
 - maybe word wrap eventually <br />
 - allow more than two sides to a flashcard <br />
-- better configuration <br />
+- better configuration - add settings menu inside of program <br />
 
 <h1> DEPENDENCIES:</h1>
 - ncurses <br />

@@ -33,6 +33,7 @@ char playkeybinds[7][2][20] = {
 int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starred_only){
     srand(time(NULL));
     int numCards=0;
+    // filter out unstarred if only starred
     for(int i = 0; i<flashcard_set->num_items;i++){
         if(!starred_only || flashcard_set->cards[i].is_starred){
             order[numCards] = i;
@@ -40,6 +41,7 @@ int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starr
         }
     }
 
+    //shuffle
     if(shuffle){
         for(int i = 0; i<numCards; i++){
             int swapindex = rand()%numCards;
@@ -48,6 +50,7 @@ int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starr
             order[i] = toswap;
         }
     }
+    // error if no possible cards
     if (numCards == 0){
         WINDOW* errorWin = create_newwin(3, 30, (LINES-1)/2, (COLS-28)/2);
         wbkgd(errorWin, COLOR_PAIR(7));
@@ -101,6 +104,7 @@ int settings_select(void* menu){
 }
 
 
+//get seettings for study section
 bool get_settings(bool* starred_only, bool* shuffle){
     starred = starred_only;
     shuffled = shuffle;
@@ -223,9 +227,11 @@ void pickMode(char* list){
             case 10:
                 {
 
+                    //hide the menu
                     WINDOW* coverWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
                     wbkgd(coverWindow, COLOR_PAIR(1));
                     wrefresh(coverWindow);
+                    //run the study meathod
                     switch(selectedy*3+selectedx){
                         case 0:
                             flashcard(flashcard_set);
@@ -237,7 +243,9 @@ void pickMode(char* list){
                             type(flashcard_set);
                             break;
                     }
+                    //save any changes in stars
                     writeFlashcardSet(flashcard_set, ListPath,0);
+                    //uncover
                     erasewindow(coverWindow);
                     box(mainPlayWindow, 0, 0);
                     wrefresh(mainPlayWindow);

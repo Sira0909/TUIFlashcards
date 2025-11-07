@@ -104,7 +104,15 @@ int getLists_delete(void* menu){
         wrefresh(((MENU*)menu)->window);
         return 1;
 }
-int getLists_addlist(void* menu){addList(); getLists_quit(menu); toreturn = _getLists(((MENU*)menu)->selected,call);return -1;}
+int getLists_addlist(void* menu){
+    //addlist
+    addList(); 
+    //technically quit
+    getLists_quit(menu); 
+    //rerun with new list. there might be a better way to do this.
+    toreturn = _getLists(((MENU*)menu)->selected,call);
+    return -1;
+}
 int getLists_select(void* menu){
         if (call == NULL){ toreturn = glofiles[((MENU*)menu)->selected]; getLists_quit(menu); return -1;}
         else{
@@ -123,6 +131,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
     struct dirent *entry;
     struct stat statbuf;
 
+    //get all lists
     int numfiles = 0;
     if((dp = opendir(config.flashcard_dir)) == NULL) {
         mkdir(config.flashcard_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
@@ -142,6 +151,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
         }
     }
     closedir(dp);
+    //make sure at least one. if not, prompt to create
     if(numfiles == 0){
         addList();
         return NULL;
@@ -149,6 +159,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
     else{
         char (*files)[128] = calloc(numfiles, sizeof(char[128]));
         if((dp = opendir(config.flashcard_dir)) == NULL) {
+            //just in case this suddenly doesnt work
             mkdir(config.flashcard_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
             if((dp = opendir(config.flashcard_dir)) == NULL) {
                 int error = errno;
@@ -159,6 +170,7 @@ char* _getLists(int start_at, void (*to_call)(char*)){
         }
         chdir(config.flashcard_dir);
 
+        // get all the file paths
         int i = 0;
         while((entry = readdir(dp)) != NULL){
             lstat(entry->d_name, &statbuf);
@@ -168,6 +180,10 @@ char* _getLists(int start_at, void (*to_call)(char*)){
             }
         }
         closedir(dp);
+
+        // now select between them
+
+
 
         MENU selectmenu;
 
@@ -234,6 +250,11 @@ char* getString(char* title, int maxsize, char* startingText){
     FORM *Form;
     int ch, rows, cols;
 
+
+
+
+    //set up form box
+
     //create 1 element form
     FileNameField[0] = new_field(1, 30, 0, 0, (maxsize - 1)/30, 0);
     FileNameField[1] = NULL;
@@ -250,6 +271,7 @@ char* getString(char* title, int maxsize, char* startingText){
     scale_form(Form, &rows, &cols);
     my_form_win = newwin(rows+4, cols+4,(LINES - rows-2)/2,(COLS - cols-2)/2);
 
+    // if we have starting text, use it
     if(startingText!=NULL){
         set_field_buffer(FileNameField[0], 0, startingText);
         //form_driver(Form, REQ_END_FIELD);
@@ -271,6 +293,7 @@ char* getString(char* title, int maxsize, char* startingText){
 
     curs_set(1);
 
+    //for accents
     bool wasJustBacktick = false;
     bool wasJustTilde = false;
 
@@ -283,10 +306,15 @@ char* getString(char* title, int maxsize, char* startingText){
                 char* string = calloc(maxsize+1, sizeof(char));
                 string = strncpy(string, field_buffer(FileNameField[0],0), maxsize);
                 int end = maxsize-1;
+                //trims the whitespace from end of form
                 while(string[--end] == '\0' || string[end] == ' '){
                 }
                 string[end+1] = '\0';
+                
+                //turn cursor back off
                 curs_set(0);
+
+                //cleanup
                 unpost_form(Form);
                 free_form(Form);
                 free_field(FileNameField[0]);
@@ -294,7 +322,7 @@ char* getString(char* title, int maxsize, char* startingText){
                 refresh();
                 return string;
                 
-            case 27:
+            case 27: //cancel (esc key)
 
                 curs_set(0);
                 unpost_form(Form);
@@ -328,8 +356,10 @@ char* getString(char* title, int maxsize, char* startingText){
                 break;
 
             case '`':
+                // for accents
                 if(config.autoaccent>0){
                     wasJustTilde=false;
+                    // double backtick should cancel accent
                     if(!wasJustBacktick){
                         wasJustBacktick= true;
                         form_driver(Form, ch);
@@ -342,6 +372,7 @@ char* getString(char* title, int maxsize, char* startingText){
             case '~':
                 if(config.autoaccent>0){
                     wasJustBacktick=false;
+                    // double tilde should cancel it
                     if(!wasJustTilde){
                         wasJustTilde = true;
                         form_driver(Form, ch);
@@ -353,6 +384,7 @@ char* getString(char* title, int maxsize, char* startingText){
                 }
             default:
                 if(config.autoaccent>0){
+                    //handle accent marks
                     if(wasJustBacktick){
                         switch(ch){
                             case 'a':

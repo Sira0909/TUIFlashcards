@@ -50,11 +50,15 @@ void changeselect_Table(TABLE *p_table, int changerow, int changecol){
     p_table->selected_row += changerow;
     p_table->selected_col += changecol;
 
+    if(p_table->num_rows==0){
+        return;
+    }
     // dont overflow checks
     if (!(p_table->selected_row<p_table->num_rows)){ p_table->selected_row = p_table->num_rows-1; changerow = -1;}          
     if (!(p_table->selected_col<p_table->num_cols)){ p_table->selected_col = p_table->num_cols-1; changecol = -1;}
     if (p_table->selected_row<0) {p_table->selected_row = 0;changerow = 1;}
     if (p_table->selected_col<0) {p_table->selected_col = 0;changecol = 1;}
+
 
     // skip empty items
     while(!strcmp(p_table->table_data[0][p_table->selected_row], "\0")){                                                    
