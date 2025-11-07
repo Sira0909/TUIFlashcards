@@ -1,3 +1,4 @@
+#include <locale.h>
 #include <stdlib.h>
 
 #include <termios.h>
@@ -53,6 +54,7 @@ int main(){
     }
 
 
+    setlocale(LC_ALL, "");
     // init ncurses
     initscr();
 

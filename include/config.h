@@ -11,6 +11,7 @@ typedef struct _CONFIG{ //structure to hold config variables
     char config_dir[PATH_MAX];
     char flashcard_dir[PATH_MAX];
     int showKeybindsTop;
+    int autoaccent;
 } CONFIGSTRUCT;
 
 extern CONFIGSTRUCT config; // structure instance

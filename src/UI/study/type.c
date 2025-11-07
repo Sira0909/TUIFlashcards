@@ -1,18 +1,19 @@
 #include <string.h>
-#include <ncurses.h>
 #include <study.h>
-#include <stdlib.h>
-#include <windows/window.h>
 
 
+#define _XOPEN_SOURCE 600
+#include <ncurses.h>
 #include <form.h>
+#include <config.h>
+#include <windows/window.h>
 
 #define currentFlashcard flashcard_set->cards[order[currentcard]]
 
 void printProgress(WINDOW* win, int currentcard, int maxcards){
     wmove(win, 0, 1); 
     mvwaddch(win, 0, 1, ACS_RTEE);
-    wprintw(win, "%d/%d", currentcard, maxcards);
+    wprintw(win, "%d/%d", currentcard+1, maxcards);
     waddch(win, ACS_LTEE);
 }
 void type(FlashcardSet *flashcard_set){
@@ -88,6 +89,8 @@ void type(FlashcardSet *flashcard_set){
     WINDOW* starWin = NULL;
     WINDOW* resultWin = NULL;
 
+    bool wasJustBacktick = false;
+    bool wasJustTilde = false;
     while((ch = getch())){
         touchwin(form_win);
         if(starWin!=NULL){
@@ -328,9 +331,83 @@ void type(FlashcardSet *flashcard_set){
                 break;
 
 
+            case '`':
+                if(config.autoaccent>0){
+                    wasJustTilde=false;
+                    if(!wasJustBacktick){
+                        wasJustBacktick= true;
+                        form_driver(Form, ch);
+                    }
+                    else{
+                        wasJustBacktick= false;
+                    }
+                    break;
+                }
+            case '~':
+                if(config.autoaccent>0){
+                    wasJustBacktick=false;
+                    if(!wasJustTilde){
+                        wasJustTilde = true;
+                        form_driver(Form, ch);
+                    }
+                    else{ // double ~
+                        wasJustTilde = false;
+                    }
+                    break;
+                }
             default:
+                if(config.autoaccent>0){
+                    if(wasJustBacktick){
+                        switch(ch){
+                            case 'a':
+                                ch = L'á';
+                                break;
+                            case 'e':
+                                ch = L'é';
+                                break;
+                            case 'i':
+                                ch = L'í';
+                                break;
+                            case 'o':
+                                ch = L'ó';
+                                break;
+                            case 'u':
+                                ch = L'Ú';
+                                break;
+                            case 'A':
+                                ch = L'Á';
+                                break;
+                            case 'E':
+                                ch = L'É';
+                                break;
+                            case 'I':
+                                ch = L'Í';
+                                break;
+                            case 'O':
+                                ch = L'Ó';
+                                break;
+                            case 'U':
+                                ch = L'Ú';
+                                break;
+                            default:
+                                form_driver(Form, REQ_NEXT_CHAR);
+                                break;
+                        }
+                        form_driver(Form, REQ_DEL_PREV);
+                    }
+                    else if(wasJustTilde && ch=='n'){
+                        ch = L'ñ';
+                        form_driver(Form, REQ_DEL_PREV);
+                    }
+                    else if(wasJustTilde && ch=='N'){
+                        ch = L'Ñ';
+                        form_driver(Form, REQ_DEL_PREV);
+                    }
+                }
                 curs_set(1);
-                form_driver(Form, ch);
+                form_driver_w(Form, OK, ch);
+                wasJustBacktick = false;
+                wasJustTilde = false;
                 break;
         }
         wrefresh(form_win);

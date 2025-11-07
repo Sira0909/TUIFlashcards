@@ -45,15 +45,27 @@ FILE* get_config_file(CONFIGSTRUCT *config){
 
     //check if file already exists. if not, create it
     if(!(config_File = fopen(cFile, "r"))){
-        if (mkdir(config_DIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
-            printf("error occurred while creating config directory. does ~/.config exist?");
-            free(config_DIR); 
-            exit(-1);
+        FILE* writeconfig;
+        if(!(writeconfig = fopen(cFile, "w"))){
+            if (mkdir(config_DIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
+                printf("error occurred while creating config directory. does ~/.config exist?");
+                free(config_DIR); 
+                exit(-1);
+            }
+            FILE* writeconfig = fopen(cFile, "w"); // make config file
         }
-        FILE* writeconfig = fopen(cFile, "w"); // make config file
 
-        fprintf(writeconfig, "flashcard_dir: %s/Lists/\n", config_DIR);
-        fprintf(writeconfig, "show_keybinds_top: 1");
+        fprintf(writeconfig, "// where to store flashcards\n");
+
+        fprintf(writeconfig, "flashcard_dir: %s/Lists/\n\n", config_DIR);
+        fprintf(writeconfig, "// whether to show the dialog explaining how to access keybinds\n"\
+                             "show_keybinds_top: 1 \n"\
+                             "\n"\
+                             "// how to do accent marks:\n"\
+                             "// 0: no accents\n"\
+                             "// 1: `a->á, ~n->ñ, ``->`\n"\
+                             "// maybe more to come\n"\
+                             "auto_accent: 1");
 
         fclose(writeconfig);
         
@@ -73,6 +85,7 @@ void fill_defaults(CONFIGSTRUCT *config){
     strcat(cardDir, "/Lists");
     strcpy(config->flashcard_dir, cardDir);
     config->showKeybindsTop = 1;
+    config->autoaccent = 1;
 }
 #define LINE_MAX_SIZE 128
 int get_config_struct(CONFIGSTRUCT *config){
@@ -112,6 +125,24 @@ int get_config_struct(CONFIGSTRUCT *config){
                         printf("%s\n", line);
                         countUndefconfigs++;
                     }
+                }
+                else if (strcmp(trimmedsetting, "auto_accent")==0) {
+                    switch (line[i+2]) {
+                        case '0':
+                            config->autoaccent=0;
+                            break;
+                        case '1':
+                            config->autoaccent=1;
+                            break;
+                        case '2':
+                            config->autoaccent=2;
+                            break;
+                        default:
+                            printf("%s\n", line);
+                            countUndefconfigs++;
+                            break;
+                    }
+                
                 }
                 else {
                     printf("%s\n", line);
