@@ -313,21 +313,29 @@ void type(FlashcardSet *flashcard_set){
             //move cursor
             case KEY_LEFT:
                     form_driver(Form, REQ_PREV_CHAR);
+                    wasJustBacktick = false;
+                    wasJustTilde = false;
                     break;
 
             case KEY_RIGHT:
                     form_driver(Form, REQ_NEXT_CHAR);
+                    wasJustBacktick = false;
+                    wasJustTilde = false;
                     break;
 
             // delete before cursor
             case KEY_BACKSPACE:
             case 127:
                 form_driver(Form, REQ_DEL_PREV);
+                wasJustBacktick = false;
+                wasJustTilde = false;
                 break;
 
             // delete under cursor
             case KEY_DC:
                 form_driver(Form, REQ_DEL_CHAR);
+                wasJustBacktick = false;
+                wasJustTilde = false;
                 break;
 
 
