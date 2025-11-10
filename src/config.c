@@ -52,14 +52,14 @@ FILE* get_config_file(CONFIGSTRUCT *config){
                 free(config_DIR); 
                 exit(-1);
             }
-            FILE* writeconfig = fopen(cFile, "w"); // make config file
+            writeconfig = fopen(cFile, "w"); // make config file
         }
 
         fprintf(writeconfig, "// where to store flashcards\n");
 
         fprintf(writeconfig, "flashcard_dir: %s/Lists/\n\n", config_DIR);
         fprintf(writeconfig, "// whether to show the dialog explaining how to access keybinds\n"\
-                             "show_keybinds_top: 1 \n"\
+                             "show_keybinds_help: 1 \n"\
                              "\n"\
                              "// how to do accent marks:\n"\
                              "// 0: no accents\n"\
@@ -84,7 +84,7 @@ void fill_defaults(CONFIGSTRUCT *config){
     strcpy(cardDir,config->config_dir);
     strcat(cardDir, "/Lists");
     strcpy(config->flashcard_dir, cardDir);
-    config->showKeybindsTop = 1;
+    config->showKeybindsHelp = 1;
     config->autoaccent = 1;
 }
 #define LINE_MAX_SIZE 128
@@ -116,11 +116,11 @@ int get_config_struct(CONFIGSTRUCT *config){
                 if(strcmp(trimmedsetting, "flashcard_dir")==0){
                     strcpy(config->flashcard_dir,line+i+2);
                 }
-                else if(strcmp(trimmedsetting, "show_keybinds_top")==0){
+                else if(strcmp(trimmedsetting, "show_keybinds_help")==0){
                     if(line[i+2]=='1')
-                        config->showKeybindsTop=1;
+                        config->showKeybindsHelp=1;
                     else if(line[i+2]=='0')
-                        config->showKeybindsTop=0;
+                        config->showKeybindsHelp=0;
                     else {
                         printf("%s\n", line);
                         countUndefconfigs++;

@@ -39,8 +39,6 @@ char mainkeybinds[7][2][20] = {
 WINDOW* keybindHelp;
 
 
-int main_menu_j(void* menu);
-int main_menu_k(void* menu);
 int main_menu_quit(void* menu);
 int main_menu_select(void * menu);
 int main_menu_keybinds(void* menu);
@@ -104,13 +102,15 @@ int main(){
     // set background
     bkgd(COLOR_PAIR(1));
 
-    // keybind helper window
-    keybindHelp = create_newwin(3, 18, LINES-4, (COLS-18)/2);
-    wattron(keybindHelp, A_BOLD | COLOR_PAIR(5));
-    box(keybindHelp, 0,0);
-    mvwprintw(keybindHelp, 1, 1, "'?' for keybinds");
     refresh();
-    wrefresh(keybindHelp);
+    // keybind helper window
+    if(config.showKeybindsHelp){
+        keybindHelp = create_newwin(3, 18, LINES-4, (COLS-18)/2);
+        wattron(keybindHelp, A_BOLD | COLOR_PAIR(5));
+        box(keybindHelp, 0,0);
+        mvwprintw(keybindHelp, 1, 1, "'?' for keybinds");
+        wrefresh(keybindHelp);
+    }
 
     // create MENU object for main menu (see MENU.c, MENU.h)
     MENU mainmenu;
@@ -126,8 +126,8 @@ int main(){
     
 
     // add commands to menu, see below and menu.c
-    addHook_Menu(&mainmenu, (struct hook){'j', &main_menu_j});
-    addHook_Menu(&mainmenu, (struct hook){'k', &main_menu_k});
+    addHook_Menu(&mainmenu, (struct hook){'j', &menu_down});
+    addHook_Menu(&mainmenu, (struct hook){'k', &menu_up});
     addHook_Menu(&mainmenu, (struct hook){'q', &main_menu_quit});
     addHook_Menu(&mainmenu, (struct hook){27,  &main_menu_quit});
     addHook_Menu(&mainmenu, (struct hook){10,  &main_menu_select});
@@ -149,12 +149,6 @@ int main(){
 
 
 
-//see menu.c for how these work
-
-// j moves down
-int main_menu_j(void* menu){changeselect_Menu((MENU*) menu, 1); return 1;}
-// k moves up
-int main_menu_k(void* menu){changeselect_Menu((MENU*) menu, -1); return 1;}
 // when quit
 int main_menu_quit(void* menu){return -1;}
 
