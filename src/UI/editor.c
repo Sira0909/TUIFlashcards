@@ -268,6 +268,7 @@ void editList(char ListName[]){
 
     run_Table(&flashcardTable);
 
+    free(flashcardTable.hooks);
     //cleanup
     erasewindow(flashcardTable.window);
     erasewindow(edit_list_menu_window);

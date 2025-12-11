@@ -88,7 +88,8 @@ int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int*
 void multipleChoice(FlashcardSet *flashcard_set){
     bool starred_only = 0;
     bool shuffle = 0;
-    if (!get_settings(&starred_only, &shuffle)){
+    int vectors = 0;
+    if (!get_settings(&starred_only, &shuffle,&vectors)){
         return;
     }
 
@@ -132,7 +133,10 @@ void multipleChoice(FlashcardSet *flashcard_set){
     int currentcard = 0;
     int side = 0;
 
-    if (shuffle){
+    if (vectors==1){
+        side = 1;
+    }
+    if (vectors==2){
         side=rand()%2;
     }
 
@@ -305,7 +309,9 @@ void multipleChoice(FlashcardSet *flashcard_set){
                         // update flashcard and form
                         return;
                     }
-                    side = rand()%2;
+                    if (vectors==2){
+                        side=rand()%2;
+                    }
                     correctans = getquestion(flashcard_set, currentcard, numCards, order, side, &question, &choice1, &choice2, &choice3, &choice4);
 
 

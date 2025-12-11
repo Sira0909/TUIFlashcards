@@ -116,13 +116,13 @@ int main(){
     MENU mainmenu;
 
     // list of options
-    char items[7][128] = {"Study\0", "\0", "New List\0", "Edit List\0", "\0", "Quit\0", "\0"};
+    char items[8][128] = {"Study\0", "\0", "New List\0", "Edit List\0", "\0", "Settings", "Quit\0", "\0"};
 
     // create window for menu. this menu object is defined globally, see above
     WINDOW* menu_window = create_newwin(9, 22, (LINES - 7)/2, (COLS - 20)/2);
 
     // init the menu
-    init_Menu(&mainmenu, 7, 20,7, &menu_window, "Let's Study!", NULL, items);
+    init_Menu(&mainmenu, 8, 20, 8, &menu_window, "Let's Study!", NULL, items);
     
 
     // add commands to menu, see below and menu.c
@@ -167,7 +167,9 @@ int main_menu_select(void * menu){
         case 3: // "Edit List"
             getLists(editList);
             break;
-        case 5: // "Quit"
+        case 5:
+            get_global_settings();
+        case 6: // "Quit"
             return -1;
             break;
         default:// error, debug info will be printed

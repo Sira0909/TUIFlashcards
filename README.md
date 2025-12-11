@@ -9,11 +9,10 @@ A TUI program for studying flashcards, using the NCURSES library. not done yet
 - multiple choice quizes <br />
 
 <h1> TO BE ADDED:</h1>
-- study particular sides or both <br />
 - more modes of study <br />
 - maybe word wrap eventually <br />
 - allow more than two sides to a flashcard <br />
-- better configuration - add settings menu inside of program <br />
+- have study vector save for retrying mistakes at end of quiz
 
 <h1> DEPENDENCIES:</h1>
 - ncurses <br />

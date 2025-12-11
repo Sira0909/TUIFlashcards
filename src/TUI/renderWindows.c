@@ -10,13 +10,13 @@ void render_Menu(MENU *p_menu, char* highlighted){
     int ideal = (p_menu->height) / 2;
     int center;
 
-    // if there aren't enough columns before the selected row, top of table is top row
+    // if there aren't enough rows before the selected row, top of table is top row
     if (p_menu->selected < ideal) center = ideal;
 
-    // if there aren't enough columns after the selected row, bottom of table is bottom row
+    // if there aren't enough rows after the selected row, bottom of table is bottom row
     else if(p_menu->selected + ideal > p_menu->numOptions) center = max(ideal,p_menu->numOptions-ideal);
 
-    // if there are enough columns before and after it, the selected row is placed in the center of the available space
+    // if there are enough rows before and after it, the selected row is placed in the center of the available space
     else center = p_menu->selected;
 
     for(int i = center - ideal; (i < center - ideal + p_menu->height) && (i < p_menu->numOptions); i++){
@@ -79,13 +79,13 @@ void render_table(TABLE *p_table, char (*starred)){
     int ideal = (p_table->height) / 2;
     int center;
     
-    // if there aren't enough columns before the selected row, top of table is top row
+    // if there aren't enough rows before the selected row, top of table is top row
     if (p_table->selected_row < ideal) center = ideal;
     
-    // if there aren't enough columns after the selected row, bottom of table is bottom row
+    // if there aren't enough rows after the selected row, bottom of table is bottom row
     else if(p_table->selected_row + ideal > p_table->num_rows) center = max(ideal,p_table->num_rows-ideal+1);
 
-    // if there are enough columns before it, the selected row is placed in the center of the available space
+    // if there are enough rows before it, the selected row is placed in the center of the available space
     else center = p_table->selected_row;
 
     // max length of a column

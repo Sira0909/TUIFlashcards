@@ -1,6 +1,6 @@
 #include <flashcards.h>
 
-bool get_settings(bool* starred_only, bool* shuffle);
+bool get_settings(bool* starred_only, bool* shuffle, int* vectors);
 
 void pickMode(char* list);
 

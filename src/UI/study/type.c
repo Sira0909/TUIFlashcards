@@ -4,6 +4,7 @@
 
 #define _XOPEN_SOURCE 600
 #include <ncurses.h>
+#include <stdlib.h>
 #include <form.h>
 #include <config.h>
 #include <windows/window.h>
@@ -19,7 +20,8 @@ void printProgress(WINDOW* win, int currentcard, int maxcards){
 void type(FlashcardSet *flashcard_set){
     bool starred_only = false;
     bool shuffle = false;
-    if (!get_settings(&starred_only, &shuffle)){
+    int vectors = 0;
+    if (!get_settings(&starred_only, &shuffle,&vectors)){
         return;
     }
 
@@ -39,17 +41,21 @@ void type(FlashcardSet *flashcard_set){
         if (strlen(flashcard_set->cards[order[i]].name)>maxlength){
             maxlength = strlen(flashcard_set->cards[i].name);
         }
+        if (strlen(flashcard_set->cards[order[i]].definition)>maxlength){
+            maxlength = strlen(flashcard_set->cards[i].definition);
+        }
     }
 
     
     int currentcard = 0;
+    int side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
 
     FIELD *FileNameField[2];
     FORM *Form;
     int ch, rows, cols;
 
     //create 1 element form
-    FileNameField[0] = new_field(1, 30, 0, 0, 0, 0);
+    FileNameField[0] = new_field(1, 30, 0, 0, maxlength/30, 0);
     FileNameField[1] = NULL;
 
     // set field atributes
@@ -79,8 +85,8 @@ void type(FlashcardSet *flashcard_set){
     post_form(Form);
     werase(text);
     wbkgd(text, COLOR_PAIR(2));
-    wattron(text, A_BOLD);
-    wprintw(text, "%s", currentFlashcard.definition);
+    wattron(text, A_BOLD); 
+    wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.name);
     wrefresh(form_win);
 
     curs_set(1);
@@ -132,7 +138,7 @@ void type(FlashcardSet *flashcard_set){
                 answer[end+1] = '\0';
                 form_driver(Form, REQ_CLR_FIELD);
 
-                char *correctanswer=currentFlashcard.name;
+                char *correctanswer=(side==0)?currentFlashcard.name : currentFlashcard.definition;
 
 
                 if(strcmp(answer, correctanswer)!=0){ // incorrect
@@ -167,7 +173,7 @@ void type(FlashcardSet *flashcard_set){
                         printProgress(form_win, currentcard, numCards);
                         werase(text);
                         wbkgd(text, COLOR_PAIR(2));
-                        wprintw(text, "%s", currentFlashcard.definition);
+                        wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.name);
                         wrefresh(form_win);
                         break;
 
@@ -196,6 +202,7 @@ void type(FlashcardSet *flashcard_set){
 
 
                 currentcard++;
+                side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
                 if(currentcard>=numCards){
                     if(mistakeindex>0){
                         curs_set(0);
@@ -255,6 +262,7 @@ void type(FlashcardSet *flashcard_set){
                             currentcard = 0;
                             numCards = mistakeindex;
                             mistakeindex = 0;
+                            side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
                         }
                         touchwin(form_win);
                     }
@@ -295,7 +303,7 @@ void type(FlashcardSet *flashcard_set){
                 printProgress(form_win, currentcard, numCards);
                 werase(text);
                 wbkgd(text, COLOR_PAIR(2));
-                wprintw(text, "%s", currentFlashcard.definition);
+                wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.name);
                 wrefresh(form_win);
                 break;
             case 27:
@@ -380,7 +388,7 @@ void type(FlashcardSet *flashcard_set){
                                 ch = L'ó';
                                 break;
                             case 'u':
-                                ch = L'Ú';
+                                ch = L'ú';
                                 break;
                             case 'A':
                                 ch = L'Á';

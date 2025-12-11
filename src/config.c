@@ -122,7 +122,7 @@ int get_config_struct(CONFIGSTRUCT *config){
                     else if(line[i+2]=='0')
                         config->showKeybindsHelp=0;
                     else {
-                        printf("%s\n", line);
+                        printf("indefined value: %s\n", line);
                         countUndefconfigs++;
                     }
                 }
@@ -138,7 +138,7 @@ int get_config_struct(CONFIGSTRUCT *config){
                             config->autoaccent=2;
                             break;
                         default:
-                            printf("%s\n", line);
+                            printf("indefined value: %s\n", line);
                             countUndefconfigs++;
                             break;
                     }
@@ -157,4 +157,22 @@ int get_config_struct(CONFIGSTRUCT *config){
     }
     //strcpy(config->flashcard_dir , trim_whitespaces(config->flashcard_dir));
     return countUndefconfigs;
+}
+
+int writeconfig(){
+    char confFile[PATH_MAX];
+    strcpy(confFile, config.config_dir);
+    strcat(confFile, "/config");
+
+    FILE* conf = fopen(confFile, "w");
+
+    if(conf == NULL){
+        return -1;
+    }
+
+    fprintf(conf, "\nflashcard_dir: %s", config.flashcard_dir);
+    fprintf(conf, "\nshow_keybinds_help: %d", config.showKeybindsHelp);
+    fprintf(conf, "\nauto_accent: %d", config.autoaccent);
+
+    return 1;
 }

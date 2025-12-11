@@ -1,6 +1,7 @@
 #include <study.h>
 #include <windows/window.h>
 #include <ncurses.h>
+#include <stdlib.h>
 //#include <string.h>
 
 
@@ -8,7 +9,8 @@ void flashcard(FlashcardSet *flashcard_set){
 
     bool starred_only = false;
     bool shuffle = false;
-    if (!get_settings(&starred_only, &shuffle)){
+    int vectors = 0;
+    if (!get_settings(&starred_only, &shuffle,&vectors)){
         return;
     }
 
@@ -34,12 +36,13 @@ void flashcard(FlashcardSet *flashcard_set){
 
 
     int currentcard = 0;
+    int default_side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
     int side = 0;
     int ch = -1;
     bool done = false;
     while (!done){
         char* card_text;
-        if(side)
+        if((default_side+side)%2)
             card_text = flashcard_set->cards[order[currentcard]].definition;
         else
             card_text = flashcard_set->cards[order[currentcard]].name;
@@ -67,6 +70,7 @@ void flashcard(FlashcardSet *flashcard_set){
                 if (currentcard>=numCards){
                     currentcard = numCards-1;
                 }
+                default_side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
                 side = 0;
                 break;
             case 'h':
@@ -74,6 +78,7 @@ void flashcard(FlashcardSet *flashcard_set){
                 if (currentcard <0){
                     currentcard = 0;
                 }
+                default_side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
                 side = 0;
                 break;
             case 'j':

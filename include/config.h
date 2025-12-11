@@ -2,6 +2,7 @@
 #define _CONFIGH
 
 #include <limits.h>
+#include <stdbool.h>
 #ifndef PATH_MAX
 #define PATH_MAX 164
 #endif
@@ -20,5 +21,7 @@ extern CONFIGSTRUCT config; // structure instance
 
 int get_config_struct(CONFIGSTRUCT *config);
 
+int writeconfig();
 
+bool get_global_settings();
 #endif
