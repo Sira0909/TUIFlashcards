@@ -81,11 +81,11 @@ bool get_global_settings(){
     WINDOW* setting_window = create_newwin(height+2, 35, (LINES - height)/2, (COLS - 33)/2);
     WINDOW* tablewindow = derwin(setting_window, height, 33, 1, 1);
 
-    char items[6][128] = { "Automatic accents", "Show how to access keybinds", "\0", "Save\0", "Cancel"};
-    char value[6][128]; 
+    char items[5][128] = { "Automatic accents", "Show how to access keybinds", "", "Save", "Cancel"};
+    char value[5][128] = {"","","",""}; 
     strcpy(value[0], (config.autoaccent) ? "On": "Off");
     strcpy(value[1], (config.showKeybindsHelp) ? "On": "Off");
-    char (*(table[2]))[128] = {items, value};
+    char (*table[2])[128] = {items, value};
 
     char selected[6] = {0,0,0,0,0,0};
     selected[0] = (config.autoaccent) ? '*': ' ';

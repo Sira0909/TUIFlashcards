@@ -98,13 +98,13 @@ int study_settings_select(void* menu){
         case 2:
             *vector=(*vector+1)%3;
             if(*vector==0){
-                strcpy(settingsmenu->menuitems[2], "definition->name");
+                strcpy(settingsmenu->menuitems[2], "Direction: def->name");
             }
             if(*vector==1){
-                strcpy(settingsmenu->menuitems[2], "name->definition");
+                strcpy(settingsmenu->menuitems[2], "Direction: name->def");
             }
             if(*vector==2){
-                strcpy(settingsmenu->menuitems[2], "random direction");
+                strcpy(settingsmenu->menuitems[2], "Direction: random   ");
             }
             break;
         case 4:
@@ -124,7 +124,7 @@ bool get_settings(bool* starred_only, bool* shuffle, int* vectors){
     vector = vectors;
     MENU setting_menu;
 
-    char items[6][128] = { "Only starred items", "Shuffle flashcards", "definition->name", "\0", "Continue\0", "\0"};
+    char items[6][128] = { "Only starred items", "Shuffle flashcards", "Direction: def->name", "\0", "Continue\0", "\0"};
     char flags[6] = {0,0,0,0,0,0};
 
     // create window for menu. 
@@ -141,10 +141,10 @@ bool get_settings(bool* starred_only, bool* shuffle, int* vectors){
     flags[1] = *shuffle ? '*' : 0;
     items[1][19] = *shuffle ? '*' : ' ';
     if(*vector==1){
-        strcpy(items[2], "name->definition");
+        strcpy(items[2], "Direction: name->def");
     }
     if(*vector==2){
-        strcpy(items[2], "random direction");
+        strcpy(items[2], "Direction: random   ");
     }
 
     addHook_Menu(&setting_menu, (struct hook){'j', &menu_down});

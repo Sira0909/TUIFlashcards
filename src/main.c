@@ -169,6 +169,7 @@ int main_menu_select(void * menu){
             break;
         case 5:
             get_global_settings();
+            break;
         case 6: // "Quit"
             return -1;
             break;
