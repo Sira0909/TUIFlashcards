@@ -6,7 +6,7 @@
 
 
 typedef struct _FLASHCARDPAIR{  // flashcard, front and back
-    char name[MAX_FLASHCARD_SET_ITEM_SIZE];
+    char term[MAX_FLASHCARD_SET_ITEM_SIZE];
     char definition[MAX_FLASHCARD_SET_DEFN_SIZE];
     bool is_starred;
 } Flashcard;

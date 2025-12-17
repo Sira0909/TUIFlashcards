@@ -45,7 +45,7 @@ void flashcard(FlashcardSet *flashcard_set){
         if((default_side+side)%2)
             card_text = flashcard_set->cards[order[currentcard]].definition;
         else
-            card_text = flashcard_set->cards[order[currentcard]].name;
+            card_text = flashcard_set->cards[order[currentcard]].term;
         werase(text);
         touchwin(FlashcardWindow);
         wbkgd(text, COLOR_PAIR(2));

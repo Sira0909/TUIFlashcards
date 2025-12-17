@@ -40,7 +40,7 @@ void ensureNotEqual(int* a, int numCards, int b, int c, int d){
 int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int* order, int side, char** question, char** choice1,char** choice2,char** choice3,char** choice4){
     srand(time(0));
     *question =    (side) 
-                        ?currentFlashcard.name
+                        ?currentFlashcard.term
                         :currentFlashcard.definition;
 
     int op1 = currentcard;
@@ -52,16 +52,16 @@ int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int*
     ensureNotEqual(&op4, numCards, op1, op2, op3);
     *choice1 =    (side) 
                         ?flashcard_set->cards[order[op1]].definition
-                        :flashcard_set->cards[order[op1]].name;
+                        :flashcard_set->cards[order[op1]].term;
     *choice2 =    (side) 
                         ?flashcard_set->cards[order[op2]].definition
-                        :flashcard_set->cards[order[op2]].name;
+                        :flashcard_set->cards[order[op2]].term;
     *choice3 =    (side) 
                         ?flashcard_set->cards[order[op3]].definition
-                        :flashcard_set->cards[order[op3]].name;
+                        :flashcard_set->cards[order[op3]].term;
     *choice4=    (side) 
                         ?flashcard_set->cards[order[op4]].definition
-                        :flashcard_set->cards[order[op4]].name;
+                        :flashcard_set->cards[order[op4]].term;
 
     int correctans = rand()%4;
     char* placeholder=*choice1;
@@ -121,8 +121,8 @@ void multipleChoice(FlashcardSet *flashcard_set){
     }
 
     for(int i = 0; i<numCards;i++){
-        if (strlen(flashcard_set->cards[order[i]].name)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].name);
+        if (strlen(flashcard_set->cards[order[i]].term)>maxlength){
+            maxlength = strlen(flashcard_set->cards[i].term);
         }
         if (strlen(flashcard_set->cards[order[i]].definition)>maxlength){
             maxlength = strlen(flashcard_set->cards[i].definition);

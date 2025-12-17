@@ -38,8 +38,8 @@ void type(FlashcardSet *flashcard_set){
         return;
 
     for(int i = 0; i<numCards;i++){
-        if (strlen(flashcard_set->cards[order[i]].name)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].name);
+        if (strlen(flashcard_set->cards[order[i]].term)>maxlength){
+            maxlength = strlen(flashcard_set->cards[i].term);
         }
         if (strlen(flashcard_set->cards[order[i]].definition)>maxlength){
             maxlength = strlen(flashcard_set->cards[i].definition);
@@ -86,7 +86,7 @@ void type(FlashcardSet *flashcard_set){
     werase(text);
     wbkgd(text, COLOR_PAIR(2));
     wattron(text, A_BOLD); 
-    wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.name);
+    wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.term);
     wrefresh(form_win);
 
     curs_set(1);
@@ -138,7 +138,7 @@ void type(FlashcardSet *flashcard_set){
                 answer[end+1] = '\0';
                 form_driver(Form, REQ_CLR_FIELD);
 
-                char *correctanswer=(side==0)?currentFlashcard.name : currentFlashcard.definition;
+                char *correctanswer=(side==0)?currentFlashcard.term : currentFlashcard.definition;
 
 
                 if(strcmp(answer, correctanswer)!=0){ // incorrect
@@ -173,7 +173,7 @@ void type(FlashcardSet *flashcard_set){
                         printProgress(form_win, currentcard, numCards);
                         werase(text);
                         wbkgd(text, COLOR_PAIR(2));
-                        wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.name);
+                        wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.term);
                         wrefresh(form_win);
                         break;
 
@@ -303,7 +303,7 @@ void type(FlashcardSet *flashcard_set){
                 printProgress(form_win, currentcard, numCards);
                 werase(text);
                 wbkgd(text, COLOR_PAIR(2));
-                wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.name);
+                wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.term);
                 wrefresh(form_win);
                 break;
             case 27:

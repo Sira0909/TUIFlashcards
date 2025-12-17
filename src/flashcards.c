@@ -20,7 +20,7 @@ FlashcardSet* create_Flashcard_Set_Object(){
     return flashcard_set;
 }
 
-int addcard(FlashcardSet* flashcard_set, char name[MAX_FLASHCARD_SET_ITEM_SIZE], char definition[MAX_FLASHCARD_SET_DEFN_SIZE], int starred){
+int addcard(FlashcardSet* flashcard_set, char term[MAX_FLASHCARD_SET_ITEM_SIZE], char definition[MAX_FLASHCARD_SET_DEFN_SIZE], int starred){
     //resize if necessary
     if (flashcard_set->num_items >= flashcard_set->capacity){
 
@@ -37,7 +37,7 @@ int addcard(FlashcardSet* flashcard_set, char name[MAX_FLASHCARD_SET_ITEM_SIZE],
         flashcard_set->cards = newPairs;
     }
     // create and set new flashcard
-    strcpy(flashcard_set->cards[flashcard_set->num_items].name,  name);
+    strcpy(flashcard_set->cards[flashcard_set->num_items].term,  term);
     strcpy(flashcard_set->cards[flashcard_set->num_items].definition,  definition);
     flashcard_set->cards[flashcard_set->num_items].is_starred = starred;
     flashcard_set->num_items++;
@@ -56,7 +56,7 @@ void deletecard(FlashcardSet* flashcard_set, int index){
     // update fields and last card
     flashcard_set->num_items--;
     if(flashcard_set->num_items<0) flashcard_set->num_items = 0;
-    strcpy(flashcard_set->cards[flashcard_set->num_items].name, "");
+    strcpy(flashcard_set->cards[flashcard_set->num_items].term, "");
     strcpy(flashcard_set->cards[flashcard_set->num_items].definition, "");
     
     flashcard_set->cards[flashcard_set->num_items].is_starred = 0;
@@ -80,7 +80,7 @@ int writeFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX], int 
     }
     fprintf(VocabFile, "%d", flashcard_set->num_items);
     for(int i = 0; i<flashcard_set->num_items;i++){
-        fprintf(VocabFile, "\n%s\n%s\n%d", flashcard_set->cards[i].name, flashcard_set->cards[i].definition, flashcard_set->cards[i].is_starred);
+        fprintf(VocabFile, "\n%s\n%s\n%d", flashcard_set->cards[i].term, flashcard_set->cards[i].definition, flashcard_set->cards[i].is_starred);
     }
     fclose(VocabFile);
 
@@ -101,23 +101,23 @@ int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
     fscanf(VocabFile, "%d\n", &num_items);
 
     for(int i = 0; i < num_items;i ++){
-        char name[MAX_FLASHCARD_SET_ITEM_SIZE];
+        char term[MAX_FLASHCARD_SET_ITEM_SIZE];
         char defn[MAX_FLASHCARD_SET_DEFN_SIZE];
         int starred = 0;
 
         //end of file?
-        if(fgets(name, MAX_FLASHCARD_SET_ITEM_SIZE, VocabFile) == NULL) break; 
+        if(fgets(term, MAX_FLASHCARD_SET_ITEM_SIZE, VocabFile) == NULL) break; 
         if(fgets(defn, MAX_FLASHCARD_SET_DEFN_SIZE, VocabFile) == NULL) break;
 
         // make sure to remove excess whitespace
-        trim_whitespaces(name);
+        trim_whitespaces(term);
         trim_whitespaces(defn);
         // actual eof check
         if (fscanf(VocabFile, "%d\n", &starred) == EOF){
             break;
         }
         bool starbool = (starred == 1) ? true : false;
-        if(addcard(flashcard_set, name, defn, starbool) == -1){
+        if(addcard(flashcard_set, term, defn, starbool) == -1){
             return -1;
         }
     }
@@ -134,7 +134,7 @@ void getpairslimiter(FlashcardSet* flashcard_set, char isstarred[], char items[]
             isstarred[i] = '*';
         }
         else isstarred[i] = ' ';
-        strncpy(items[i],flashcard_set->cards[i].name, 127);
+        strncpy(items[i],flashcard_set->cards[i].term, 127);
         strncpy(definitions[i],flashcard_set->cards[i].definition,127);
     }
 }

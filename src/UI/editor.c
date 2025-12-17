@@ -41,19 +41,19 @@ int editor_star(void* table){
 int editor_selectField(void* table){
                 TABLE* Table = (TABLE*)table;
                 if(Table->selected_col == 0){
-                    // edit the name
-                    char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE, flashcardset->cards[(Table)->selected_row].name);
+                    // edit the term
+                    char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, flashcardset->cards[(Table)->selected_row].term);
                     // if empty or cancelled, dont change anything
-                    if(Name==NULL)
+                    if(Term==NULL)
                         return 1;
-                    if(is_all_space(Name))
-                        free(Name);
-                    else if(Name != NULL){
+                    if(is_all_space(Term))
+                        free(Term);
+                    else if(Term != NULL){
                         // change set; update table
-                        strcpy(flashcardset->cards[Table->selected_row].name, Name);
+                        strcpy(flashcardset->cards[Table->selected_row].term, Term);
                         getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
                         refresh();
-                        free(Name);
+                        free(Term);
                     }
                 }
                 else{
@@ -107,12 +107,12 @@ int editor_deleteCard(void* table){
 int editor_addCard(void* table){
                 TABLE* Table = (TABLE*) table;
 
-                //get name 
-                char* Name = getString("Name?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
+                //get term 
+                char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
                 //ensure not empty/cancelled
-                if (Name != NULL){
-                    if(is_all_space(Name)){
-                        free(Name);
+                if (Term != NULL){
+                    if(is_all_space(Term)){
+                        free(Term);
                         return 1;
                     }
                     // get definition
@@ -120,12 +120,12 @@ int editor_addCard(void* table){
                     //ensure not empty/cancelled
                     if (Defn != NULL){
                         if(is_all_space(Defn)){
-                            free(Name);
+                            free(Term);
                             free(Defn);
                             return 1;
                         }
                         //update
-                        addcard(flashcardset, Name, Defn, 0);
+                        addcard(flashcardset, Term, Defn, 0);
                         free(Table->table_data[0]);
                         free(Table->table_data[1]);
                         free(Table->highlighted);
@@ -139,7 +139,7 @@ int editor_addCard(void* table){
                         //cleanup
                         free(Defn);
                     }
-                    free(Name);
+                    free(Term);
                 }
                 return 1;
 }
@@ -235,7 +235,7 @@ void editList(char ListName[]){
 
     char (*(table[2]))[128] = {items, defns};
 
-    char headers[2][128] = {"word", "definition"};
+    char headers[2][128] = {"term", "definition"};
 
     wbkgd(edit_list_menu_window, COLOR_PAIR(2));
     box(edit_list_menu_window, 0, 0);
