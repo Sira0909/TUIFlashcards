@@ -12,7 +12,8 @@ A TUI program for studying flashcards, using the NCURSES library. not done yet
 - more modes of study <br />
 - maybe word wrap eventually <br />
 - allow more than two sides to a flashcard <br />
-- have study vector save for retrying mistakes at end of quiz
+- have study vector save for retrying mistakes at end of quiz <br />
+- spaced repetition stuff <br />
 
 <h1> DEPENDENCIES:</h1>
 - ncurses <br />
