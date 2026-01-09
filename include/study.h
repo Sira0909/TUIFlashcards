@@ -10,3 +10,4 @@ void flashcard(FlashcardSet *flashcard_set);
 
 void type(FlashcardSet *flashcard_set);
 void multipleChoice(FlashcardSet *flashcard_set);
+void test(FlashcardSet *flashcard_set);

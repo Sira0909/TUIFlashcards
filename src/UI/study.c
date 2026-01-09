@@ -262,6 +262,9 @@ void pickMode(char* list){
                         case 2:
                             type(flashcard_set);
                             break;
+                        case 3:
+                            test(flashcard_set);
+                            break;
                     }
                     //save any changes in stars
                     writeFlashcardSet(flashcard_set, ListPath,0);
