@@ -1,5 +1,6 @@
 A TUI program for studying flashcards, using the NCURSES library. not done yet
 
+The development branch is for development, it is not guarenteed to work. it probably wont sometimes. it doesn't right now. just use main
 
 <h1> FEATURES: </h1>
 - create and edit flashcard sets from within the program <br />
