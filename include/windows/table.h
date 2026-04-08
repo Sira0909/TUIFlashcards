@@ -18,6 +18,7 @@ typedef struct _table_struct{
     int hookcount;
     int maxhooks;
     struct hook *hooks;
+    void* metadata;
 } TABLE;
 
 

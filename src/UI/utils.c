@@ -1,3 +1,4 @@
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
+#include <wchar.h>
 
 #define _XOPEN_SOURCE 600
 #include <ncurses.h>
@@ -52,7 +54,7 @@ int is_all_space(char *string){
 }
 
 
-char selectionkeybinds[10][2][20] = {
+char selectionkeybinds[11][2][20] = {
     {"h", "left"},
     {"j","down"},
     {"k","up"},
@@ -61,70 +63,29 @@ char selectionkeybinds[10][2][20] = {
     {" ", " "},
     {"a", "add list"},
     {"d", "delete list"},
+    {"f", "create folder"},
     {" ", " "},
     {"?", "list keybinds"}
 };
 
-char (*glofiles)[128];
-char* toreturn;
-void (*call)(char*);
-char* _getLists(int start_at, void (*to_call)(char*));
+struct GetListMenuMetadata {
+    char* directory;
+    int numdirs;
+    char (*files)[128];// includes files and directories. first [numdirs] are directories, after are files
+    void (*call)(char*);
+    char* pickedList;
+};
+#define Metadata ((struct GetListMenuMetadata*)(((MENU*)menu)->metadata))
 
+static char* _getLists(int start_at, char* directory, void (*to_call)(char*));
+static int getLists_keybinds(void* menu);
+static int getLists_quit(void* menu);
+static int getLists_delete(void* menu);
+static int getLists_addlist(void* menu);
+static int getLists_createfolder(void* menu);
+static int getLists_select(void* menu);
 
-int getLists_keybinds(void* menu){
-    list_keybinds(10, selectionkeybinds);                       return 1;
-}
-
-int getLists_quit(void* menu){
-        free(glofiles);
-        erasewindow(((MENU*)menu)->window);
-        ((MENU*)menu)->window= NULL;
-        return -1;
-}
-int getLists_delete(void* menu){
-        wattron(((MENU*)menu)->window, A_BOLD);
-        mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Really delete (needs capital Y)?");
-        wattroff(((MENU*)menu)->window, A_BOLD);
-        wrefresh(((MENU*)menu)->window);
-        if (getch()=='Y'){
-            if(remove(glofiles[((MENU*)menu)->selected]) == 0){
-
-                wattron(((MENU*)menu)->window, A_BOLD);
-                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "File deleted.");
-                wattroff(((MENU*)menu)->window, A_BOLD);
-
-
-
-                getLists_quit(menu);
-                toreturn = _getLists(((MENU*)menu)->selected,call);
-                return -1;
-            }
-        }
-        mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
-        wrefresh(((MENU*)menu)->window);
-        return 1;
-}
-int getLists_addlist(void* menu){
-    //addlist
-    addList(); 
-    //technically quit
-    getLists_quit(menu); 
-    //rerun with new list. there might be a better way to do this.
-    toreturn = _getLists(((MENU*)menu)->selected,call);
-    return -1;
-}
-int getLists_select(void* menu){
-        if (call == NULL){ toreturn = glofiles[((MENU*)menu)->selected]; getLists_quit(menu); return -1;}
-        else{
-            wbkgd(((MENU*)menu)->window, COLOR_PAIR(8));
-            werase(((MENU*)menu)->window);
-            wrefresh(((MENU*)menu)->window);
-            call(glofiles[((MENU*)menu)->selected]);
-            wbkgd(((MENU*)menu)->window, COLOR_PAIR(2));
-            return 1;
-        }
-}
-char* _getLists(int start_at, void (*to_call)(char*)){
+char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
 
     DIR *dp;
 
@@ -133,52 +94,73 @@ char* _getLists(int start_at, void (*to_call)(char*)){
 
     //get all lists
     int numfiles = 0;
-    if((dp = opendir(config.flashcard_dir)) == NULL) {
-        mkdir(config.flashcard_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-        if((dp = opendir(config.flashcard_dir)) == NULL) {
+    int numdirs = 0;
+    if((dp = opendir(dir)) == NULL) {
+        mkdir(dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        if((dp = opendir(dir)) == NULL) {
             int error = errno;
             endwin();
-            printf("ERROR: Could not open or create flashcard directory, which is %s. error description:%s", config.flashcard_dir, strerror(error));
+            printf("ERROR: Could not open or create flashcard directory, which is %s. error description:%s", dir, strerror(error));
             exit(-1);
         }
     }
-    chdir(config.flashcard_dir);
+    chdir(dir);
 
     while((entry = readdir(dp)) !=NULL){
         lstat(entry->d_name, &statbuf);
-        if(!S_ISDIR(statbuf.st_mode)){
-            numfiles++;
+        if(entry->d_name[0]!='.'){
+            if(!S_ISDIR(statbuf.st_mode)){
+                numfiles++;
+            }
+            else{
+                numdirs++;
+            }
         }
     }
     closedir(dp);
     //make sure at least one. if not, prompt to create
     if(numfiles == 0){
-        addList();
+        addList(dir);
         return NULL;
     }
     else{
-        char (*files)[128] = calloc(numfiles, sizeof(char[128]));
-        if((dp = opendir(config.flashcard_dir)) == NULL) {
+        char (*entries)[128] = calloc(numdirs+numfiles, sizeof(char[128]));
+        char (*highlight) = calloc(numdirs+numfiles, sizeof(char));
+        
+        if((dp = opendir(dir)) == NULL) {
             //just in case this suddenly doesnt work
-            mkdir(config.flashcard_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-            if((dp = opendir(config.flashcard_dir)) == NULL) {
+            mkdir(dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+            if((dp = opendir(dir)) == NULL) {
                 int error = errno;
                 endwin();
                 printf("ERROR: Could not open or create flashcard directory. error description:%s", strerror(error));
                 exit(-1);
             }
         }
-        chdir(config.flashcard_dir);
+        chdir(dir);
 
         // get all the file paths
         int i = 0;
+        int j = 0;
         while((entry = readdir(dp)) != NULL){
             lstat(entry->d_name, &statbuf);
-            if(!S_ISDIR(statbuf.st_mode)){
-                strncpy(files[i], entry->d_name,127);
-                i++;
+            if(entry->d_name[0]!='.'){
+                if(!S_ISDIR(statbuf.st_mode)){
+                    if(i<numfiles){
+                        strncpy(entries[numdirs+i], entry->d_name,127);
+                        i++;
+                    }
+                }
+                else{
+                    if(j < numdirs){
+                        strncpy(entries[j], entry->d_name,127);
+                        highlight[j]='*';
+                        j++;
+                    }
+                }
             }
         }
+
         closedir(dp);
 
         // now select between them
@@ -192,34 +174,131 @@ char* _getLists(int start_at, void (*to_call)(char*)){
         WINDOW* select_menu_window = create_newwin(LINES-5, 34, 3, (COLS - 32)/2);
 
         // init the menu
-        init_Menu(&selectmenu, numfiles, 32,LINES-8, &select_menu_window, "select list", NULL, files);
+        init_Menu(&selectmenu, numfiles+numdirs, 32,LINES-8, &select_menu_window, "select list", highlight, entries);
+        struct GetListMenuMetadata metadata= {dir, numdirs, entries, to_call, NULL};
+        selectmenu.metadata = &metadata;
         wrefresh(selectmenu.window);
 
         selectmenu.selected = start_at;
-        if (selectmenu.selected >= numfiles) selectmenu.selected = numfiles-1;
+        if (selectmenu.selected >= numfiles+numdirs) selectmenu.selected = numfiles+numdirs-1;
         
-        glofiles = files;
-        call = to_call;
-
         addHook_Menu(&selectmenu, (struct hook){'j', &menu_down});
         addHook_Menu(&selectmenu, (struct hook){'k', &menu_up});
         addHook_Menu(&selectmenu, (struct hook){'q', &getLists_quit});
         addHook_Menu(&selectmenu, (struct hook){27,  &getLists_quit});
         addHook_Menu(&selectmenu, (struct hook){'d', &getLists_delete});
         addHook_Menu(&selectmenu, (struct hook){'a', &getLists_addlist});
+        addHook_Menu(&selectmenu, (struct hook){'f', &getLists_createfolder});
         addHook_Menu(&selectmenu, (struct hook){10, &getLists_select});
         addHook_Menu(&selectmenu, (struct hook){'?', &getLists_keybinds});
         run_Menu(&selectmenu);
         free(selectmenu.hooks);
+        free(highlight);
 
-        return toreturn;
+        return metadata.pickedList;
     }
     return NULL;
 
 }
+int getLists_keybinds(void* menu){
+    list_keybinds(11, selectionkeybinds);                       return 1;
+}
+
+int getLists_quit(void* menu){
+        free(Metadata->files);
+        erasewindow(((MENU*)menu)->window);
+        ((MENU*)menu)->window= NULL;
+        return -1;
+}
+int getLists_delete(void* menu){
+        wattron(((MENU*)menu)->window, A_BOLD);
+        mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Really delete (needs capital Y)?");
+        wattroff(((MENU*)menu)->window, A_BOLD);
+        wrefresh(((MENU*)menu)->window);
+        if (getch()=='Y'){
+            if(remove(Metadata->files[((MENU*)menu)->selected]) == 0){
+
+                wattron(((MENU*)menu)->window, A_BOLD);
+                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "File deleted.");
+                wattroff(((MENU*)menu)->window, A_BOLD);
+
+
+
+                getLists_quit(menu);
+                Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
+                return -1;
+            }
+            else{
+                if(((MENU*)menu)->selected<Metadata->numdirs){
+                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
+                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete. Is it empty?");
+                }
+                else{
+                    wattron(((MENU*)menu)->window, A_BOLD);
+                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
+                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete file.");
+                    wattroff(((MENU*)menu)->window, A_BOLD);
+                }
+            }
+        }
+        wrefresh(((MENU*)menu)->window);
+        return 1;
+}
+int getLists_addlist(void* menu){
+    //addlist
+    addList(Metadata->directory); 
+    //technically quit
+    getLists_quit(menu); 
+    //rerun with new list. there might be a better way to do this.
+    Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
+    return -1;
+}
+int getLists_createfolder(void* menu){
+    addDir(Metadata->directory);
+    getLists_quit(menu); 
+    //rerun with new list. there might be a better way to do this.
+    Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
+    return -1;
+}
+int getLists_select(void* menu){
+        if(((MENU*)menu)->selected<Metadata->numdirs){
+            char dir[PATH_MAX];
+            strncpy(dir, Metadata->directory, PATH_MAX);
+            strcat(dir, "/");
+            strcat(dir, Metadata->files[((MENU*)menu)->selected]);
+            
+            wbkgd(((MENU*)menu)->window, COLOR_PAIR(8));
+            werase(((MENU*)menu)->window);
+            wrefresh(((MENU*)menu)->window);
+            Metadata->pickedList = _getLists(0, dir,Metadata->call);
+            wbkgd(((MENU*)menu)->window, COLOR_PAIR(2));
+
+            if (Metadata->pickedList!=NULL){
+                getLists_quit(menu); return -1;
+            }
+            return 1;
+        }
+        else if (Metadata->call == NULL){ 
+            Metadata->pickedList = Metadata->files[((MENU*)menu)->selected]; 
+            getLists_quit(menu); return -1;
+        }
+        else{
+            wbkgd(((MENU*)menu)->window, COLOR_PAIR(8));
+            werase(((MENU*)menu)->window);
+            wrefresh(((MENU*)menu)->window);
+            char list[PATH_MAX];
+            strncpy(list,Metadata->directory, PATH_MAX-128);
+            strcat(list,"/");
+            strncat(list,Metadata->files[((MENU*)menu)->selected], 128);
+            Metadata->call(list);
+            wbkgd(((MENU*)menu)->window, COLOR_PAIR(2));
+            return 1;
+        }
+}
+#undef Metadata 
 
 char* getLists(void (*to_call)(char*)) {
-    return _getLists(0, to_call);
+    return _getLists(0, config.flashcard_dir,to_call);
 }
 
 void list_keybinds(int numBinds, char (*keybinds)[2][20]){
@@ -363,87 +442,7 @@ char* getString(char* title, int maxsize, char* startingText){
                 wasJustTilde = false;
                 break;
 
-            case '`':
-                // for accents
-                if(config.autoaccent>0){
-                    wasJustTilde=false;
-                    // double backtick should cancel accent
-                    if(!wasJustBacktick){
-                        wasJustBacktick= true;
-                        form_driver(Form, ch);
-                    }
-                    else{
-                        wasJustBacktick= false;
-                    }
-                    break;
-                }
-            case '~':
-                if(config.autoaccent>0){
-                    wasJustBacktick=false;
-                    // double tilde should cancel it
-                    if(!wasJustTilde){
-                        wasJustTilde = true;
-                        form_driver(Form, ch);
-                    }
-                    else{ // double ~
-                        wasJustTilde = false;
-                    }
-                    break;
-                }
-            default:
-                if(config.autoaccent>0){
-                    //handle accent marks
-                    if(wasJustBacktick){
-                        switch(ch){
-                            case 'a':
-                                ch = L'á';
-                                break;
-                            case 'e':
-                                ch = L'é';
-                                break;
-                            case 'i':
-                                ch = L'í';
-                                break;
-                            case 'o':
-                                ch = L'ó';
-                                break;
-                            case 'u':
-                                ch = L'ú';
-                                break;
-                            case 'A':
-                                ch = L'Á';
-                                break;
-                            case 'E':
-                                ch = L'É';
-                                break;
-                            case 'I':
-                                ch = L'Í';
-                                break;
-                            case 'O':
-                                ch = L'Ó';
-                                break;
-                            case 'U':
-                                ch = L'Ú';
-                                break;
-                            default:
-                                form_driver(Form, REQ_NEXT_CHAR);
-                                break;
-                        }
-                        form_driver(Form, REQ_DEL_PREV);
-                    }
-                    else if(wasJustTilde && ch=='n'){
-                        ch = L'ñ';
-                        form_driver(Form, REQ_DEL_PREV);
-                    }
-                    else if(wasJustTilde && ch=='N'){
-                        ch = L'Ñ';
-                        form_driver(Form, REQ_DEL_PREV);
-                    }
-                }
-                form_driver_w(Form, OK, ch);
-                wasJustBacktick = false;
-                wasJustTilde = false;
-                break;
+            handleAccents(Form)
         }
         wrefresh(my_form_win);
     }
@@ -459,4 +458,39 @@ char* getString(char* title, int maxsize, char* startingText){
     refresh();
 
     return NULL;
+}
+
+
+
+void shufflePreserveGraphemes(char* string){
+    wchar_t splitgraphemes[strlen(string)];
+
+    int j=0;
+    for(int i = 0 ; i <strlen(string);i++){
+        if(string[i] == 195-256){
+            splitgraphemes[j] = 0xC300+string[i+1];
+            i++;
+        }
+        else
+            splitgraphemes[j] = string[i];
+        j++;
+    }
+    for(int i = 0; i < j; i++){
+        int ind = rand()%j;
+        wchar_t buf = splitgraphemes[ind];
+        if(splitgraphemes[ind]!=' ' && splitgraphemes[i]!=' '){
+        splitgraphemes[ind]=splitgraphemes[i];
+        splitgraphemes[i]=buf;
+        }
+    }
+    for(int i = strlen(string)-1 ; i >=0;i--){
+        j--;
+        if(splitgraphemes[j]>0xFF){
+            string[i]=splitgraphemes[j]%0x100;
+            string[i-1] = -61;
+            i--;
+        }
+        else
+            string[i] = splitgraphemes[j];
+    }
 }

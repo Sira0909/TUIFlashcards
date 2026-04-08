@@ -1,7 +1,10 @@
 #ifndef FLASHCARDSH
 #define FLASHCARDSH
+#define MAX_FLASHCARD_SET_ITEM_SIZE 64
+#define MAX_FLASHCARD_SET_DEFN_SIZE 128
 #include <macros.h>
 #include <stdbool.h>
+#include <const.h>
 
 
 

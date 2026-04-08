@@ -148,7 +148,7 @@ void type(FlashcardSet *flashcard_set){
                     wattron(resultWin,A_BOLD);
                     wprintctrx(resultWin, 5, cols+4, "Your answer did not match.");
                     wprintctrx(resultWin, 6, cols+4, "Press enter to continue, or");
-                    wprintctrx(resultWin, 7, cols+4, "ESC to try again immediately");              
+                    wprintctrx(resultWin, 7, cols+4, "r to try again immediately");              
                     wattroff(resultWin,A_BOLD);
                     box(resultWin,0,0);
                     wrefresh(resultWin);
@@ -168,7 +168,7 @@ void type(FlashcardSet *flashcard_set){
                         wrefresh(starWin);
                         //c2 = getch();
                     }
-                    if(c2 == 27){
+                    if(c2 == 'r'){
                         box(form_win, 0, 0);
                         printProgress(form_win, currentcard, numCards);
                         werase(text);

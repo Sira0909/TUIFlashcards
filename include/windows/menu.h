@@ -16,7 +16,7 @@ typedef struct _menu_struct{
     int hookcount;
     int maxhooks;
     struct hook *hooks;
-
+    void* metadata;
 } MENU;
 
 void init_Menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char* highlighted, char (*menuitems)[]);

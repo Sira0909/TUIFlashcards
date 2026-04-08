@@ -1,4 +1,5 @@
 #include <locale.h>
+#include <string.h>
 #include <stdlib.h>
 
 #include <termios.h>
@@ -16,6 +17,8 @@
 
 #include <study.h>
 #include <UI.h>
+#include <const.h>
+
 
 
 
@@ -43,8 +46,16 @@ int main_menu_quit(void* menu);
 int main_menu_select(void * menu);
 int main_menu_keybinds(void* menu);
 
-int main(){
+int main(int argc, char *argv[]){
 
+    if(argc>1){
+        if(strcmp(argv[1],"--version")==0){
+            printf("TUIFlashcards version %lf", ReleaseVersion);
+            return 0;
+        }
+    }
+
+    
     int conferrors = get_config_struct(&config);
     if(conferrors>0){
         printf("there are %d errors in your config file. certain values might not be what you want", conferrors);
@@ -162,7 +173,7 @@ int main_menu_select(void * menu){
             getLists(pickMode);
             break;
         case 2: // "New List"
-            addList();
+            addList(config.flashcard_dir);
             break;
         case 3: // "Edit List"
             getLists(editList);

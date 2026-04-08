@@ -262,7 +262,7 @@ void pickMode(char* list){
                         case 2:
                             type(flashcard_set);
                             break;
-                        case 3:
+                        case 3: // unfinished, so hidden but accesible fortesting
                             test(flashcard_set);
                             break;
                     }

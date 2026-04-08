@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include <form.h>
+#include <sys/stat.h>
 
 char editkeybinds[13][2][20]= { 
     {"h", "left"},
@@ -27,173 +28,21 @@ char editkeybinds[13][2][20]= {
 };
 
 // set and unset every time the main editor function is run
-char* filename;
-FlashcardSet* flashcardset;
+struct EditorMetadata {
+    char* filename;
+    FlashcardSet* flashcardset;
+};
+#define Metadata ((struct EditorMetadata*)(((TABLE*)table)->metadata))
 
 #define CurrentCard flashcardset->cards[Table->selected_row]
 
-int editor_star(void* table){
-                TABLE* Table = (TABLE*)table;
-                CurrentCard.is_starred = !CurrentCard.is_starred;
-                Table->highlighted[Table->selected_row]=(CurrentCard.is_starred)? '*': ' ';
-                return 1;
-}
-int editor_selectField(void* table){
-                TABLE* Table = (TABLE*)table;
-                if(Table->selected_col == 0){
-                    // edit the term
-                    char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, flashcardset->cards[(Table)->selected_row].term);
-                    // if empty or cancelled, dont change anything
-                    if(Term==NULL)
-                        return 1;
-                    if(is_all_space(Term))
-                        free(Term);
-                    else if(Term != NULL){
-                        // change set; update table
-                        strcpy(flashcardset->cards[Table->selected_row].term, Term);
-                        getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
-                        refresh();
-                        free(Term);
-                    }
-                }
-                else{
-                    // edit the defnition
-                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, flashcardset->cards[(Table)->selected_row].definition);
-                    // if empty or cancelled, dont change anything
-                    if(Defn==NULL)
-                        return 1;
-                    if(is_all_space(Defn))
-                        free(Defn);
-                    else if(Defn != NULL){
-                        // change set; update table
-                        strcpy(flashcardset->cards[(Table)->selected_row].definition, Defn);
-                        getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
-                        refresh();
-                        free(Defn);
-                    }
-                }
-                return 1;
-}
-int editor_deleteCard(void* table){
-                TABLE* Table = (TABLE*)table;
-
-                //get confirmation
-                wattron(Table->window, A_BOLD);
-                mvwprintw(Table->window, Table->height-1, 0, "really delete? (y/n)");
-                wattroff(Table->window, A_BOLD);
-                wrefresh(Table->window);
-
-                if ('y' == getch()){
-                    deletecard(flashcardset, Table->selected_row);
-
-                    // update table
-                    free(Table->table_data[0]);
-                    free(Table->table_data[1]);
-                    free(Table->highlighted);
-                    Table->table_data[0] = calloc(flashcardset->capacity, sizeof(char[128]));
-                    Table->table_data[1] = calloc(flashcardset->capacity, sizeof(char[128]));
-                    Table->highlighted = calloc(flashcardset->capacity, sizeof(char));
-                    getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
-
-                    Table->num_rows = flashcardset->num_items;
-                    // if that was the bottommost card, move all down.
-                    if (Table->num_rows <= Table->selected_row){
-                        changeselect_Table(Table, -1, 0);
-                    }
-                }
-                mvwprintw(Table->window, Table->height-1, 1, "                    ");
-                return 1;
-}
-int editor_addCard(void* table){
-                TABLE* Table = (TABLE*) table;
-
-                //get term 
-                char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
-                //ensure not empty/cancelled
-                if (Term != NULL){
-                    if(is_all_space(Term)){
-                        free(Term);
-                        return 1;
-                    }
-                    // get definition
-                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, NULL);
-                    //ensure not empty/cancelled
-                    if (Defn != NULL){
-                        if(is_all_space(Defn)){
-                            free(Term);
-                            free(Defn);
-                            return 1;
-                        }
-                        //update
-                        addcard(flashcardset, Term, Defn, 0);
-                        free(Table->table_data[0]);
-                        free(Table->table_data[1]);
-                        free(Table->highlighted);
-                        Table->table_data[0] = calloc(flashcardset->capacity, sizeof(char[128]));
-                        Table->table_data[1] = calloc(flashcardset->capacity, sizeof(char[128]));
-                        Table->highlighted = calloc(flashcardset->capacity, sizeof(char));
-                        getpairslimiter(flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
-                        Table->num_rows = flashcardset->num_items;
-                        refresh();
-
-                        //cleanup
-                        free(Defn);
-                    }
-                    free(Term);
-                }
-                return 1;
-}
-
-int editor_writeSet(void* table){
-                TABLE* Table = (TABLE*) table;
-            wattron(Table->window, A_BOLD);
-            mvwprintw(Table->window, Table->height-1, 1, "quit after write? (y/n):");
-            wattroff(Table->window, A_BOLD);
-                wrefresh(Table->window);
-                switch (getch()){
-                    case 'y':
-                        //clean up
-                        free(Table->table_data[0]);
-                        free(Table->table_data[1]);
-                        free(Table->highlighted);
-                        writeFlashcardSet(flashcardset, filename, 1);
-                        refresh();
-                        //end
-                        return -1;
-                    case 'n':
-                        //write
-                        writeFlashcardSet(flashcardset, filename, 0);
-                        mvwprintw(Table->window, Table->height-1, 1, "                            ");
-                        return 1;
-                    default:
-                        //cancel
-                        mvwprintw(Table->window, Table->height-1, 1, "Did not write.              ");
-                        wrefresh(Table->window);
-                        return 1;
-                }
-                return 1;
-}
-int editor_quit(void* table){
-                TABLE* Table = (TABLE*) table;
-                wattron(Table->window, A_BOLD);
-                //confirm
-                mvwprintw(Table->window, Table->height-1, 1, "quit without saving? (y/n): ");
-                wattroff(Table->window, A_BOLD);
-                wrefresh(Table->window);
-                if ('y' == getch()){
-                    //clean up and quit
-                    free(Table->table_data[0]);
-                    free(Table->table_data[1]);
-                    free(Table->highlighted);
-                    deleteSetPointer(&flashcardset);
-                    return -1;
-                }
-                return 1;
-}
-int editor_showkeybinds(void* table){
-                list_keybinds(13, editkeybinds);
-                return 1;
-}
+int editor_star(void* table);
+int editor_selectField(void* table);
+int editor_deleteCard(void* table);
+int editor_addCard(void* table);
+int editor_writeSet(void* table);
+int editor_quit(void* table);
+int editor_showkeybinds(void* table);
 void editList(char ListName[]){
 
 
@@ -206,14 +55,13 @@ void editList(char ListName[]){
         strcpy(ListPath, config.flashcard_dir);
         strncat(ListPath, ListName, PATH_MAX-strnlen(config.flashcard_dir, 128));
     }
-    filename = ListPath;
+    FlashcardSet* flashcardset=create_Flashcard_Set_Object();
+    struct EditorMetadata metadata= {ListPath, flashcardset};
     
 
-    //create and populate list 
-    flashcardset = create_Flashcard_Set_Object();
-    
-    if (-1 == fillFlashcardSet(flashcardset, ListPath)) {
-        deleteSetPointer(&flashcardset);
+    //populate list 
+    if (-1 == fillFlashcardSet(metadata.flashcardset, ListPath)) {
+        deleteSetPointer(&metadata.flashcardset);
         return;
     }
 
@@ -225,13 +73,13 @@ void editList(char ListName[]){
     WINDOW* edit_list_menu_window = create_newwin(height+2, width+2, (LINES - height)/2-1, (COLS - width)/2);
     WINDOW* tablewindow = derwin(edit_list_menu_window, height, width, 1, 1);
 
-    char (*items)[128] = calloc(flashcardset->capacity, sizeof(char[128]));
+    char (*items)[128] = calloc(metadata.flashcardset->capacity, sizeof(char[128]));
 
-    char (*defns)[128] = calloc(flashcardset->capacity, sizeof(char[128]));
+    char (*defns)[128] = calloc(metadata.flashcardset->capacity, sizeof(char[128]));
 
-    char (*starred) = calloc(flashcardset->capacity, sizeof(char));
+    char (*starred) = calloc(metadata.flashcardset->capacity, sizeof(char));
 
-    getpairslimiter(flashcardset, starred, items, defns);
+    getpairslimiter(metadata.flashcardset, starred, items, defns);
 
     char (*(table[2]))[128] = {items, defns};
 
@@ -242,7 +90,8 @@ void editList(char ListName[]){
 
     wrefresh(edit_list_menu_window);
     // init the menu
-    init_Table(&flashcardTable, flashcardset->num_items, 2,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
+    init_Table(&flashcardTable, metadata.flashcardset->num_items, 2,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
+    flashcardTable.metadata=&metadata;
     wrefresh(flashcardTable.window);
     
 
@@ -274,15 +123,177 @@ void editList(char ListName[]){
     erasewindow(edit_list_menu_window);
     edit_list_menu_window = NULL;
     flashcardTable.window = NULL;
-    filename = NULL;
     refresh();
+}
+int editor_star(void* table){
+                TABLE* Table = (TABLE*)table;
+                Metadata->CurrentCard.is_starred = !Metadata->CurrentCard.is_starred;
+                Table->highlighted[Table->selected_row]=(Metadata->CurrentCard.is_starred)? '*': ' ';
+                return 1;
+}
+int editor_selectField(void* table){
+                TABLE* Table = (TABLE*)table;
+                if(Table->selected_col == 0){
+                    // edit the term
+                    char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, Metadata->flashcardset->cards[(Table)->selected_row].term);
+                    // if empty or cancelled, dont change anything
+                    if(Term==NULL)
+                        return 1;
+                    if(is_all_space(Term))
+                        free(Term);
+                    else if(Term != NULL){
+                        // change set; update table
+                        strcpy(Metadata->flashcardset->cards[Table->selected_row].term, Term);
+                        getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
+                        refresh();
+                        free(Term);
+                    }
+                }
+                else{
+                    // edit the defnition
+                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, Metadata->flashcardset->cards[(Table)->selected_row].definition);
+                    // if empty or cancelled, dont change anything
+                    if(Defn==NULL)
+                        return 1;
+                    if(is_all_space(Defn))
+                        free(Defn);
+                    else if(Defn != NULL){
+                        // change set; update table
+                        strcpy(Metadata->flashcardset->cards[(Table)->selected_row].definition, Defn);
+                        getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
+                        refresh();
+                        free(Defn);
+                    }
+                }
+                return 1;
+}
+int editor_deleteCard(void* table){
+                TABLE* Table = (TABLE*)table;
+
+                //get confirmation
+                wattron(Table->window, A_BOLD);
+                mvwprintw(Table->window, Table->height-1, 0, "really delete? (y/n)");
+                wattroff(Table->window, A_BOLD);
+                wrefresh(Table->window);
+
+                if ('y' == getch()){
+                    deletecard(Metadata->flashcardset, Table->selected_row);
+
+                    // update table
+                    free(Table->table_data[0]);
+                    free(Table->table_data[1]);
+                    free(Table->highlighted);
+                    Table->table_data[0] = calloc(Metadata->flashcardset->capacity, sizeof(char[128]));
+                    Table->table_data[1] = calloc(Metadata->flashcardset->capacity, sizeof(char[128]));
+                    Table->highlighted = calloc(Metadata->flashcardset->capacity, sizeof(char));
+                    getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
+
+                    Table->num_rows = Metadata->flashcardset->num_items;
+                    // if that was the bottommost card, move all down.
+                    if (Table->num_rows <= Table->selected_row){
+                        changeselect_Table(Table, -1, 0);
+                    }
+                }
+                mvwprintw(Table->window, Table->height-1, 1, "                    ");
+                return 1;
+}
+int editor_addCard(void* table){
+                TABLE* Table = (TABLE*) table;
+
+                //get term 
+                char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
+                //ensure not empty/cancelled
+                if (Term != NULL){
+                    if(is_all_space(Term)){
+                        free(Term);
+                        return 1;
+                    }
+                    // get definition
+                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, NULL);
+                    //ensure not empty/cancelled
+                    if (Defn != NULL){
+                        if(is_all_space(Defn)){
+                            free(Term);
+                            free(Defn);
+                            return 1;
+                        }
+                        //update
+                        addcard(Metadata->flashcardset, Term, Defn, 0);
+                        free(Table->table_data[0]);
+                        free(Table->table_data[1]);
+                        free(Table->highlighted);
+                        Table->table_data[0] = calloc(Metadata->flashcardset->capacity, sizeof(char[128]));
+                        Table->table_data[1] = calloc(Metadata->flashcardset->capacity, sizeof(char[128]));
+                        Table->highlighted = calloc(Metadata->flashcardset->capacity, sizeof(char));
+                        getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1]);
+                        Table->num_rows = Metadata->flashcardset->num_items;
+                        refresh();
+
+                        //cleanup
+                        free(Defn);
+                    }
+                    free(Term);
+                }
+                return 1;
+}
+
+int editor_writeSet(void* table){
+                TABLE* Table = (TABLE*) table;
+            wattron(Table->window, A_BOLD);
+            mvwprintw(Table->window, Table->height-1, 1, "quit after write? (y/n):");
+            wattroff(Table->window, A_BOLD);
+                wrefresh(Table->window);
+                switch (getch()){
+                    case 'y':
+                        //clean up
+                        free(Table->table_data[0]);
+                        free(Table->table_data[1]);
+                        free(Table->highlighted);
+                        writeFlashcardSet(Metadata->flashcardset, Metadata->filename, 1);
+                        refresh();
+                        //end
+                        return -1;
+                    case 'n':
+                        //write
+                        writeFlashcardSet(Metadata->flashcardset, Metadata->filename, 0);
+                        mvwprintw(Table->window, Table->height-1, 1, "                            ");
+                        return 1;
+                    default:
+                        //cancel
+                        mvwprintw(Table->window, Table->height-1, 1, "Did not write.              ");
+                        wrefresh(Table->window);
+                        return 1;
+                }
+                return 1;
+}
+int editor_quit(void* table){
+                TABLE* Table = (TABLE*) table;
+                wattron(Table->window, A_BOLD);
+                //confirm
+                mvwprintw(Table->window, Table->height-1, 1, "quit without saving? (y/n): ");
+                wattroff(Table->window, A_BOLD);
+                wrefresh(Table->window);
+                if ('y' == getch()){
+                    //clean up and quit
+                    free(Table->table_data[0]);
+                    free(Table->table_data[1]);
+                    free(Table->highlighted);
+                    deleteSetPointer(&Metadata->flashcardset);
+                    return -1;
+                }
+                return 1;
+}
+int editor_showkeybinds(void* table){
+                list_keybinds(13, editkeybinds);
+                return 1;
 }
 
 // Add new flashcard list
-void addList(){
+void addList(char* dir){
 
     char newfile[PATH_MAX]={0};
-    strcpy(newfile, trim_whitespaces(config.flashcard_dir));
+    strcpy(newfile, trim_whitespaces(dir));
+    strcat(newfile, "/");
 
     char* file = getString("Name new List", 31, NULL);
     if (file == NULL) return;
@@ -298,3 +309,23 @@ void addList(){
     editList(newfile);
 }
 
+void addDir(char* parentDir){
+
+    char newDir[PATH_MAX]={0};
+    strcpy(newDir, trim_whitespaces(parentDir));
+
+    char* Dir = getString("Name new directory", 31, NULL);
+    if (Dir == NULL) return;
+    if(is_all_space(Dir)){
+        free(Dir);
+        return;
+    }
+    strcat(newDir, trim_whitespaces(Dir));
+    free(Dir);
+
+    if (mkdir(newDir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
+        printf("error occurred while creating directory.");
+        exit(-1);
+    }
+    return;
+}
