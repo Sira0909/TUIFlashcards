@@ -1,7 +1,7 @@
 #include <flashcards.h>
 
-bool get_settings(bool* starred_only, bool* shuffle, int* vectors);
 
+bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle, bool vectorsin[], bool vectorsout[]);
 void pickMode(char* list);
 
 int getOrder(FlashcardSet *flashcard_set, int order[], bool shuffle, bool star_only);

@@ -18,10 +18,11 @@ void printProgress(WINDOW* win, int currentcard, int maxcards){
     waddch(win, ACS_LTEE);
 }
 void type(FlashcardSet *flashcard_set){
-    bool starred_only = false;
-    bool shuffle = false;
-    int vectors = 0;
-    if (!get_settings(&starred_only, &shuffle,&vectors)){
+    bool starred_only = 0;
+    bool shuffle = 0;
+    bool (vectorsin)[flashcard_set->num_columns-1];// ___->term
+    bool (vectorsout)[flashcard_set->num_columns-1];// term->____
+    if (!get_settings(flashcard_set, &starred_only, &shuffle,vectorsin, vectorsout)){
         return;
     }
 
@@ -37,18 +38,25 @@ void type(FlashcardSet *flashcard_set){
     if (!numCards)
         return;
 
+    int sides[numCards];
+    for(int i = 0; i<numCards; i++){
+        do{
+        sides[i]= rand()%(flashcard_set->num_columns-1)+1;//plus 1 eliminates 0
+        sides[i]*=(rand()%2==0)?1:-1;
+        } while ((sides[i]>0&&vectorsin[sides[i]-1]==true)||(sides[i]<0&&vectorsout[-sides[i]-1]==true));
+    }
     for(int i = 0; i<numCards;i++){
         if (strlen(flashcard_set->cards[order[i]].term)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].term);
+            maxlength = strlen(flashcard_set->cards[order[i]].term);
         }
-        if (strlen(flashcard_set->cards[order[i]].definition)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].definition);
+        //TODO: add other defns
+        if (strlen(flashcard_set->cards[order[i]].definition[0])>maxlength){
+            maxlength = strlen(flashcard_set->cards[order[i]].definition[0]);
         }
     }
 
     
     int currentcard = 0;
-    int side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
 
     FIELD *FileNameField[2];
     FORM *Form;
@@ -86,7 +94,7 @@ void type(FlashcardSet *flashcard_set){
     werase(text);
     wbkgd(text, COLOR_PAIR(2));
     wattron(text, A_BOLD); 
-    wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.term);
+    wprintw(text, "%s", (side>0)?currentFlashcard.definition[sides[0]-1]: currentFlashcard.term);
     wrefresh(form_win);
 
     curs_set(1);
@@ -138,7 +146,7 @@ void type(FlashcardSet *flashcard_set){
                 answer[end+1] = '\0';
                 form_driver(Form, REQ_CLR_FIELD);
 
-                char *correctanswer=(side==0)?currentFlashcard.term : currentFlashcard.definition;
+                char *correctanswer=(side==0)?currentFlashcard.term : currentFlashcard.definition[0];
 
 
                 if(strcmp(answer, correctanswer)!=0){ // incorrect
@@ -173,7 +181,7 @@ void type(FlashcardSet *flashcard_set){
                         printProgress(form_win, currentcard, numCards);
                         werase(text);
                         wbkgd(text, COLOR_PAIR(2));
-                        wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.term);
+                        wprintw(text, "%s", (side==0)?currentFlashcard.definition[0]: currentFlashcard.term);
                         wrefresh(form_win);
                         break;
 
@@ -303,7 +311,7 @@ void type(FlashcardSet *flashcard_set){
                 printProgress(form_win, currentcard, numCards);
                 werase(text);
                 wbkgd(text, COLOR_PAIR(2));
-                wprintw(text, "%s", (side==0)?currentFlashcard.definition: currentFlashcard.term);
+                wprintw(text, "%s", (side==0)?currentFlashcard.definition[0]: currentFlashcard.term);
                 wrefresh(form_win);
                 break;
             case 27:

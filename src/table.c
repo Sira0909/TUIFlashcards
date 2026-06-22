@@ -32,7 +32,7 @@ void addHook_Table(TABLE *p_table, struct hook hook){
 
 void run_Table(TABLE* p_table){
     while(1){
-        render_table(p_table, p_table->highlighted);
+        render_Table(p_table, p_table->highlighted);
         int ch = getch();
         for(int i = 0; i<p_table->hookcount; i++){
             if(ch == p_table->hooks[i].trigger){

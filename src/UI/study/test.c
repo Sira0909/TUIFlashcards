@@ -132,7 +132,8 @@ void test(FlashcardSet *flashcard_set){
         for(int i = 0; i < numchoices; i++){
             char ans[2] = {(char)('a'+answers[i]), 0};
             //set_field_buffer(rfield[page*perPage+i], 1, ans);
-            set_field_buffer(afield[page*perPage+i], 0, flashcard_set->cards[order[page*perPage+answers[i]]].definition);
+            //TODO: add defns
+            set_field_buffer(afield[page*perPage+i], 0, flashcard_set->cards[order[page*perPage+answers[i]]].definition[0]);
             set_field_buffer(qfield[page*perPage+i], 0, flashcard_set->cards[order[page*perPage+i]].term);
             set_field_buffer(nfield[page*perPage+i], 0, num);
             num[0]=(num[0]=='z')?'a':num[0]+1;
