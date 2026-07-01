@@ -20,6 +20,7 @@
 #include <windows/window.h>
 
 #include <UI.h>
+#include <flashcards.h>
 
 char* trim_whitespaces(char *str)
 {
@@ -290,6 +291,15 @@ int getLists_select(void* menu){
             strncpy(list,Metadata->directory, PATH_MAX-128);
             strcat(list,"/");
             strncat(list,Metadata->files[((MENU*)menu)->selected], 128);
+            if(strcmp(list+strlen(list)-5, ".list")){
+                if(updateList(list)==1){
+                    remove(list);
+                }
+                else{
+                    return -1;
+                }
+                strcat(list, ".list");
+            }
             Metadata->call(list);
             wbkgd(((MENU*)menu)->window, COLOR_PAIR(2));
             return 1;

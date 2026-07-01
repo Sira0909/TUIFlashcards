@@ -133,6 +133,10 @@ void deleteSetPointer(FlashcardSet **flashcard_set){
  */
 // writes flashcard set to file 
 int writeFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX], int todelete){
+    if(strcmp(filePath+strlen(filePath)-5, ".list")){
+        strcat(filePath, ".list");
+        
+    }
     FILE* VocabFile = fopen(filePath, "w");
 
     if(VocabFile == NULL){
@@ -220,8 +224,14 @@ void getDefinitionList(FlashcardSet* flashcard_set, int index,char (*(definition
 // gets flashcard set from file
 int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
     if(strcmp(filePath+strlen(filePath)-5, ".list")){
-        updateList(filePath);
+        if(updateList(filePath)==1){
+            remove(filePath);
+        }
+        else{
+            return -1;
+        }
         strcat(filePath, ".list");
+        
     }
     FILE *VocabFile = fopen(filePath, "r");
     

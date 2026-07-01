@@ -1,7 +1,7 @@
 #include <study.h>
 #include <windows/window.h>
 #include <ncurses.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 //#include <string.h>
 
 

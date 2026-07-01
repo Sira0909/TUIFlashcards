@@ -54,7 +54,7 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
 
     TABLE flashcardTable;
 
-    int height = min(21, LINES - 5);
+    int height = min(metadata.flashcardset->num_items+3, LINES - 5);
     int width = 21*columns-1;
     WINDOW* edit_list_menu_window = create_newwin(height+2, width+2, (LINES - height)/2-1, (COLS - width)/2);
     WINDOW* tablewindow = derwin(edit_list_menu_window, height, width, 1, 1);
@@ -124,11 +124,10 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
     run_Table(&flashcardTable);
 
     free(flashcardTable.hooks);
-    free(items);
-    for(int i = 0 ; i < columns-1; i++){
-        free(defns[i]);
+    for(int i=0; i<flashcardTable.num_cols;i++){
+            free(flashcardTable.table_data[i]);
     }
-    free(starred);
+    free(flashcardTable.highlighted);
     //cleanup
     erasewindow(flashcardTable.window);
     erasewindow(edit_list_menu_window);
@@ -264,7 +263,10 @@ int editor_addCard(void* table){
                     for(int i = 1; i < Metadata->flashcardset->num_columns;i++){
                         char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, NULL);
                         //ensure not empty/cancelled
-                        if (Defn != NULL && !is_all_space(Defn)){
+                        if(Defn == NULL){
+                            return 1;
+                        }
+                        if (Defn != NULL && is_all_space(Defn)){
                                 free(Defn);
                                 return 1;
                         }
@@ -272,7 +274,7 @@ int editor_addCard(void* table){
                         free(Defn);
                     }
                     //update
-                    addcard(Metadata->flashcardset, Term, Defns, 0);
+                    addcard(Metadata->flashcardset, Defns[0], Defns+1, 0);
                     for(int i=0; i<Table->num_cols;i++){
                             free(Table->table_data[i]);
                             Table->table_data[i]=calloc(Metadata->flashcardset->num_items, sizeof(char[128]));
@@ -295,26 +297,26 @@ int editor_writeSet(void* table){
             wattron(Table->window, A_BOLD);
             mvwprintw(Table->window, Table->height-1, 1, "quit after write? (y/n):");
             wattroff(Table->window, A_BOLD);
-                wrefresh(Table->window);
-                switch (getch()){
-                    case 'y':
-                        //clean up
-                        writeFlashcardSet(Metadata->flashcardset, Metadata->filename, 1);
-                        refresh();
-                        //end
-                        return -1;
-                    case 'n':
-                        //write
-                        writeFlashcardSet(Metadata->flashcardset, Metadata->filename, 0);
-                        mvwprintw(Table->window, Table->height-1, 1, "                            ");
-                        return 1;
-                    default:
-                        //cancel
-                        mvwprintw(Table->window, Table->height-1, 1, "Did not write.              ");
-                        wrefresh(Table->window);
-                        return 1;
-                }
-                return 1;
+            wrefresh(Table->window);
+            switch (getch()){
+                case 'y':
+                    //clean up
+                    writeFlashcardSet(Metadata->flashcardset, Metadata->filename, 1);
+                    refresh();
+                    //end
+                    return -1;
+                case 'n':
+                    //write
+                    writeFlashcardSet(Metadata->flashcardset, Metadata->filename, 0);
+                    mvwprintw(Table->window, Table->height-1, 1, "                            ");
+                    return 1;
+                default:
+                    //cancel
+                    mvwprintw(Table->window, Table->height-1, 1, "Did not write.              ");
+                    wrefresh(Table->window);
+                    return 1;
+            }
+            return 1;
 }
 int editor_quit(void* table){
                 TABLE* Table = (TABLE*) table;

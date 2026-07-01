@@ -34,6 +34,7 @@ void deleteSetPointer(FlashcardSet **flashcardset);
 int writeFlashcardSet(FlashcardSet* flashcardset, char filePath[PATH_MAX], int todelete);
 
 int fillFlashcardSet(FlashcardSet* flashcardset, char filePath[PATH_MAX]);
+int updateList(char* filePath);
 
 void getpairs(FlashcardSet* flashcardset, char items[][MAX_FLASHCARD_SET_ITEM_SIZE+1],char definitions[][MAX_FLASHCARD_SET_DEFN_SIZE+1]);
 

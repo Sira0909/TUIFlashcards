@@ -151,13 +151,19 @@ void editVectors(){
     table_window = derwin(vector_window,height, width, 1, 1);
 
     init_Table(&vectorTable, vectorCount, 2, width, height, &table_window, "Vectors", headers, items, selected);
-    wrefresh(vectorTable.window);
+    
+    wattron(vector_window, COLOR_PAIR(2));
+    wbkgd(vector_window, COLOR_PAIR(2));
+    box(vector_window, 0, 0);
+    wrefresh(vector_window);
 
      
     // character from getch()
 
-    addHook_Table(&vectorTable, (struct hook){'j', &menu_down});
-    addHook_Table(&vectorTable, (struct hook){'k', &menu_up});
+    addHook_Table(&vectorTable, (struct hook){'h', &table_left});
+    addHook_Table(&vectorTable, (struct hook){'j', &table_down});
+    addHook_Table(&vectorTable, (struct hook){'k', &table_up});
+    addHook_Table(&vectorTable, (struct hook){'l', &table_right});
     addHook_Table(&vectorTable, (struct hook){27, &vector_quit});
     addHook_Table(&vectorTable, (struct hook){'q', &vector_quit});
     addHook_Table(&vectorTable, (struct hook){'?', &vector_keybinds});
@@ -191,14 +197,14 @@ int study_settings_select(void* menu){
             settingsmenu->highlighted[1] = *shuffled ? '*' : 0;
             settingsmenu->menuitems[1][19] = *shuffled ? '*' : ' ';
             break;
-        case 2:
+        case 3:
             wbkgd(wgetparent(settingsmenu->window), COLOR_PAIR(1));
             werase(wgetparent(settingsmenu->window));
             wrefresh(wgetparent(settingsmenu->window));
             editVectors();
             
             break;
-        case 4:
+        case 5:
             // clean up
             erasewindow(((MENU*)menu)->window);
             settings_done=true;

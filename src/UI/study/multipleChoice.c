@@ -51,16 +51,16 @@ int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int*
     ensureNotEqual(&op2, numCards, op1, -1, -1);
     ensureNotEqual(&op3, numCards, op1, op2, -1);
     ensureNotEqual(&op4, numCards, op1, op2, op3);
-    *choice1 =    (side) 
+    *choice1 =    (side<0) 
                         ?flashcard_set->cards[order[op1]].definition[abs(side)-1]
                         :flashcard_set->cards[order[op1]].term;
-    *choice2 =    (side) 
+    *choice2 =    (side<0) 
                         ?flashcard_set->cards[order[op2]].definition[abs(side)-1]
                         :flashcard_set->cards[order[op2]].term;
-    *choice3 =    (side) 
+    *choice3 =    (side<0) 
                         ?flashcard_set->cards[order[op3]].definition[abs(side)-1]
                         :flashcard_set->cards[order[op3]].term;
-    *choice4=    (side) 
+    *choice4=    (side<0) 
                         ?flashcard_set->cards[order[op4]].definition[abs(side)-1]
                         :flashcard_set->cards[order[op4]].term;
 
@@ -91,7 +91,21 @@ void multipleChoice(FlashcardSet *flashcard_set){
     bool shuffle = 0;
     bool (vectorsin)[flashcard_set->num_columns-1];// ___->term
     bool (vectorsout)[flashcard_set->num_columns-1];// term->____
+    for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
+        vectorsin[i]=true;
+        vectorsout[i]=true;
+    }
     if (!get_settings(flashcard_set, &starred_only, &shuffle,vectorsin, vectorsout)){
+        return;
+    }
+    bool validvectors = false;
+    for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
+        if(vectorsin[i] || vectorsout[i]){
+            validvectors = true;
+            break;
+        }
+    }
+    if (!validvectors){
         return;
     }
 
@@ -126,7 +140,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
         do{
         sides[i]= rand()%(flashcard_set->num_columns-1)+1;//plus 1 eliminates 0
         sides[i]*=(rand()%2==0)?1:-1;
-        } while ((sides[i]>0&&vectorsin[sides[i]-1]==true)||(sides[i]<0&&vectorsout[-sides[i]-1]==true));
+        } while ((sides[i]>0&&vectorsin[sides[i]-1]==false)||(sides[i]<0&&vectorsout[-sides[i]-1]==false));
     }
 
     for(int i = 0; i<numCards;i++){
