@@ -11,12 +11,6 @@
 
 #define currentFlashcard flashcard_set->cards[order[currentcard]]
 
-void printProgress(WINDOW* win, int currentcard, int maxcards){
-    wmove(win, 0, 1); 
-    mvwaddch(win, 0, 1, ACS_RTEE);
-    wprintw(win, "%d/%d", currentcard+1, maxcards);
-    waddch(win, ACS_LTEE);
-}
 
 void type(FlashcardSet *flashcard_set){
     bool starred_only = 0;

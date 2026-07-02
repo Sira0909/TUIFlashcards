@@ -30,15 +30,17 @@ void flashcard(FlashcardSet *flashcard_set){
     if (!numCards)
         return;
 
+    int currentcard = 0;
+
     WINDOW* FlashcardWindow = create_newwin((maxlength/4)*2+1, maxlength+4, (LINES-maxlength/2)/2, (COLS-maxlength-4)/2);
     WINDOW* text = derwin(FlashcardWindow, (maxlength/4)*2-1, maxlength+2, 1, 1);
     wbkgd(FlashcardWindow, COLOR_PAIR(2));
     box(FlashcardWindow, 0, 0);
 
+    printProgress(FlashcardWindow, currentcard, numCards);
     wrefresh(FlashcardWindow);
 
 
-    int currentcard = 0;
     //int default_side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
     int side = 0;
     int ch = -1;
@@ -56,6 +58,7 @@ void flashcard(FlashcardSet *flashcard_set){
         wprintctr(text, (maxlength/4)*2-1, maxlength+1,  card_text);
         wattroff(text,A_BOLD);
         //wprintw(FlashcardWindow, "%d", order[currentcard]);
+        printProgress(FlashcardWindow, currentcard, numCards);
         wrefresh(FlashcardWindow);
 
 

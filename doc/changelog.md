@@ -5,3 +5,4 @@
 - clearer flashcard vector chooser that allows you to choose which vectors get quized and in which direction
 - new flashcard file format, files will automatically be converted
 - study vectors and direction now are saved when redoing mistakes
+- added progress headers to more menus that need them

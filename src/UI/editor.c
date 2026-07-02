@@ -38,6 +38,9 @@ struct EditorMetadata {
 
 #define CurrentCard flashcardset->cards[Table->selected_row]
 
+//for updating header
+int editor_update(void* table); 
+//functions
 int editor_star(void* table);
 int editor_selectField(void* table);
 int editor_deleteCard(void* table);
@@ -54,7 +57,7 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
 
     TABLE flashcardTable;
 
-    int height = min(metadata.flashcardset->num_items+3, LINES - 5);
+    int height = min(51, LINES - 5); // this way always big enough
     int width = 21*columns-1;
     WINDOW* edit_list_menu_window = create_newwin(height+2, width+2, (LINES - height)/2-1, (COLS - width)/2);
     WINDOW* tablewindow = derwin(edit_list_menu_window, height, width, 1, 1);
@@ -101,6 +104,7 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
 
     render_Table(&flashcardTable, starred) ;
     box(edit_list_menu_window, 0, 0);
+    printProgress(edit_list_menu_window, 0, flashcardset->num_items);
 
     //add title
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
@@ -110,6 +114,8 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
     addHook_Table(&flashcardTable, (struct hook){'j', table_down });
     addHook_Table(&flashcardTable, (struct hook){'k', table_up });
     addHook_Table(&flashcardTable, (struct hook){'l', table_right });
+    addHook_Table(&flashcardTable, (struct hook){'j', editor_update });
+    addHook_Table(&flashcardTable, (struct hook){'k', editor_update });
     addHook_Table(&flashcardTable, (struct hook){'s', editor_star });
     addHook_Table(&flashcardTable, (struct hook){10, editor_selectField });
     addHook_Table(&flashcardTable, (struct hook){'q', editor_quit });
@@ -134,6 +140,12 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
     edit_list_menu_window = NULL;
     flashcardTable.window = NULL;
     refresh();
+}
+int editor_update(void*table){
+    TABLE* Table = (TABLE*)table;
+    printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
+    wrefresh(wgetparent(Table->window));
+    return 1;
 }
 
 int editor_addDefinition(void*table){
@@ -241,6 +253,8 @@ int editor_deleteCard(void* table){
                         changeselect_Table(Table, -1, 0);
                     }
                 }
+                printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
+                wrefresh(wgetparent(Table->window));
                 mvwprintw(Table->window, Table->height-1, 1, "                    ");
                 return 1;
 }
@@ -289,6 +303,8 @@ int editor_addCard(void* table){
                     refresh();
 
                 }
+                printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
+                wrefresh(wgetparent(Table->window));
                 return 1;
 }
 

@@ -170,6 +170,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
 
     wbkgd(response_win, COLOR_PAIR(2));
     box(response_win, 0,0);
+    printProgress(response_win, currentcard, numCards);
 
     //int texty=(maxlength/3-11)/2;
     //wprintctrx(response_win, texty, maxlength+2, question);
@@ -329,6 +330,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
                     correctans = getquestion(flashcard_set, currentcard, numCards, order, sides[currentcard], &question, &choice1, &choice2, &choice3, &choice4);
 
 
+                    printProgress(response_win, currentcard, numCards);
                     werase(text);
                     werase(ansBox_1);
                     werase(ansBox_2);
