@@ -123,6 +123,9 @@ int main(int argc, char *argv[]){
         wrefresh(keybindHelp);
     }
 
+
+
+
     // create MENU object for main menu (see MENU.c, MENU.h)
     MENU mainmenu;
 

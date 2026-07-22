@@ -16,7 +16,9 @@ void editList(char ListName[]);
 
 void addList(char* dir);
 void addDir(char* dir);
+int getConfirmation(char *question, char* successmsg, char* failmsg);
 
 
 void list_keybinds(int numBinds, char (*keybinds)[2][20]);
+void showmsg(char* msg);
 #endif

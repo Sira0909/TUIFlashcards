@@ -217,7 +217,12 @@ int getLists_delete(void* menu){
         wattroff(((MENU*)menu)->window, A_BOLD);
         wrefresh(((MENU*)menu)->window);
         if (getch()=='Y'){
-            if(remove(Metadata->files[((MENU*)menu)->selected]) == 0){
+            char path[PATH_MAX];
+            strcpy(path,Metadata->directory);
+            strcat(path, "/");
+            strcat(path,Metadata->files[((MENU*)menu)->selected]);
+            int status = remove(path);
+            if(status == 0){
 
                 wattron(((MENU*)menu)->window, A_BOLD);
                 mvwprintw(((MENU*)menu)->window, LINES-7, 1, "File deleted.");
@@ -238,12 +243,13 @@ int getLists_delete(void* menu){
                     wattron(((MENU*)menu)->window, A_BOLD);
                     mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
                     mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete file.");
+                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete.(%s)",strerror(status));
                     wattroff(((MENU*)menu)->window, A_BOLD);
                 }
             }
         }
         wrefresh(((MENU*)menu)->window);
-        return 1;
+        return 1;   
 }
 int getLists_addlist(void* menu){
     //addlist
@@ -276,6 +282,9 @@ int getLists_select(void* menu){
 
             if (Metadata->pickedList!=NULL){
                 getLists_quit(menu); return -1;
+            }
+            else{
+                chdir(Metadata->directory);
             }
             return 1;
         }
@@ -331,6 +340,62 @@ void list_keybinds(int numBinds, char (*keybinds)[2][20]){
     getch();
     erasewindow(helpwindow);
 
+}
+
+void showmsg(char* msg){
+    int mlen = strnlen(msg, 128);
+    int width = mlen+4;
+    WINDOW* msgWindow = newwin(3, width,(LINES-1)/2, (COLS-(width-2))/2);
+    wbkgd(msgWindow, COLOR_PAIR(2));
+    box(msgWindow,0,0);
+    wprintctrx(msgWindow,1, width,msg);
+    wrefresh(msgWindow);
+    getch();
+    erasewindow(msgWindow);
+    return;
+
+}
+int getConfirmation(char *question, char* successmsg, char* failmsg){
+    int qlen = strnlen(question, 128);
+    int width = max(qlen, 8)+4;
+    WINDOW* confirmWindow = newwin(7, width,(LINES-5)/2, (COLS-(width-2))/2);
+    wbkgd(confirmWindow, COLOR_PAIR(2));
+    box(confirmWindow,0,0);
+    
+
+    wprintctrx(confirmWindow,2, width,question);
+    int ctr = (width)/2;
+    mvwprintw(confirmWindow,4,ctr-4, "yes");
+    mvwprintw(confirmWindow,4,ctr+1, "no");
+    mvwchgat(confirmWindow,4,ctr-4,3,A_BOLD, 3,NULL);
+    mvwchgat(confirmWindow,4,ctr+1,2,A_NORMAL, 2,NULL);
+    int ch=0;
+    bool selection = true;
+    while (ch!= 10){
+        wrefresh(confirmWindow);
+        ch = getch();
+        switch(ch){
+            case 'j':
+            case 'l':
+                selection= false;
+                mvwchgat(confirmWindow,4,ctr+1,2,A_BOLD, 3,NULL);
+                mvwchgat(confirmWindow,4,ctr-4,3,A_NORMAL, 2,NULL);
+                break;
+            case 'k':
+            case 'h':
+                selection = true;
+                mvwchgat(confirmWindow,4,ctr-4,3,A_BOLD, 3,NULL);
+                mvwchgat(confirmWindow,4,ctr+1,2,A_NORMAL, 2,NULL);
+                break;
+        }
+    }
+    if(selection&&successmsg!=NULL){
+        showmsg(successmsg);
+    }else if (!selection&&failmsg!=NULL){
+        showmsg(failmsg);
+    }
+    erasewindow(confirmWindow);
+    return selection;
 }
 
 char* getString(char* title, int maxsize, char* startingText){

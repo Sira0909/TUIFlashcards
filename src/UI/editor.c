@@ -358,7 +358,7 @@ void addList(char* dir){
 
     char newfile[PATH_MAX]={0};
     strcpy(newfile, trim_whitespaces(dir));
-    strcat(newfile, "/");
+    //strcat(newfile, "/");
 
     char* file = getString("Name new List", 31, NULL);
     if (file == NULL) return;
@@ -366,12 +366,41 @@ void addList(char* dir){
         free(file);
         return;
     }
+    
+    int create = 0;
+ 
+    for(int i = 0; i < strnlen(file,31); i++){
+        if(file[i]=='/'){
+            if(getConfirmation("Did you mean to put this list into a folder?", NULL, "List creation canceled")){
+                create = 2;
+            }
+            else{
+                create = 1;
+            }
+            break;
+
+        }
+
+    }
+    if(create==1){return;}
+    
     strcat(newfile, trim_whitespaces(file));
+    if(create==2){
+        for(int i = strlen(dir)+1;i<strnlen(newfile,PATH_MAX);i++){
+            if(newfile[i]=='/'){
+                newfile[i]='\0';
+                if(mkdir(newfile,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)==-1){showmsg("Failed to create directory");return;}
+                newfile[i]='/';
+            }
+        }
+    }
     free(file);
 
     FILE* temp = fopen(newfile, "w");
     fclose(temp);
     editList(newfile);
+    return;
+   
 }
 
 void addDir(char* parentDir){
