@@ -1,7 +1,5 @@
 A TUI program for studying flashcards, using the NCURSES library.
 
-Version 0.2
-
 <h1> FEATURES: </h1>
 - Create and edit flashcard sets from within the program <br />
 - Good looking (IMO) UI <br />
