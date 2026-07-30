@@ -1,4 +1,5 @@
 #include <locale.h>
+#include <string.h>
 #include <stdlib.h>
 
 #include <termios.h>
@@ -16,6 +17,8 @@
 
 #include <study.h>
 #include <UI.h>
+#include <const.h>
+
 
 
 
@@ -43,8 +46,23 @@ int main_menu_quit(void* menu);
 int main_menu_select(void * menu);
 int main_menu_keybinds(void* menu);
 
-int main(){
+int main(int argc, char *argv[]){
 
+    for(int i = 1; i < argc; i++){
+        if(strcmp(argv[i],"--version")==0 || strcmp(argv[i],"-v")==0){
+            printf("TUIFlashcards version %s\n", ReleaseVersion);
+            return 0;
+        }
+        if(strcmp(argv[i],"--help")==0 || strcmp(argv[i],"-h")==0){
+            printf("Usage: \n\t%s [flags]\n\n", argv[0]);
+            printf("Flags:\n");
+            printf("\t--version, -v\t\tPrint version information\n");
+            printf("\t--help, -h   \t\tPrint this help screen\n");
+            return 0;
+        }
+    }
+
+    
     int conferrors = get_config_struct(&config);
     if(conferrors>0){
         printf("there are %d errors in your config file. certain values might not be what you want", conferrors);
@@ -112,6 +130,9 @@ int main(){
         wrefresh(keybindHelp);
     }
 
+
+
+
     // create MENU object for main menu (see MENU.c, MENU.h)
     MENU mainmenu;
 
@@ -162,7 +183,7 @@ int main_menu_select(void * menu){
             getLists(pickMode);
             break;
         case 2: // "New List"
-            addList();
+            addList(config.flashcard_dir);
             break;
         case 3: // "Edit List"
             getLists(editList);

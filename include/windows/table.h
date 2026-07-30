@@ -18,6 +18,7 @@ typedef struct _table_struct{
     int hookcount;
     int maxhooks;
     struct hook *hooks;
+    void* metadata;
 } TABLE;
 
 
@@ -27,7 +28,7 @@ void addHook_Table(TABLE *p_table, struct hook hook);
 
 void run_Table(TABLE* p_table);
 
-void render_table(TABLE *p_table, char (*starred));
+void render_Table(TABLE *p_table, char (*starred));
 
 void changeselect_Table(TABLE *p_table, int changerow, int changecol);
 

@@ -7,6 +7,7 @@
 #include <UI.h>
 
 //TODO: fix this spaghetti
+//TODO: does not support more questions than terms
 
 char multipleChoiceKeybinds[7][2][20] = {
     {"h", "left"},
@@ -39,9 +40,10 @@ void ensureNotEqual(int* a, int numCards, int b, int c, int d){
 }
 int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int* order, int side, char** question, char** choice1,char** choice2,char** choice3,char** choice4){
     srand(time(0));
-    *question =    (side) 
+    *question =    (side<0) 
                         ?currentFlashcard.term
-                        :currentFlashcard.definition;
+                        //TODO: add defns
+                        :currentFlashcard.definition[abs(side)-1];
 
     int op1 = currentcard;
     int op2 = rand()%numCards;
@@ -50,17 +52,17 @@ int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int*
     ensureNotEqual(&op2, numCards, op1, -1, -1);
     ensureNotEqual(&op3, numCards, op1, op2, -1);
     ensureNotEqual(&op4, numCards, op1, op2, op3);
-    *choice1 =    (side) 
-                        ?flashcard_set->cards[order[op1]].definition
+    *choice1 =    (side<0) 
+                        ?flashcard_set->cards[order[op1]].definition[abs(side)-1]
                         :flashcard_set->cards[order[op1]].term;
-    *choice2 =    (side) 
-                        ?flashcard_set->cards[order[op2]].definition
+    *choice2 =    (side<0) 
+                        ?flashcard_set->cards[order[op2]].definition[abs(side)-1]
                         :flashcard_set->cards[order[op2]].term;
-    *choice3 =    (side) 
-                        ?flashcard_set->cards[order[op3]].definition
+    *choice3 =    (side<0) 
+                        ?flashcard_set->cards[order[op3]].definition[abs(side)-1]
                         :flashcard_set->cards[order[op3]].term;
-    *choice4=    (side) 
-                        ?flashcard_set->cards[order[op4]].definition
+    *choice4=    (side<0) 
+                        ?flashcard_set->cards[order[op4]].definition[abs(side)-1]
                         :flashcard_set->cards[order[op4]].term;
 
     int correctans = rand()%4;
@@ -88,14 +90,28 @@ int getquestion(FlashcardSet* flashcard_set, int currentcard, int numCards, int*
 void multipleChoice(FlashcardSet *flashcard_set){
     bool starred_only = 0;
     bool shuffle = 0;
-    int vectors = 0;
-    if (!get_settings(&starred_only, &shuffle,&vectors)){
+    bool (vectorsin)[flashcard_set->num_columns-1];// ___->term
+    bool (vectorsout)[flashcard_set->num_columns-1];// term->____
+    int question_count=flashcard_set->num_items;
+    for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
+        vectorsin[i]=true;
+        vectorsout[i]=true;
+    }
+    if (!get_settings(flashcard_set, &starred_only, &shuffle, &question_count, vectorsin, vectorsout)){
+        return;
+    }
+    bool validvectors = false;
+    for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
+        if(vectorsin[i] || vectorsout[i]){
+            validvectors = true;
+            break;
+        }
+    }
+    if (!validvectors){
         return;
     }
 
     int order[flashcard_set->num_items];
-#define MIN_LEN 51
-    int maxlength = MIN_LEN;
 
 
 
@@ -119,26 +135,31 @@ void multipleChoice(FlashcardSet *flashcard_set){
         erasewindow(errorWin);
         return;
     }
+    question_count=min(question_count, numCards);
 
-    for(int i = 0; i<numCards;i++){
+    int sides[question_count];
+    for(int i = 0; i<question_count; i++){
+        do{
+        sides[i]= rand()%(flashcard_set->num_columns-1)+1;//plus 1 eliminates 0
+        sides[i]*=(rand()%2==0)?1:-1;
+        } while ((sides[i]>0&&vectorsin[sides[i]-1]==false)||(sides[i]<0&&vectorsout[-sides[i]-1]==false));
+    }
+
+#define MIN_LEN 51
+    int maxlength = MIN_LEN;
+    for(int i = 0; i<question_count;i++){
         if (strlen(flashcard_set->cards[order[i]].term)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].term);
+            maxlength = strlen(flashcard_set->cards[order[i]].term);
         }
-        if (strlen(flashcard_set->cards[order[i]].definition)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].definition);
+        for(int j = 0; i<flashcard_set->num_columns;i++){
+            if (strlen(flashcard_set->cards[order[i]].definition[j])>maxlength){
+                maxlength = strlen(flashcard_set->cards[order[i]].definition[j]);
+            }
         }
     }
 
     
     int currentcard = 0;
-    int side = 0;
-
-    if (vectors==1){
-        side = 1;
-    }
-    if (vectors==2){
-        side=rand()%2;
-    }
 
     int selectedx = 0;
     int selectedy = 0;
@@ -150,10 +171,10 @@ void multipleChoice(FlashcardSet *flashcard_set){
     int correctans;
 
     WINDOW* response_win = create_newwin(maxlength/3, maxlength+2,(LINES - maxlength/4)/2,(COLS - maxlength)/2);
-    correctans = getquestion(flashcard_set, currentcard, numCards, order, side, &question, &choice1, &choice2, &choice3, &choice4);
 
     wbkgd(response_win, COLOR_PAIR(2));
     box(response_win, 0,0);
+    printProgress(response_win, currentcard, question_count);
 
     //int texty=(maxlength/3-11)/2;
     //wprintctrx(response_win, texty, maxlength+2, question);
@@ -183,6 +204,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
 
 
 
+    correctans = getquestion(flashcard_set, currentcard, numCards, order, sides[0], &question, &choice1, &choice2, &choice3, &choice4);
     werase(text);
     werase(ansBox_1);
     werase(ansBox_2);
@@ -283,7 +305,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
                     currentcard++;
 
 
-                    if(currentcard>=numCards){
+                    if(currentcard>=question_count){
                         curs_set(0);
                         WINDOW* coverWindow = create_newwin(maxlength/3, maxlength+2,(LINES - maxlength/4)/2,(COLS - maxlength)/2);
                         wbkgd(coverWindow, COLOR_PAIR(1));
@@ -309,12 +331,10 @@ void multipleChoice(FlashcardSet *flashcard_set){
                         // update flashcard and form
                         return;
                     }
-                    if (vectors==2){
-                        side=rand()%2;
-                    }
-                    correctans = getquestion(flashcard_set, currentcard, numCards, order, side, &question, &choice1, &choice2, &choice3, &choice4);
+                    correctans = getquestion(flashcard_set, currentcard, numCards, order, sides[currentcard], &question, &choice1, &choice2, &choice3, &choice4);
 
 
+                    printProgress(response_win, currentcard, question_count);
                     werase(text);
                     werase(ansBox_1);
                     werase(ansBox_2);
@@ -337,6 +357,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
                 touchwin(response_win);
                 wrefresh(response_win);
                 break;
+        
         }
         if(ch !=10){
             setallbkgd(2);

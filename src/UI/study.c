@@ -1,17 +1,18 @@
+#include "flashcards.h"
 #include <study.h>
 #include <string.h>
-#include <stdlib.h>
 #include <config.h>
 #include <ncurses.h>
-#include <time.h>
 #include <windows/menu.h>
+#include <windows/table.h>
 #include <windows/window.h>
 
 #include <UI.h>
 //void (*games[2][3])(FlashcardSet*) ={flashcard,  type};
 //
 //
-char flashcard_settingskeybinds[10][2][20] = {
+
+char getModeKeybinds[10][2][20] = {
     {"j","down"},
     {"k","up"},
     {" ", " "},
@@ -20,145 +21,6 @@ char flashcard_settingskeybinds[10][2][20] = {
     {"?", "list keybinds"}
 };
 
-char playkeybinds[7][2][20] = {
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
-    {"<enter>", "select"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
-
-int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starred_only){
-    srand(time(NULL));
-    int numCards=0;
-    // filter out unstarred if only starred
-    for(int i = 0; i<flashcard_set->num_items;i++){
-        if(!starred_only || flashcard_set->cards[i].is_starred){
-            order[numCards] = i;
-            numCards++;
-        }
-    }
-
-    //shuffle
-    if(shuffle){
-        for(int i = 0; i<numCards; i++){
-            int swapindex = rand()%numCards;
-            int toswap = order[swapindex];
-            order[swapindex] = order[i];
-            order[i] = toswap;
-        }
-    }
-    // error if no possible cards
-    if (numCards == 0){
-        WINDOW* errorWin = create_newwin(3, 30, (LINES-1)/2, (COLS-28)/2);
-        wbkgd(errorWin, COLOR_PAIR(7));
-        box(errorWin,0,0);
-        wattron(errorWin,A_BOLD);
-
-        mvwprintw(errorWin,1,1, "No cards match criteria");
-        mvwprintw(errorWin,0,1, "%c%s%c", ACS_RTEE, "Error", ACS_LTEE);      
-
-        wrefresh(errorWin);
-        getch();
-        erasewindow(errorWin);
-        return 0;
-    }
-    return numCards;
-}
-
-
-bool settings_done;
-bool* starred;
-bool* shuffled;
-int* vector;
-int study_settings_keybinds(void* menu){
-    list_keybinds(6, flashcard_settingskeybinds);                         return 1;
-}
-
-int study_settings_quit(void* menu){
-    erasewindow(((MENU*)menu)->window);
-    settings_done = false;                                      return -1;
-}
-
-int study_settings_select(void* menu){
-    MENU* settingsmenu = menu;
-    switch(settingsmenu->selected){
-        case 0:
-            *starred = !(*starred);
-            settingsmenu->highlighted[0] = *starred ? '*' : 0;
-            settingsmenu->menuitems[0][19] = *starred ? '*' : ' ';
-            break;
-        case 1:
-            *shuffled = !(*shuffled);
-            settingsmenu->highlighted[1] = *shuffled ? '*' : 0;
-            settingsmenu->menuitems[1][19] = *shuffled ? '*' : ' ';
-            break;
-        case 2:
-            *vector=(*vector+1)%3;
-            if(*vector==0){
-                strcpy(settingsmenu->menuitems[2], "Direction: def->term");
-            }
-            if(*vector==1){
-                strcpy(settingsmenu->menuitems[2], "Direction: term->def");
-            }
-            if(*vector==2){
-                strcpy(settingsmenu->menuitems[2], "Direction: random   ");
-            }
-            break;
-        case 4:
-            // clean up
-            erasewindow(((MENU*)menu)->window);
-            settings_done=true;
-            return -1;
-    }
-    return 1;
-}
-
-
-//get seettings for study section
-bool get_settings(bool* starred_only, bool* shuffle, int* vectors){
-    starred = starred_only;
-    shuffled = shuffle;
-    vector = vectors;
-    MENU setting_menu;
-
-    char items[6][128] = { "Only starred items", "Shuffle flashcards", "Direction: def->term", "\0", "Continue\0", "\0"};
-    char flags[6] = {0,0,0,0,0,0};
-
-    // create window for menu. 
-    WINDOW* setting_window;
-    setting_window = create_newwin(7, 23, (LINES - 5)/2, (COLS - 20)/2);
-
-    init_Menu(&setting_menu, 5, 20,5, &setting_window, "Settings", flags, items);
-    wrefresh(setting_menu.window);
-
-     
-    // character from getch()
-    flags[0] = *starred_only ? '*' : 0;
-    items[0][19] = *starred_only ? '*' : ' ';
-    flags[1] = *shuffle ? '*' : 0;
-    items[1][19] = *shuffle ? '*' : ' ';
-    if(*vector==1){
-        strcpy(items[2], "Direction: term->def");
-    }
-    if(*vector==2){
-        strcpy(items[2], "Direction: random   ");
-    }
-
-    addHook_Menu(&setting_menu, (struct hook){'j', &menu_down});
-    addHook_Menu(&setting_menu, (struct hook){'k', &menu_up});
-    addHook_Menu(&setting_menu, (struct hook){27, &study_settings_quit});
-    addHook_Menu(&setting_menu, (struct hook){'q', &study_settings_quit});
-    addHook_Menu(&setting_menu, (struct hook){'?', &study_settings_keybinds});
-    addHook_Menu(&setting_menu, (struct hook){10, &study_settings_select});
-    run_Menu(&setting_menu);
-    free(setting_menu.hooks);
-    return settings_done;
-
-
-}
 
 //TODO: add more modes
 void pickMode(char* list){
@@ -262,6 +124,9 @@ void pickMode(char* list){
                         case 2:
                             type(flashcard_set);
                             break;
+                        case 3: // unfinished, so hidden but accesible fortesting
+                            test(flashcard_set);
+                            break;
                     }
                     //save any changes in stars
                     writeFlashcardSet(flashcard_set, ListPath,0);
@@ -272,7 +137,7 @@ void pickMode(char* list){
                     break;
                 }
             case '?':
-                list_keybinds(7, flashcard_settingskeybinds);
+                list_keybinds(7, getModeKeybinds);
                 box(mainPlayWindow, 0, 0);
                 wrefresh(mainPlayWindow);
                 break;

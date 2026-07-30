@@ -14,8 +14,11 @@ char* getLists(void (*to_call)(char*)) ;
 // UI/editor.c
 void editList(char ListName[]);
 
-void addList();
+void addList(char* dir);
+void addDir(char* dir);
+int getConfirmation(char *question, char* successmsg, char* failmsg);
 
 
 void list_keybinds(int numBinds, char (*keybinds)[2][20]);
+void showmsg(char* msg);
 #endif

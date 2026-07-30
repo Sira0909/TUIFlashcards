@@ -69,7 +69,7 @@ void render_Menu(MENU *p_menu, char* highlighted){
 }
 
 //draws the table
-void render_table(TABLE *p_table, char (*starred)){
+void render_Table(TABLE *p_table, char (*starred)){
     //erases window, resets background
     werase(p_table->window);
     wbkgd(p_table->window, COLOR_PAIR(2));

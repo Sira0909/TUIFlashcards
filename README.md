@@ -1,19 +1,19 @@
-A TUI program for studying flashcards, using the NCURSES library. not done yet
-
+A TUI program for studying flashcards, using the NCURSES library.
 
 <h1> FEATURES: </h1>
-- create and edit flashcard sets from within the program <br />
-- good looking (IMO) UI <br />
-- study flashcards <br />
-- typing quizes <br />
-- multiple choice quizes <br />
+- Create and edit flashcard sets from within the program <br />
+- Good looking (IMO) UI <br />
+- Study flashcards <br />
+- Flashcards with multiple definitions <br />
+
+<h2> Quiz types: </h2>
+- Flip flashcards <br />
+- Typing quizes <br />
+- Multiple choice quizes <br />
 
 <h1> TO BE ADDED:</h1>
-- more modes of study <br />
-- maybe word wrap eventually <br />
-- allow more than two sides to a flashcard <br />
-- have study vector save for retrying mistakes at end of quiz <br />
-- spaced repetition stuff <br />
+- More modes of study <br />
+- Maybe word wrap eventually <br />
 
 <h1> DEPENDENCIES:</h1>
 - ncurses <br />
