@@ -6,7 +6,7 @@ A TUI program for studying flashcards, using the NCURSES library. not done yet
 - Study flashcards <br />
 - Flashcards with multiple definitions <br />
 
-<h2> Quiz types:
+<h2> Quiz types: <h2>
 - Flip flashcards <br />
 - Typing quizes <br />
 - Multiple choice quizes <br />
