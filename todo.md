@@ -1,7 +1,3 @@
-stuff for version 0.2
-
-- select question count before study
-
 stuff for version 0.3
 
 - add more configuration: keybinds, colors, etc

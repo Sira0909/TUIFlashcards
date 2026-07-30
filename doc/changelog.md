@@ -8,3 +8,4 @@
 - study vectors and direction now are saved when redoing mistakes
 - added progress headers (how far you are through something) to more menus that need them, and to all study modes.
 - use --version to print version
+- select question count before study

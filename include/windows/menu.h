@@ -2,7 +2,6 @@
 #define MENUH
 
 #include <ncurses.h>
-#include <UI.h>
 
 typedef struct _menu_struct{
     WINDOW *window;             // the underlying window

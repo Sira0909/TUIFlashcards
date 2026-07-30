@@ -142,8 +142,8 @@ int writeFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX], int 
     if(VocabFile == NULL){
         return -1;
     }
-    fprintf(VocabFile, "\"Version:\"%d\n", 1); //denotes flashcard version
-    fprintf(VocabFile, "\"Columns:\"%d\n", flashcard_set->num_columns);
+    fprintf(VocabFile, "\"Version\":%d\n", 1); //denotes flashcard version
+    fprintf(VocabFile, "\"Columns\":%d\n", flashcard_set->num_columns);
     fprintf(VocabFile, "\"Terms\":%d\n", flashcard_set->num_items);
     fprintf(VocabFile, "\"Flashcards\":{");
     for(int i = 0; i<flashcard_set->num_items;i++){
@@ -241,8 +241,8 @@ int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
 
     int version;
     int num_items = 0; 
-    fscanf(VocabFile, "\"Version:\"%d\n", &version); //denotes flashcard version
-    fscanf(VocabFile, "\"Columns:\"%d\n", &(flashcard_set->num_columns));
+    fscanf(VocabFile, "\"Version\":%d\n", &version); //denotes flashcard version
+    fscanf(VocabFile, "\"Columns\":%d\n", &(flashcard_set->num_columns));
     fscanf(VocabFile, "\"Terms\":%d\n", &num_items);
 
 

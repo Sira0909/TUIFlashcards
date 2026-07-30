@@ -338,7 +338,7 @@ int editor_quit(void* table){
                 TABLE* Table = (TABLE*) table;
                 wattron(Table->window, A_BOLD);
                 //confirm
-                mvwprintw(Table->window, Table->height-1, 1, "quit without saving? (y/n): ");
+                mvwprintw(Table->window, Table->height-1, 0, "quit without saving? (y/n): ");
                 wattroff(Table->window, A_BOLD);
                 wrefresh(Table->window);
                 if ('y' == getch()){

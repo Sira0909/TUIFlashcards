@@ -12,16 +12,18 @@
 #define currentFlashcard flashcard_set->cards[order[currentcard]]
 
 
+//TODO: does not support more questions than terms
 void type(FlashcardSet *flashcard_set){
     bool starred_only = 0;
     bool shuffle = 0;
     bool (vectorsin)[flashcard_set->num_columns-1];// ___->term
     bool (vectorsout)[flashcard_set->num_columns-1];// term->____
+    int question_count=flashcard_set->num_items;
     for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
         vectorsin[i]=true;
         vectorsout[i]=true;
     }
-    if (!get_settings(flashcard_set, &starred_only, &shuffle,vectorsin, vectorsout)){
+    if (!get_settings(flashcard_set, &starred_only, &shuffle,&question_count, vectorsin, vectorsout)){
         return;
     }
     bool validvectors = false;
@@ -45,15 +47,17 @@ void type(FlashcardSet *flashcard_set){
     int numCards = getOrder(flashcard_set, order, shuffle, starred_only);
     if (!numCards)
         return;
+    
+    question_count=min(question_count, numCards);
 
-    int sides[numCards];
-    for(int i = 0; i<numCards; i++){
+    int sides[question_count];
+    for(int i = 0; i<question_count; i++){
         do{
         sides[i]= rand()%(flashcard_set->num_columns-1)+1;//plus 1 eliminates 0
         sides[i]*=(rand()%2==0)?1:-1;
         } while ((sides[i]>0&&vectorsin[sides[i]-1]==false)||(sides[i]<0&&vectorsout[-sides[i]-1]==false));
     }
-    for(int i = 0; i<numCards;i++){
+    for(int i = 0; i<question_count;i++){
         if (strlen(flashcard_set->cards[order[i]].term)>maxlength){
             maxlength = strlen(flashcard_set->cards[order[i]].term);
         }
@@ -96,7 +100,7 @@ void type(FlashcardSet *flashcard_set){
 
 
     box(form_win, 0, 0);
-    printProgress(form_win, currentcard, numCards);
+    printProgress(form_win, currentcard, question_count);
 
     post_form(Form);
     werase(text);
@@ -186,7 +190,7 @@ void type(FlashcardSet *flashcard_set){
                     }
                     if(c2 == 'r'){
                         box(form_win, 0, 0);
-                        printProgress(form_win, currentcard, numCards);
+                        printProgress(form_win, currentcard, question_count);
                         werase(text);
                         wbkgd(text, COLOR_PAIR(2));
                         wprintw(text, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);
@@ -219,7 +223,7 @@ void type(FlashcardSet *flashcard_set){
 
 
                 currentcard++;
-                if(currentcard>=numCards){
+                if(currentcard>=question_count){
                     if(mistakeindex>0){
                         curs_set(0);
                         WINDOW* coverWindow = create_newwin(13, cols+4,(LINES - 11)/2,(COLS - cols-2)/2); wbkgd(coverWindow, COLOR_PAIR(1)); wrefresh(coverWindow);
@@ -276,7 +280,7 @@ void type(FlashcardSet *flashcard_set){
                         }
                         else{
                             currentcard = 0;
-                            numCards = mistakeindex;
+                            question_count = mistakeindex;
                             mistakeindex = 0;
                         }
                         touchwin(form_win);
@@ -315,7 +319,7 @@ void type(FlashcardSet *flashcard_set){
 
 
                 box(form_win, 0, 0);
-                printProgress(form_win, currentcard, numCards);
+                printProgress(form_win, currentcard, question_count);
                 werase(text);
                 wbkgd(text, COLOR_PAIR(2));
                 wprintw(text, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);

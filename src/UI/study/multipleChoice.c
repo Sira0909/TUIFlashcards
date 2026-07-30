@@ -7,6 +7,7 @@
 #include <UI.h>
 
 //TODO: fix this spaghetti
+//TODO: does not support more questions than terms
 
 char multipleChoiceKeybinds[7][2][20] = {
     {"h", "left"},
@@ -91,11 +92,12 @@ void multipleChoice(FlashcardSet *flashcard_set){
     bool shuffle = 0;
     bool (vectorsin)[flashcard_set->num_columns-1];// ___->term
     bool (vectorsout)[flashcard_set->num_columns-1];// term->____
+    int question_count=flashcard_set->num_items;
     for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
         vectorsin[i]=true;
         vectorsout[i]=true;
     }
-    if (!get_settings(flashcard_set, &starred_only, &shuffle,vectorsin, vectorsout)){
+    if (!get_settings(flashcard_set, &starred_only, &shuffle, &question_count, vectorsin, vectorsout)){
         return;
     }
     bool validvectors = false;
@@ -110,8 +112,6 @@ void multipleChoice(FlashcardSet *flashcard_set){
     }
 
     int order[flashcard_set->num_items];
-#define MIN_LEN 51
-    int maxlength = MIN_LEN;
 
 
 
@@ -135,21 +135,25 @@ void multipleChoice(FlashcardSet *flashcard_set){
         erasewindow(errorWin);
         return;
     }
-    int sides[numCards];
-    for(int i = 0; i<numCards; i++){
+    question_count=min(question_count, numCards);
+
+    int sides[question_count];
+    for(int i = 0; i<question_count; i++){
         do{
         sides[i]= rand()%(flashcard_set->num_columns-1)+1;//plus 1 eliminates 0
         sides[i]*=(rand()%2==0)?1:-1;
         } while ((sides[i]>0&&vectorsin[sides[i]-1]==false)||(sides[i]<0&&vectorsout[-sides[i]-1]==false));
     }
 
-    for(int i = 0; i<numCards;i++){
+#define MIN_LEN 51
+    int maxlength = MIN_LEN;
+    for(int i = 0; i<question_count;i++){
         if (strlen(flashcard_set->cards[order[i]].term)>maxlength){
-            maxlength = strlen(flashcard_set->cards[i].term);
+            maxlength = strlen(flashcard_set->cards[order[i]].term);
         }
         for(int j = 0; i<flashcard_set->num_columns;i++){
             if (strlen(flashcard_set->cards[order[i]].definition[j])>maxlength){
-                maxlength = strlen(flashcard_set->cards[i].definition[j]);
+                maxlength = strlen(flashcard_set->cards[order[i]].definition[j]);
             }
         }
     }
@@ -170,7 +174,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
 
     wbkgd(response_win, COLOR_PAIR(2));
     box(response_win, 0,0);
-    printProgress(response_win, currentcard, numCards);
+    printProgress(response_win, currentcard, question_count);
 
     //int texty=(maxlength/3-11)/2;
     //wprintctrx(response_win, texty, maxlength+2, question);
@@ -301,7 +305,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
                     currentcard++;
 
 
-                    if(currentcard>=numCards){
+                    if(currentcard>=question_count){
                         curs_set(0);
                         WINDOW* coverWindow = create_newwin(maxlength/3, maxlength+2,(LINES - maxlength/4)/2,(COLS - maxlength)/2);
                         wbkgd(coverWindow, COLOR_PAIR(1));
@@ -330,7 +334,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
                     correctans = getquestion(flashcard_set, currentcard, numCards, order, sides[currentcard], &question, &choice1, &choice2, &choice3, &choice4);
 
 
-                    printProgress(response_win, currentcard, numCards);
+                    printProgress(response_win, currentcard, question_count);
                     werase(text);
                     werase(ansBox_1);
                     werase(ansBox_2);

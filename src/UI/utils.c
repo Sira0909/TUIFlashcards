@@ -1,6 +1,7 @@
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -53,8 +54,43 @@ int is_all_space(char *string){
     }
     return 1;
 }
+int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starred_only){
+    srand(time(NULL));
+    int numCards=0;
+    // filter out unstarred if only starred
+    for(int i = 0; i<flashcard_set->num_items;i++){
+        if(!starred_only || flashcard_set->cards[i].is_starred){
+            order[numCards] = i;
+            numCards++;
+        }
+    }
 
+    //shuffle
+    if(shuffle){
+        for(int i = 0; i<numCards; i++){
+            int swapindex = rand()%numCards;
+            int toswap = order[swapindex];
+            order[swapindex] = order[i];
+            order[i] = toswap;
+        }
+    }
+    // error if no possible cards
+    if (numCards == 0){
+        WINDOW* errorWin = create_newwin(3, 30, (LINES-1)/2, (COLS-28)/2);
+        wbkgd(errorWin, COLOR_PAIR(7));
+        box(errorWin,0,0);
+        wattron(errorWin,A_BOLD);
 
+        mvwprintw(errorWin,1,1, "No cards match criteria");
+        mvwprintw(errorWin,0,1, "%c%s%c", ACS_RTEE, "Error", ACS_LTEE);      
+
+        wrefresh(errorWin);
+        getch();
+        erasewindow(errorWin);
+        return 0;
+    }
+    return numCards;
+}
 char selectionkeybinds[11][2][20] = {
     {"h", "left"},
     {"j","down"},

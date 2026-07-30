@@ -1,10 +1,8 @@
 #include "flashcards.h"
 #include <study.h>
 #include <string.h>
-#include <stdlib.h>
 #include <config.h>
 #include <ncurses.h>
-#include <time.h>
 #include <windows/menu.h>
 #include <windows/table.h>
 #include <windows/window.h>
@@ -13,7 +11,8 @@
 //void (*games[2][3])(FlashcardSet*) ={flashcard,  type};
 //
 //
-char flashcard_settingskeybinds[10][2][20] = {
+
+char getModeKeybinds[10][2][20] = {
     {"j","down"},
     {"k","up"},
     {" ", " "},
@@ -22,237 +21,6 @@ char flashcard_settingskeybinds[10][2][20] = {
     {"?", "list keybinds"}
 };
 
-char playkeybinds[7][2][20] = {
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
-    {"<enter>", "select"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
-char vectorKeybinds[8][2][20] = {
-    {"j","down"},
-    {"k","up"},
-    {" ", " "},
-    {"<enter>", "toggle"},
-    {"a", "select all"},
-    {"c", "deselect all"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
-
-int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starred_only){
-    srand(time(NULL));
-    int numCards=0;
-    // filter out unstarred if only starred
-    for(int i = 0; i<flashcard_set->num_items;i++){
-        if(!starred_only || flashcard_set->cards[i].is_starred){
-            order[numCards] = i;
-            numCards++;
-        }
-    }
-
-    //shuffle
-    if(shuffle){
-        for(int i = 0; i<numCards; i++){
-            int swapindex = rand()%numCards;
-            int toswap = order[swapindex];
-            order[swapindex] = order[i];
-            order[i] = toswap;
-        }
-    }
-    // error if no possible cards
-    if (numCards == 0){
-        WINDOW* errorWin = create_newwin(3, 30, (LINES-1)/2, (COLS-28)/2);
-        wbkgd(errorWin, COLOR_PAIR(7));
-        box(errorWin,0,0);
-        wattron(errorWin,A_BOLD);
-
-        mvwprintw(errorWin,1,1, "No cards match criteria");
-        mvwprintw(errorWin,0,1, "%c%s%c", ACS_RTEE, "Error", ACS_LTEE);      
-
-        wrefresh(errorWin);
-        getch();
-        erasewindow(errorWin);
-        return 0;
-    }
-    return numCards;
-}
-
-
-bool settings_done;
-bool* starred;
-bool* shuffled;
-bool *vectorin;
-bool *vectorout;
-int vectorCount;
-
-
-int vector_quit(void* table){return -1;}
-int vector_keybinds(void*table){
-    list_keybinds(8, vectorKeybinds);                         return 1;
-}
-int vector_select(void*table){
-    TABLE* Table = (TABLE*) table;
-    if( Table->selected_col==0){
-        vectorin[Table->selected_row] = !vectorin[Table->selected_row];
-        sprintf(Table->table_data[0][Table->selected_row], "[%c] Definition %d", (vectorin[Table->selected_row]) ?'x':' ', Table->selected_row);//TODO: support names
-    }
-    if( Table->selected_col==1){
-        vectorout[Table->selected_row] = !vectorout[Table->selected_row];
-        sprintf(Table->table_data[1][Table->selected_row], "[%c] Definition %d", (vectorout[Table->selected_row]) ?'x':' ', Table->selected_row);//TODO: support names
-    }
-    return 1;
-}
-int vector_all(void*table){
-    TABLE* Table = (TABLE*) table;
-    for(int i = 0; i < vectorCount;i++){
-        vectorin[Table->selected_row] = true;
-        vectorout[Table->selected_row] = true;
-        sprintf(Table->table_data[0][Table->selected_row], "[x] Definition %d", Table->selected_row);//TODO: support names
-        sprintf(Table->table_data[1][Table->selected_row], "[x] Definition %d", Table->selected_row);//TODO: support names
-    }
-    return 1;
-}
-int vector_none(void*table){
-    TABLE* Table = (TABLE*) table;
-    for(int i = 0; i < vectorCount;i++){
-        vectorin[Table->selected_row]  = false;
-        vectorout[Table->selected_row] = false;
-        sprintf(Table->table_data[0][Table->selected_row], "[ ] Definition %d", Table->selected_row);//TODO: support names
-        sprintf(Table->table_data[1][Table->selected_row], "[ ] Definition %d", Table->selected_row);//TODO: support names
-    }
-    return 1;
-}
-void editVectors(){
-    TABLE vectorTable;
-
-    char headers[2][128] = {"_____->term","term->_____"};
-    char (*(items[2]))[128];
-    items[0]=calloc(vectorCount, sizeof(char[128]));
-    items[1]=calloc(vectorCount, sizeof(char[128]));
-    char selected[vectorCount];
-    for(int i = 0; i< vectorCount; i++){
-        bool selectin=vectorin[i];
-        bool selectout=vectorout[i];
-
-        sprintf(items[0][i], "[%c] Definition %d", (selectin) ?'x':' ', i);//TODO: support names
-        sprintf(items[1][i], "[%c] Definition %d", (selectout)?'x':' ', i);//TODO: support names
-        selected[i]='*';//maybe change
-    }
-
-
-
-    int width = 43; //1+21*2
-    int height = min(vectorCount+4, LINES-4);
-    WINDOW *vector_window, *table_window;
-    vector_window = create_newwin(height+2, width+2, (LINES - height)/2, (COLS - width)/2);
-    table_window = derwin(vector_window,height, width, 1, 1);
-
-    init_Table(&vectorTable, vectorCount, 2, width, height, &table_window, "Vectors", headers, items, selected);
-    
-    wattron(vector_window, COLOR_PAIR(2));
-    wbkgd(vector_window, COLOR_PAIR(2));
-    box(vector_window, 0, 0);
-    wrefresh(vector_window);
-
-     
-    // character from getch()
-
-    addHook_Table(&vectorTable, (struct hook){'h', &table_left});
-    addHook_Table(&vectorTable, (struct hook){'j', &table_down});
-    addHook_Table(&vectorTable, (struct hook){'k', &table_up});
-    addHook_Table(&vectorTable, (struct hook){'l', &table_right});
-    addHook_Table(&vectorTable, (struct hook){27, &vector_quit});
-    addHook_Table(&vectorTable, (struct hook){'q', &vector_quit});
-    addHook_Table(&vectorTable, (struct hook){'?', &vector_keybinds});
-    addHook_Table(&vectorTable, (struct hook){10, &vector_select});
-    addHook_Table(&vectorTable, (struct hook){'a',&vector_all});
-    addHook_Table(&vectorTable, (struct hook){'c',&vector_none});
-    run_Table(    &vectorTable);
-    erasewindow(table_window);
-    erasewindow(vector_window);
-    free(vectorTable.hooks);
-}
-int study_settings_keybinds(void* menu){
-    list_keybinds(6, flashcard_settingskeybinds);                         return 1;
-}
-
-int study_settings_quit(void* menu){
-    erasewindow(((MENU*)menu)->window);
-    settings_done = false;                                      return -1;
-}
-
-int study_settings_select(void* menu){
-    MENU* settingsmenu = menu;
-    switch(settingsmenu->selected){
-        case 0:
-            *starred = !(*starred);
-            settingsmenu->highlighted[0] = *starred ? '*' : 0;
-            settingsmenu->menuitems[0][19] = *starred ? '*' : ' ';
-            break;
-        case 1:
-            *shuffled = !(*shuffled);
-            settingsmenu->highlighted[1] = *shuffled ? '*' : 0;
-            settingsmenu->menuitems[1][19] = *shuffled ? '*' : ' ';
-            break;
-        case 3:
-            wbkgd(wgetparent(settingsmenu->window), COLOR_PAIR(1));
-            werase(wgetparent(settingsmenu->window));
-            wrefresh(wgetparent(settingsmenu->window));
-            editVectors();
-            
-            break;
-        case 5:
-            // clean up
-            erasewindow(((MENU*)menu)->window);
-            settings_done=true;
-            return -1;
-    }
-    return 1;
-}
-
-
-//get seettings for study section
-bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle, bool vectorsin[], bool vectorsout[]){
-    starred = starred_only;
-    shuffled = shuffle;
-    vectorin = vectorsin;
-    vectorout = vectorsout;
-    vectorCount = flashcard_set->num_columns-1;
-    
-    MENU setting_menu;
-
-    char items[7][128] = { "Only starred items", "Shuffle flashcards", "", "edit study vectors", "", "Continue\0", "\0"};
-    char flags[7] = {0,0,0,1,0,0,0};
-
-    // create window for menu. 
-    WINDOW* setting_window;
-    setting_window = create_newwin(8, 22, (LINES - 6)/2, (COLS - 20)/2);
-
-    init_Menu(&setting_menu, 6, 20,6, &setting_window, "Settings", flags, items);
-    wrefresh(setting_menu.window);
-
-     
-    // character from getch()
-    flags[0] = *starred_only ? '*' : 0;
-    items[0][19] = *starred_only ? '*' : ' ';
-    flags[1] = *shuffle ? '*' : 0;
-    items[1][19] = *shuffle ? '*' : ' ';
-
-    addHook_Menu(&setting_menu, (struct hook){'j', &menu_down});
-    addHook_Menu(&setting_menu, (struct hook){'k', &menu_up});
-    addHook_Menu(&setting_menu, (struct hook){27, &study_settings_quit});
-    addHook_Menu(&setting_menu, (struct hook){'q', &study_settings_quit});
-    addHook_Menu(&setting_menu, (struct hook){'?', &study_settings_keybinds});
-    addHook_Menu(&setting_menu, (struct hook){10, &study_settings_select});
-    run_Menu(&setting_menu);
-    free(setting_menu.hooks);
-    return settings_done;
-
-
-}
 
 //TODO: add more modes
 void pickMode(char* list){
@@ -369,7 +137,7 @@ void pickMode(char* list){
                     break;
                 }
             case '?':
-                list_keybinds(7, flashcard_settingskeybinds);
+                list_keybinds(7, getModeKeybinds);
                 box(mainPlayWindow, 0, 0);
                 wrefresh(mainPlayWindow);
                 break;

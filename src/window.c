@@ -3,7 +3,7 @@
 #include <string.h>
 void printProgress(WINDOW* win, int current, int max){
     wmove(win, 0, 1); 
-    int y,x;
+    int x, __attribute__((unused)) y;
     getmaxyx(win, y, x);
     int width;
     char testbuffer[20]; sprintf(testbuffer, "%d/%d", current+1, max); width = strlen(testbuffer);   // get the width of the progress bar to right align
