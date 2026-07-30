@@ -62,6 +62,7 @@ int vector_none(void*table){
     return 1;
 }
 void editVectors(bool *vectorin,bool *vectorout,int vectorCount){
+    struct vectorMetadata meta = {vectorin,vectorout,vectorCount};
     TABLE vectorTable;
 
     char headers[2][128] = {"_____->term","term->_____"};
@@ -85,8 +86,10 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount){
     WINDOW *vector_window, *table_window;
     vector_window = create_newwin(height+2, width+2, (LINES - height)/2, (COLS - width)/2);
     table_window = derwin(vector_window,height, width, 1, 1);
+    
 
     init_Table(&vectorTable, vectorCount, 2, width, height, &table_window, "Vectors", headers, items, selected);
+    vectorTable.metadata = &meta;
     
     wattron(vector_window, COLOR_PAIR(2));
     wbkgd(vector_window, COLOR_PAIR(2));
