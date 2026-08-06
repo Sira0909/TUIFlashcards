@@ -1,4 +1,4 @@
-
+license=('0BSD')
 pkgname=tuiflashcards-git
 pkgdesc='ncurses based flashcard application' 
 makedepends=('git' ncurses)
