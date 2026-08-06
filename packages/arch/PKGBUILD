@@ -1,0 +1,31 @@
+
+pkgname=tuiflashcards-git
+pkgdesc='ncurses based flashcard application' 
+makedepends=('git' ncurses)
+provides=("${pkgname%-git}")
+conflicts=("${pkgname%-git}")
+url="https://github.com/Sira0909/TUIFlashcards"
+source=("${pkgname%-git}::git+https://github.com/Sira0909/TUIFlashcards.git")
+arch=('x86_64')
+sha256sums=('SKIP')
+pkgver=0.2
+pkgrel=1
+
+
+pkgver() {
+
+	cd "$srcdir/${pkgname%-git}"
+	cat ./doc/version.md
+
+}
+build() {
+	cd "$srcdir/${pkgname%-git}"
+
+	make
+}
+
+package() {
+	cd "$srcdir/${pkgname%-git}"
+	make DESTDIR="$pkgdir/usr/bin/" install
+
+}
