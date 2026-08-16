@@ -5,7 +5,7 @@ DESTDIR = "/usr/bin/"
 CC?=gcc
 
 TUIFlashcards: $(C_SOURCES) $(HEADERS)
-	$(CC) $(C_SOURCES) -I ./include/ -o $@ -g -lformw -lncursesw
+	$(CC) $(C_SOURCES) -I ./include/ -I C:\msys64\ucrt64\include\ncurses -o $@ -g -lformw -lncursesw
 
 install: TUIFlashcards
 	cp TUIFlashcards $(DESTDIR)

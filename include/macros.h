@@ -2,6 +2,13 @@
 #define MACROS_H 1
 
 
+#ifdef _WIN32
+#define makedir(x,y) mkdir(x)
+#define lstat(x,y) stat(x,y)
+#endif
+#ifndef _WIN32 
+#define makedir(x,y) mkdir(x,y)
+#endif
 // macro signum function
 #define sign(x) \
     ({ __typeof__ (x) _x = (x); \

@@ -389,7 +389,7 @@ void addList(char* dir){
         for(int i = strlen(dir)+1;i<strnlen(newfile,PATH_MAX);i++){
             if(newfile[i]=='/'){
                 newfile[i]='\0';
-                if(mkdir(newfile,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)==-1){showmsg("Failed to create directory");return;}
+                if(makedir(newfile,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)==-1){showmsg("Failed to create directory");return;}
                 newfile[i]='/';
             }
         }
@@ -417,7 +417,7 @@ void addDir(char* parentDir){
     strcat(newDir, trim_whitespaces(Dir));
     free(Dir);
 
-    if (mkdir(newDir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
+    if (makedir(newDir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
         printf("error occurred while creating directory.");
         exit(-1);
     }
@@ -428,7 +428,7 @@ void editList(char ListName[]){
 
     //get file path 
     char ListPath[PATH_MAX];
-    if(ListName[0] == '/' || ListName[0] == '~'){
+    if(ListName[0] == '/' || ListName[0] == '~' || ( (ListName[0]& ~32) == 'C' && ListName[1] == ':' && (ListName[2] == '/' || ListName[2]=='\\'))){
         strncpy(ListPath, ListName, PATH_MAX);
     }
     else{

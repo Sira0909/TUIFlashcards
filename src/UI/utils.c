@@ -1,4 +1,10 @@
+
+#ifdef _WIN32
+#include <limits.h>
+#endif
+#ifndef _WIN32
 #include <linux/limits.h>
+#endif
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
@@ -133,7 +139,7 @@ char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
     int numfiles = 0;
     int numdirs = 0;
     if((dp = opendir(dir)) == NULL) {
-        mkdir(dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+        makedir(dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if((dp = opendir(dir)) == NULL) {
             int error = errno;
             endwin();
@@ -166,7 +172,7 @@ char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
         
         if((dp = opendir(dir)) == NULL) {
             //just in case this suddenly doesnt work
-            mkdir(dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+            makedir(dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
             if((dp = opendir(dir)) == NULL) {
                 int error = errno;
                 endwin();
