@@ -86,6 +86,7 @@ int delDefn(FlashcardSet* flashcard_set, int index){
 // delete a flashcard
 void deletecard(FlashcardSet* flashcard_set, int index){
     // move items after back
+    free(flashcard_set->cards[index].definition);
     if (index < flashcard_set->num_items){
         for(int i = index; i<flashcard_set->num_items-1; i++){
             flashcard_set->cards[i] = flashcard_set->cards[i+1] ;
@@ -94,11 +95,6 @@ void deletecard(FlashcardSet* flashcard_set, int index){
     // update fields and last card
     flashcard_set->num_items--;
     if(flashcard_set->num_items<0) flashcard_set->num_items = 0;
-    strcpy(flashcard_set->cards[flashcard_set->num_items].term, "");
-    for(int i = 0; i<flashcard_set->num_columns-1;i++)
-        strcpy(flashcard_set->cards[flashcard_set->num_items].definition[i], "");
-    free(flashcard_set->cards[flashcard_set->num_items].definition);
-    
     flashcard_set->cards[flashcard_set->num_items].is_starred = 0;
 
 }

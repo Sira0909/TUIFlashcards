@@ -5,15 +5,16 @@
 #include <windows/window.h>
 #include <ncurses.h>
 #include <UI.h>
+#include <config.h>
 
 //TODO: fix this spaghetti
 //TODO: does not support more questions than terms
 
-char multipleChoiceKeybinds[7][2][20] = {
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
+char *multipleChoiceKeybinds[7][2] = {
+    {config.keylayout.str_lkey, "left"},
+    {config.keylayout.str_dkey,"down"},
+    {config.keylayout.str_ukey,"up"},
+    {config.keylayout.str_rkey,"right"},
     {"<enter>", "select"},
     {" ", " "},
     {"?", "list keybinds"}
@@ -230,134 +231,135 @@ void multipleChoice(FlashcardSet *flashcard_set){
         ch = getch();
         move(LINES-3, 0);
         clrtoeol();
-        switch(ch){
-            case 'h': 
-                selectedx = (selectedx - 1);
-                if (selectedx < 0) selectedx = 1;
-                break;
-            case 'j':
-                selectedy = (selectedy - 1);
-                if (selectedy < 0) selectedy = 1;
-                break;
-            case 'k':
-                selectedy = (selectedy + 1) % 2;
-                if (selectedy > 1) selectedy = 0;
-                break;
-            case 'l':
-                selectedx = (selectedx + 1) % 2;
-                if (selectedx > 1) selectedx = 0;
-                break;
-            case 'S': //star previous
-                if(currentcard>0){
-                    attron(COLOR_PAIR(1));
-                    flashcard_set->cards[order[currentcard-1]].is_starred = !flashcard_set->cards[order[currentcard-1]].is_starred;
-                    wprintctrx(stdscr, LINES-3, COLS, (flashcard_set->cards[order[currentcard-1]].is_starred) ? "Previous flashcard has been starred" : "Previous flashcard has been unstarred");
-                    attron(COLOR_PAIR(1));
-                    break;
-                }
-                // stars current when this is first flashcard
-            case 's': //star current
+        if(     ch == config.keylayout.lkey){ 
+            selectedx = (selectedx - 1);
+            if (selectedx < 0) selectedx = 1;
+        }
+        else if(ch == config.keylayout.dkey){
+            selectedy = (selectedy - 1);
+            if (selectedy < 0) selectedy = 1;
+        }
+        else if(ch == config.keylayout.ukey){
+            selectedy = (selectedy + 1) % 2;
+            if (selectedy > 1) selectedy = 0;
+        }
+        else if(ch == config.keylayout.rkey){
+            selectedx = (selectedx + 1) % 2;
+            if (selectedx > 1) selectedx = 0;
+        }
+        else if(ch == 'S'){ //star previous
+            if(currentcard>0){
+                attron(COLOR_PAIR(1));
+                flashcard_set->cards[order[currentcard-1]].is_starred = !flashcard_set->cards[order[currentcard-1]].is_starred;
+                wprintctrx(stdscr, LINES-3, COLS, (flashcard_set->cards[order[currentcard-1]].is_starred) ? "Previous flashcard has been starred" : "Previous flashcard has been unstarred");
+                attron(COLOR_PAIR(1));
+                
+            }
+            else{
                 attron(COLOR_PAIR(1));
                 currentFlashcard.is_starred = !currentFlashcard.is_starred;
                 wprintctrx(stdscr, LINES-3, COLS, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
                 attron(COLOR_PAIR(1));
-                break;
-            case 27:
-            case 'q':
-                erasewindow(response_win);
-                return;
-                //maybe allow leave early
-                break;
-            case 10:
-                {
-                    move(LINES-3, 0);
-                    clrtoeol();
+            }
+            // stars current when this is first flashcard
+        }
+        else if(ch == 's'){ //star current
+            attron(COLOR_PAIR(1));
+            currentFlashcard.is_starred = !currentFlashcard.is_starred;
+            wprintctrx(stdscr, LINES-3, COLS, (currentFlashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
+            attron(COLOR_PAIR(1));
+        }
+        else if(ch == 27 || ch == 'q'){
+            erasewindow(response_win);
+            return;
+            //maybe allow leave early
+        }
+        else if(ch == 10){
+            move(LINES-3, 0);
+            clrtoeol();
 
-                    if(selectedx*2+selectedy != correctans){ // incorrect
-                        //setallbkgd(10);
-                        attron(COLOR_PAIR(10));
-                        switch(correctans){
-                            case 0:
-                                mvprintw(LINES-3, (COLS-16-strlen(choice1))/2, "Correct answer: %s", choice1);
-                                break;
-                            case 1:
-                                mvprintw(LINES-3, (COLS-16-strlen(choice2))/2, "Correct answer: %s", choice2);
-                                break;
-                            case 2:
-                                mvprintw(LINES-3, (COLS-16-strlen(choice3))/2, "Correct answer: %s", choice3);
-                                break;
-                            case 3:
-                                mvprintw(LINES-3, (COLS-16-strlen(choice4))/2, "Correct answer: %s", choice4);
-                                break;
-                        }
-                        attron(COLOR_PAIR(1));
-                    }
-                    else {
-                        attron(COLOR_PAIR(9));
-                        mvprintw(LINES-3, (COLS-8)/2, "Correct!");
-                        attron(COLOR_PAIR(1));
-                    }
-
-                    touchwin(response_win);
-                    
-                    wrefresh(response_win);
-
-                    currentcard++;
-
-
-                    if(currentcard>=question_count){
-                        curs_set(0);
-                        WINDOW* coverWindow = create_newwin(maxlength/3, maxlength+2,(LINES - maxlength/4)/2,(COLS - maxlength)/2);
-                        wbkgd(coverWindow, COLOR_PAIR(1));
-                        wrefresh(coverWindow);
-
-                        WINDOW *ask_review = create_newwin(8,22, (LINES-6)/2, (COLS-20)/2);
-                        wbkgd(ask_review, COLOR_PAIR(2));
-                        box(ask_review, 0, 0);
-                        wprintctrx(ask_review, 1, 22, "Quiz complete!");
-
-                        WINDOW *return_win = derwin(ask_review, 4, 20, 3, 1);
-                        wbkgd(return_win, COLOR_PAIR(3));
-
-                        box(return_win, 0, 0);
-
-                        wprintctrx(return_win, 1, 20, "Return to menu");
-                        wrefresh(ask_review);
-
-                        getch();
-                        erasewindow(response_win);
-                        refresh();
-                        //return NULL;
-                        // update flashcard and form
-                        return;
-                    }
-                    correctans = getquestion(flashcard_set, currentcard, numCards, order, sides[currentcard], &question, &choice1, &choice2, &choice3, &choice4);
-
-
-                    printProgress(response_win, currentcard, question_count);
-                    werase(text);
-                    werase(ansBox_1);
-                    werase(ansBox_2);
-                    werase(ansBox_3);
-                    werase(ansBox_4);
-                    box(ans_1, 0,0);
-                    box(ans_2, 0,0);
-                    box(ans_3, 0,0);
-                    box(ans_4, 0,0);
-                    wbkgd(ans[selectedy][selectedx], COLOR_PAIR(3));
-                    wprintctr(text, maxlength/3-12, maxlength, question);
-                    wprintctr(ansBox_1, 3, maxlength/2-2, choice1);
-                    wprintctr(ansBox_2, 3, maxlength/2-2, choice2);
-                    wprintctr(ansBox_3, 3, maxlength/2-2, choice3);
-                    wprintctr(ansBox_4, 3, maxlength/2-2, choice4);
-                    break;
+            if(selectedx*2+selectedy != correctans){ // incorrect
+                //setallbkgd(10);
+                attron(COLOR_PAIR(10));
+                switch(correctans){
+                    case 0:
+                        mvprintw(LINES-3, (COLS-16-strlen(choice1))/2, "Correct answer: %s", choice1);
+                        break;
+                    case 1:
+                        mvprintw(LINES-3, (COLS-16-strlen(choice2))/2, "Correct answer: %s", choice2);
+                        break;
+                    case 2:
+                        mvprintw(LINES-3, (COLS-16-strlen(choice3))/2, "Correct answer: %s", choice3);
+                        break;
+                    case 3:
+                        mvprintw(LINES-3, (COLS-16-strlen(choice4))/2, "Correct answer: %s", choice4);
+                        break;
                 }
-            case '?':
-                list_keybinds(7, multipleChoiceKeybinds);
-                touchwin(response_win);
-                wrefresh(response_win);
-                break;
-        
+                attron(COLOR_PAIR(1));
+            }
+            else {
+                attron(COLOR_PAIR(9));
+                mvprintw(LINES-3, (COLS-8)/2, "Correct!");
+                attron(COLOR_PAIR(1));
+            }
+
+            touchwin(response_win);
+            
+            wrefresh(response_win);
+
+            currentcard++;
+
+
+            if(currentcard>=question_count){
+                curs_set(0);
+                WINDOW* coverWindow = create_newwin(maxlength/3, maxlength+2,(LINES - maxlength/4)/2,(COLS - maxlength)/2);
+                wbkgd(coverWindow, COLOR_PAIR(1));
+                wrefresh(coverWindow);
+
+                WINDOW *ask_review = create_newwin(8,22, (LINES-6)/2, (COLS-20)/2);
+                wbkgd(ask_review, COLOR_PAIR(2));
+                box(ask_review, 0, 0);
+                wprintctrx(ask_review, 1, 22, "Quiz complete!");
+
+                WINDOW *return_win = derwin(ask_review, 4, 20, 3, 1);
+                wbkgd(return_win, COLOR_PAIR(3));
+
+                box(return_win, 0, 0);
+
+                wprintctrx(return_win, 1, 20, "Return to menu");
+                wrefresh(ask_review);
+
+                getch();
+                erasewindow(response_win);
+                refresh();
+                //return NULL;
+                // update flashcard and form
+                return;
+            }
+            correctans = getquestion(flashcard_set, currentcard, numCards, order, sides[currentcard], &question, &choice1, &choice2, &choice3, &choice4);
+
+
+            printProgress(response_win, currentcard, question_count);
+            werase(text);
+            werase(ansBox_1);
+            werase(ansBox_2);
+            werase(ansBox_3);
+            werase(ansBox_4);
+            box(ans_1, 0,0);
+            box(ans_2, 0,0);
+            box(ans_3, 0,0);
+            box(ans_4, 0,0);
+            wbkgd(ans[selectedy][selectedx], COLOR_PAIR(3));
+            wprintctr(text, maxlength/3-12, maxlength, question);
+            wprintctr(ansBox_1, 3, maxlength/2-2, choice1);
+            wprintctr(ansBox_2, 3, maxlength/2-2, choice2);
+            wprintctr(ansBox_3, 3, maxlength/2-2, choice3);
+            wprintctr(ansBox_4, 3, maxlength/2-2, choice4);
+        }
+        else if(ch == '?'){
+            list_keybinds(7, multipleChoiceKeybinds);
+            touchwin(response_win);
+            wrefresh(response_win);
         }
         if(ch !=10){
             setallbkgd(2);

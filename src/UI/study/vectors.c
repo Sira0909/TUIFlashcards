@@ -7,9 +7,9 @@
 #include <UI.h>
 
 
-char vectorKeybinds[8][2][20] = {
-    {"j","down"},
-    {"k","up"},
+char *vectorKeybinds[8][2] = {
+    {config.keylayout.str_dkey,"down"},
+    {config.keylayout.str_ukey,"up"},
     {" ", " "},
     {"<enter>", "toggle"},
     {"a", "select all"},
@@ -99,10 +99,10 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount){
      
     // character from getch()
 
-    addHook_Table(&vectorTable, (struct hook){'h', &table_left});
-    addHook_Table(&vectorTable, (struct hook){'j', &table_down});
-    addHook_Table(&vectorTable, (struct hook){'k', &table_up});
-    addHook_Table(&vectorTable, (struct hook){'l', &table_right});
+    addHook_Table(&vectorTable, (struct hook){config.keylayout.lkey, &table_left});
+    addHook_Table(&vectorTable, (struct hook){config.keylayout.dkey, &table_down});
+    addHook_Table(&vectorTable, (struct hook){config.keylayout.ukey, &table_up});
+    addHook_Table(&vectorTable, (struct hook){config.keylayout.rkey, &table_right});
     addHook_Table(&vectorTable, (struct hook){27, &vector_quit});
     addHook_Table(&vectorTable, (struct hook){'q', &vector_quit});
     addHook_Table(&vectorTable, (struct hook){'?', &vector_keybinds});

@@ -10,9 +10,9 @@
 
 
 
-char global_settings_keybinds[10][2][20] = {
-    {"j","down"},
-    {"k","up"},
+char *global_settings_keybinds[10][2] = {
+    {config.keylayout.str_dkey,"down"},
+    {config.keylayout.str_ukey,"up"},
     {" ", " "},
     {"<enter>", "toggle"},
     {" ", " "},
@@ -59,11 +59,29 @@ int settings_select(void* table){
             settingstable->highlighted[1] = newConfig.showKeybindsHelp ? '*' : 0;
             strcpy(settingstable->table_data[1][1], (config.showKeybindsHelp) ? "On": "Off");
             break;
-        case 3:
+        case 2:
+            switch(newConfig.keylayout.layout){
+                case KEYBOARD_UNSET:
+                case KEYBOARD_ARROW:
+                    setkeylayout(&newConfig, KEYBOARD_IJKL);
+                    strcpy(settingstable->table_data[1][2], "IJKL");
+                    break;
+                case KEYBOARD_IJKL:
+                    setkeylayout(&newConfig, KEYBOARD_NVIM);
+                    strcpy(settingstable->table_data[1][2], "NVIM");
+                    break;
+                case KEYBOARD_NVIM:
+                    setkeylayout(&newConfig, KEYBOARD_ARROW);
+                    strcpy(settingstable->table_data[1][2], "AROW");
+                    break;
+            }
+
+            break;
+        case 4:
             // clean up
             settings_save(table);
             return -1;
-        case 4:
+        case 5:
             return -1;
     }
     return 1;
@@ -76,16 +94,28 @@ bool get_global_settings(){
     TABLE settings_table;
 
     int height = 6;
-    int width = 60;
+    int width = 58;
     // create window for menu. 
     WINDOW* setting_window = create_newwin(height+2, 35, (LINES - height)/2, (COLS - 33)/2);
     WINDOW* tablewindow = derwin(setting_window, height, 33, 1, 1);
 
-    char items[5][128] = { "Automatic accents", "Show how to access keybinds", "", "Save", "Cancel"};
-    char value[5][128] = {"","","",""}; 
+    char items[6][128] = { "Automatic accents", "Show how to access keybinds", "Keyboard Layout", "", "Save", "Cancel"};
+    char value[6][128] = {"","","","",""}; 
     strcpy(value[0], (config.autoaccent) ? "On": "Off");
     strcpy(value[1], (config.showKeybindsHelp) ? "On": "Off");
     char (*table[2])[128] = {items, value};
+    switch(newConfig.keylayout.layout){
+        case KEYBOARD_UNSET:
+        case KEYBOARD_ARROW:
+            strcpy(value[2], "AROW");
+            break;
+        case KEYBOARD_IJKL:
+            strcpy(value[2], "IJKL");
+            break;
+        case KEYBOARD_NVIM:
+            strcpy(value[2], "NVIM");
+            break;
+    }
 
     char selected[6] = {0,0,0,0,0,0};
     selected[0] = (config.autoaccent) ? '*': ' ';
@@ -104,8 +134,8 @@ bool get_global_settings(){
 
      
 
-    addHook_Table(&settings_table, (struct hook){'j', &table_down});
-    addHook_Table(&settings_table, (struct hook){'k', &table_up});
+    addHook_Table(&settings_table, (struct hook){config.keylayout.dkey, &table_down});
+    addHook_Table(&settings_table, (struct hook){config.keylayout.ukey, &table_up});
     addHook_Table(&settings_table, (struct hook){27, &settings_quit});
     addHook_Table(&settings_table, (struct hook){'q', &settings_quit});
     addHook_Table(&settings_table, (struct hook){'?', &settings_keybinds});

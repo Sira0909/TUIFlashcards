@@ -1,6 +1,7 @@
 #include <study.h>
 #include <windows/window.h>
 #include <ncurses.h>
+#include <config.h>
 //#include <stdlib.h>
 //#include <string.h>
 
@@ -63,38 +64,36 @@ void flashcard(FlashcardSet *flashcard_set){
 
 
         ch = getch();
-        switch (ch){
-            case 27:
-            case 'q':
-                erasewindow(FlashcardWindow);
-                return;
-            case ' ':
-                side = (side+1)%flashcard_set->num_columns;
-                break;
-            case 'l':
-                currentcard++;
-                if (currentcard>=numCards){
-                    currentcard = numCards-1;
-                }
-                //default_side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
-                side = 0;
-                break;
-            case 'h':
-                currentcard--;
-                if (currentcard <0){
-                    currentcard = 0;
-                }
-                //default_side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
-                side = 0;
-                break;
-            case 'j':
-                side++;
-                if(side>=flashcard_set->num_columns) side=flashcard_set->num_columns-1;
-                break;
-            case 'k': 
-                side--;
-                if(side<0) side=0;
-                break;
+        if(ch == 27 || ch == 'q'){
+            erasewindow(FlashcardWindow);
+            return;
+        }
+        else if(ch == ' '){
+            side = (side+1)%flashcard_set->num_columns;
+        }
+        else if(ch == config.keylayout.rkey){
+            currentcard++;
+            if (currentcard>=numCards){
+                currentcard = numCards-1;
+            }
+            //default_side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
+            side = 0;
+        }
+        else if(ch == config.keylayout.lkey){
+            currentcard--;
+            if (currentcard <0){
+                currentcard = 0;
+            }
+            //default_side = (vectors==0) ? 0 : (vectors==1) ? 1 : rand()%2;
+            side = 0;
+        }
+        else if(ch == config.keylayout.dkey){
+            side++;
+            if(side>=flashcard_set->num_columns) side=flashcard_set->num_columns-1;
+        }
+        else if(ch == config.keylayout.ukey){
+            side--;
+            if(side<0) side=0;
         }
     }
 

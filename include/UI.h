@@ -1,7 +1,7 @@
 #ifndef UIH
 #define UIH
 struct hook {
-    char trigger;
+    int trigger;
     int (*effect)(void*);
 };
 // main.c
@@ -19,6 +19,8 @@ void addDir(char* dir);
 int getConfirmation(char *question, char* successmsg, char* failmsg);
 
 
-void list_keybinds(int numBinds, char (*keybinds)[2][20]);
+//keybinds is a variable-length array of pairs of pointers
+//its basically a char (*)[7][20] but the last one has to be a pointer so that str_{u,d,l,r}key work
+void list_keybinds(int numBinds, char *((*keybinds)[2]));
 void showmsg(char* msg);
 #endif

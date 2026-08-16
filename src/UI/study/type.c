@@ -106,7 +106,13 @@ void type(FlashcardSet *flashcard_set){
     werase(text);
     wbkgd(text, COLOR_PAIR(2));
     wattron(text, A_BOLD); 
-    wprintw(text, "%s", (sides[0]>0)?currentFlashcard.definition[abs(sides[0])-1]: currentFlashcard.term);
+    mvwprintw(text, 0, 1, "%s", (sides[0]>0)?currentFlashcard.definition[abs(sides[0])-1]: currentFlashcard.term);
+    wattron(text,A_UNDERLINE);
+    mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : "definition");
+    if(sides[currentcard]<0){
+        wprintw(text, " %c",'0'+abs(sides[currentcard]));
+    }
+    wattroff(text,A_UNDERLINE);
     wrefresh(form_win);
 
     curs_set(1);
@@ -193,7 +199,13 @@ void type(FlashcardSet *flashcard_set){
                         printProgress(form_win, currentcard, question_count);
                         werase(text);
                         wbkgd(text, COLOR_PAIR(2));
-                        wprintw(text, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);
+                        mvwprintw(text, 0, 1, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);
+                        wattron(text,A_UNDERLINE);
+                        mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : "definition");
+                        if(sides[currentcard]<0){
+                            wprintw(text, " %c",'0'+abs(sides[currentcard]));
+                        }
+                        wattroff(text,A_UNDERLINE);
                         wrefresh(form_win);
                         break;
 
@@ -323,6 +335,12 @@ void type(FlashcardSet *flashcard_set){
                 werase(text);
                 wbkgd(text, COLOR_PAIR(2));
                 wprintw(text, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);
+                wattron(text,A_UNDERLINE);
+                mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : "definition");
+                if(sides[currentcard]<0){
+                    wprintw(text, " %c",'0'+abs(sides[currentcard]));
+                }
+                wattroff(text,A_UNDERLINE);
                 wrefresh(form_win);
                 break;
             case 27:

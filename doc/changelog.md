@@ -1,3 +1,8 @@
+## Version 0.2.1:
+- Added config options to change movement keys. you can now choose between "nvim", "arrow", and "ijkl". The option has been added to the settings menu
+- fixed issues with deleting terms
+- added an indicator to typing quizes to show which definition/term it wants
+
 ## Version 0.2:
 - BREAKING: new flashcard list file format (.list). Opening a list should automatically convert it to the new format.
 

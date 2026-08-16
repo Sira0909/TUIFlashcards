@@ -12,13 +12,16 @@
 //
 //
 
-char getModeKeybinds[10][2][20] = {
-    {"j","down"},
-    {"k","up"},
+char *getModeKeybinds[10][2] = {
+    {config.keylayout.str_dkey,"down"},
+    {config.keylayout.str_ukey,"up"},
+    {config.keylayout.str_rkey,"right"},
+    {config.keylayout.str_lkey,"left"},
     {" ", " "},
     {"<enter>", "toggle"},
     {" ", " "},
-    {"?", "list keybinds"}
+    {"?", "list keybinds"},
+    {" ", " "}
 };
 
 
@@ -84,63 +87,61 @@ void pickMode(char* list){
     int ch;
     while ((ch = getch())){
         
-        switch(ch){
-            case 'h': 
-                selectedx = (selectedx - 1);
-                if (selectedx < 0) selectedx = 2;
-                break;
-            case 'j':
-                selectedy = (selectedy - 1) % 3;
-                if (selectedy < 0) selectedy = 1;
-                break;
-            case 'k':
-                selectedy = (selectedy + 1) % 3;
-                if (selectedy > 1) selectedy = 0;
-                break;
-            case 'l':
-                selectedx = (selectedx + 1) % 3;
-                if (selectedx > 2) selectedx = 0;
-                break;
-            case 27:
-            case 'q':
-                erasewindow(mainPlayWindow);
-                deleteSetPointer(&flashcard_set);
-                return;
-            case 10:
-                {
+        if( ch == config.keylayout.lkey){ 
+            selectedx = (selectedx - 1);
+            if (selectedx < 0) selectedx = 2;
+        }
+        else if( ch == config.keylayout.dkey){
+            selectedy = (selectedy - 1);
+            if (selectedy < 0) selectedy = 1;
+        }
+        else if( ch == config.keylayout.ukey){
+            selectedy = (selectedy + 1);
+            if (selectedy > 1) selectedy = 0;
+        }
+        else if( ch == config.keylayout.rkey){
+            selectedx = (selectedx + 1);
+            if (selectedx > 2) selectedx = 0;
+        }
+        else if( ch == 27 || ch == 'q'){
+            erasewindow(mainPlayWindow);
+            deleteSetPointer(&flashcard_set);
+            return;
+        }
+        else if( ch == 10){
+            {
 
-                    //hide the menu
-                    WINDOW* coverWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
-                    wbkgd(coverWindow, COLOR_PAIR(1));
-                    wrefresh(coverWindow);
-                    //run the study meathod
-                    switch(selectedy*3+selectedx){
-                        case 0:
-                            flashcard(flashcard_set);
-                            break;
-                        case 1:
-                            multipleChoice(flashcard_set);
-                            break;
-                        case 2:
-                            type(flashcard_set);
-                            break;
-                        case 3: // unfinished, so hidden but accesible fortesting
-                            test(flashcard_set);
-                            break;
-                    }
-                    //save any changes in stars
-                    writeFlashcardSet(flashcard_set, ListPath,0);
-                    //uncover
-                    erasewindow(coverWindow);
-                    box(mainPlayWindow, 0, 0);
-                    wrefresh(mainPlayWindow);
-                    break;
+                //hide the menu
+                WINDOW* coverWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
+                wbkgd(coverWindow, COLOR_PAIR(1));
+                wrefresh(coverWindow);
+                //run the study meathod
+                switch(selectedy*3+selectedx){
+                    case 0:
+                        flashcard(flashcard_set);
+                        break;
+                    case 1:
+                        multipleChoice(flashcard_set);
+                        break;
+                    case 2:
+                        type(flashcard_set);
+                        break;
+                    case 3: // unfinished, so hidden but accesible fortesting
+                        test(flashcard_set);
+                        break;
                 }
-            case '?':
-                list_keybinds(7, getModeKeybinds);
+                //save any changes in stars
+                writeFlashcardSet(flashcard_set, ListPath,0);
+                //uncover
+                erasewindow(coverWindow);
                 box(mainPlayWindow, 0, 0);
                 wrefresh(mainPlayWindow);
-                break;
+            }
+        }
+        else if(ch == '?'){
+            list_keybinds(7, getModeKeybinds);
+            box(mainPlayWindow, 0, 0);
+            wrefresh(mainPlayWindow);
         }
         for(int i = 0; i < 2; i++){
             for(int j = 0; j < 3; j++){

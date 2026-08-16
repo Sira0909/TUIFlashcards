@@ -91,11 +91,11 @@ int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starr
     }
     return numCards;
 }
-char selectionkeybinds[11][2][20] = {
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
+char *selectionkeybinds[11][2] = {
+    {config.keylayout.str_lkey, "left"},
+    {config.keylayout.str_dkey,"down"},
+    {config.keylayout.str_ukey,"up"},
+    {config.keylayout.str_rkey,"right"},
     {"<enter>", "select list"},
     {" ", " "},
     {"a", "add list"},
@@ -219,8 +219,8 @@ char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
         selectmenu.selected = start_at;
         if (selectmenu.selected >= numfiles+numdirs) selectmenu.selected = numfiles+numdirs-1;
         
-        addHook_Menu(&selectmenu, (struct hook){'j', &menu_down});
-        addHook_Menu(&selectmenu, (struct hook){'k', &menu_up});
+        addHook_Menu(&selectmenu, (struct hook){config.keylayout.dkey, &menu_down});
+        addHook_Menu(&selectmenu, (struct hook){config.keylayout.ukey, &menu_up});
         addHook_Menu(&selectmenu, (struct hook){'q', &getLists_quit});
         addHook_Menu(&selectmenu, (struct hook){27,  &getLists_quit});
         addHook_Menu(&selectmenu, (struct hook){'d', &getLists_delete});
@@ -356,7 +356,7 @@ char* getLists(void (*to_call)(char*)) {
     return _getLists(0, config.flashcard_dir,to_call);
 }
 
-void list_keybinds(int numBinds, char (*keybinds)[2][20]){
+void list_keybinds(int numBinds, char *((*keybinds)[2])){
     WINDOW* helpwindow = create_newwin(numBinds+4, 32, (LINES-numBinds-2)/2, COLS/2 - 15);
     wbkgd(helpwindow, COLOR_PAIR(2));
     wattron(helpwindow, A_BOLD);
@@ -410,19 +410,15 @@ int getConfirmation(char *question, char* successmsg, char* failmsg){
     while (ch!= 10){
         wrefresh(confirmWindow);
         ch = getch();
-        switch(ch){
-            case 'j':
-            case 'l':
-                selection= false;
-                mvwchgat(confirmWindow,4,ctr+1,2,A_BOLD, 3,NULL);
-                mvwchgat(confirmWindow,4,ctr-4,3,A_NORMAL, 2,NULL);
-                break;
-            case 'k':
-            case 'h':
-                selection = true;
-                mvwchgat(confirmWindow,4,ctr-4,3,A_BOLD, 3,NULL);
-                mvwchgat(confirmWindow,4,ctr+1,2,A_NORMAL, 2,NULL);
-                break;
+        if(ch == config.keylayout.dkey|| config.keylayout.lkey){
+            selection= false;
+            mvwchgat(confirmWindow,4,ctr+1,2,A_BOLD, 3,NULL);
+            mvwchgat(confirmWindow,4,ctr-4,3,A_NORMAL, 2,NULL);
+        }
+        if(ch == config.keylayout.ukey|| config.keylayout.rkey){
+            selection = true;
+            mvwchgat(confirmWindow,4,ctr-4,3,A_BOLD, 3,NULL);
+            mvwchgat(confirmWindow,4,ctr+1,2,A_NORMAL, 2,NULL);
         }
     }
     if(selection&&successmsg!=NULL){

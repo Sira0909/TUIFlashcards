@@ -11,11 +11,11 @@
 #include <form.h>
 #include <sys/stat.h>
 
-char editkeybinds[15][2][20]= { 
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
+char *editkeybinds[15][2]= { 
+    {config.keylayout.str_lkey, "left"},
+    {config.keylayout.str_dkey,"down"},
+    {config.keylayout.str_ukey,"up"},
+    {config.keylayout.str_rkey,"right"},
     {"<enter>", "edit text"},
     {" ", " "},
     {"s", "star flashcard"},
@@ -110,12 +110,12 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
     wrefresh(edit_list_menu_window);
 
-    addHook_Table(&flashcardTable, (struct hook){'h', table_left });
-    addHook_Table(&flashcardTable, (struct hook){'j', table_down });
-    addHook_Table(&flashcardTable, (struct hook){'k', table_up });
-    addHook_Table(&flashcardTable, (struct hook){'l', table_right });
-    addHook_Table(&flashcardTable, (struct hook){'j', editor_update });
-    addHook_Table(&flashcardTable, (struct hook){'k', editor_update });
+    addHook_Table(&flashcardTable, (struct hook){config.keylayout.lkey, table_left });
+    addHook_Table(&flashcardTable, (struct hook){config.keylayout.dkey, table_down });
+    addHook_Table(&flashcardTable, (struct hook){config.keylayout.ukey, table_up });
+    addHook_Table(&flashcardTable, (struct hook){config.keylayout.rkey, table_right });
+    addHook_Table(&flashcardTable, (struct hook){config.keylayout.dkey, editor_update });
+    addHook_Table(&flashcardTable, (struct hook){config.keylayout.ukey, editor_update });
     addHook_Table(&flashcardTable, (struct hook){'s', editor_star });
     addHook_Table(&flashcardTable, (struct hook){10, editor_selectField });
     addHook_Table(&flashcardTable, (struct hook){'q', editor_quit });

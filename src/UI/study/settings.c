@@ -14,9 +14,9 @@
 
 
 
-char flashcard_settingskeybinds[10][2][20] = {
-    {"j","down"},
-    {"k","up"},
+char *flashcard_settingskeybinds[10][2] = {
+    {config.keylayout.str_dkey,"down"},
+    {config.keylayout.str_ukey,"up"},
     {" ", " "},
     {"<enter>", "toggle"},
     {" ", " "},
@@ -117,8 +117,8 @@ bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle
     flags[1] = *shuffle ? '*' : 0;
     items[1][19] = *shuffle ? '*' : ' ';
 
-    addHook_Menu(&setting_menu, (struct hook){'j', &menu_down});
-    addHook_Menu(&setting_menu, (struct hook){'k', &menu_up});
+    addHook_Menu(&setting_menu, (struct hook){config.keylayout.dkey, &menu_down});
+    addHook_Menu(&setting_menu, (struct hook){config.keylayout.ukey, &menu_up});
     addHook_Menu(&setting_menu, (struct hook){27, &study_settings_quit});
     addHook_Menu(&setting_menu, (struct hook){'q', &study_settings_quit});
     addHook_Menu(&setting_menu, (struct hook){'?', &study_settings_keybinds});

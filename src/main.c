@@ -22,18 +22,13 @@
 
 
 
-
-
-
 CONFIGSTRUCT config;
 
 
 
-char mainkeybinds[7][2][20] = {
-    {"h", "left"},
-    {"j","down"},
-    {"k","up"},
-    {"l","right"},
+char *(mainkeybinds[5][2]) = {
+    {config.keylayout.str_dkey,"down"},
+    {config.keylayout.str_ukey,"up"},
     {"<enter>", "select"},
     {" ", " "},
     {"?", "list keybinds"}
@@ -47,6 +42,7 @@ int main_menu_select(void * menu);
 int main_menu_keybinds(void* menu);
 
 int main(int argc, char *argv[]){
+    
 
     for(int i = 1; i < argc; i++){
         if(strcmp(argv[i],"--version")==0 || strcmp(argv[i],"-v")==0){
@@ -145,10 +141,9 @@ int main(int argc, char *argv[]){
     // init the menu
     init_Menu(&mainmenu, 8, 20, 8, &menu_window, "Let's Study!", NULL, items);
     
-
     // add commands to menu, see below and menu.c
-    addHook_Menu(&mainmenu, (struct hook){'j', &menu_down});
-    addHook_Menu(&mainmenu, (struct hook){'k', &menu_up});
+    addHook_Menu(&mainmenu, (struct hook){config.keylayout.dkey, &menu_down});
+    addHook_Menu(&mainmenu, (struct hook){config.keylayout.ukey, &menu_up});
     addHook_Menu(&mainmenu, (struct hook){'q', &main_menu_quit});
     addHook_Menu(&mainmenu, (struct hook){27,  &main_menu_quit});
     addHook_Menu(&mainmenu, (struct hook){10,  &main_menu_select});
@@ -190,6 +185,8 @@ int main_menu_select(void * menu){
             break;
         case 5:
             get_global_settings();
+            ((MENU*)menu)->hooks[0].trigger = config.keylayout.dkey;
+            ((MENU*)menu)->hooks[1].trigger = config.keylayout.ukey;
             break;
         case 6: // "Quit"
             return -1;
@@ -201,4 +198,4 @@ int main_menu_select(void * menu){
     return 1;
 }
 //display keybinds
-int main_menu_keybinds(void* menu){list_keybinds(7, mainkeybinds); return 1;}
+int main_menu_keybinds(void* menu){list_keybinds(5, mainkeybinds); return 1;}
