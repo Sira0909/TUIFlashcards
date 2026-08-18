@@ -17,3 +17,4 @@ A TUI program for studying flashcards, using the NCURSES library.
 
 <h1> DEPENDENCIES:</h1>
 - ncurses <br />
+- msys2 (windows only)

@@ -1,9 +1,4 @@
-#ifdef _WIN32
-#include <limits.h>
-#endif
-#ifndef _WIN32
-#include <linux/limits.h>
-#endif
+#include "const.h"
 #include <macros.h>
 #include <stdlib.h>
 #include <stdio.h>
