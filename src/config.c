@@ -1,11 +1,5 @@
-#include <limits.h>
+#include <const.h>
 
-#ifdef _WIN32
-#include <limits.h>
-#endif
-#ifndef _WIN32
-#include <linux/limits.h>
-#endif
 #include <macros.h>
 
 #include <string.h>

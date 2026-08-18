@@ -1,10 +1,5 @@
 
-#ifdef _WIN32
-#include <limits.h>
-#endif
-#ifndef _WIN32
-#include <linux/limits.h>
-#endif
+#include <const.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
