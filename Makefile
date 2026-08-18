@@ -8,9 +8,15 @@ EXTENTION=
 ifeq ($(OS),Windows_NT)
 	EXTENTION=.exe
 	CCFLAGS+= -I C:\msys64\ucrt64\include\ncurses
+else
+	UNAME := $(shell uname -s)
+	ifeq ($(UNAME),Darwin)
+		LDFLAGS += "-L/usr/local/opt/ncurses/lib"
+		CCFLAGS += "-I/usr/local/opt/ncurses/include"
+	endif
 endif
 TUIFlashcards: $(C_SOURCES) $(HEADERS)
-	$(CC) $(C_SOURCES) -I ./include/  -o $@ -g -lformw -lncursesw $(CCFLAGS)
+	$(CC) $(C_SOURCES) -I ./include/ $(LDFLAGS) $(CCFLAGS) -o $@ -g -lformw -lncursesw 
 
 install: TUIFlashcards
 	cp TUIFlashcards $(DESTDIR)
