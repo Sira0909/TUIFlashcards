@@ -60,7 +60,7 @@ void pickMode(char* list){
 
 
     char ListPath[PATH_MAX];
-    if(list[0] == '/' || list[0] == '~'){
+    if(list[0] == '/' || list[0] == '~' || ( (list[0]& ~32) == 'C' && list[1] == ':' && (list[2] == '/' || list[2]=='\\'))){
         strncpy(ListPath, list, PATH_MAX);
     }
     else{

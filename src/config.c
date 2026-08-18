@@ -1,5 +1,11 @@
 #include <limits.h>
+
+#ifdef _WIN32
+#include <limits.h>
+#endif
+#ifndef _WIN32
 #include <linux/limits.h>
+#endif
 #include <macros.h>
 
 #include <string.h>
@@ -15,10 +21,14 @@
 FILE* get_config_file(CONFIGSTRUCT *config){
     //get directory for config files
     char *config_DIR = (char *) calloc(PATH_MAX, sizeof(char));
-
+#ifndef _WIN32
     //start by checking $XDG_CONFIG_HOME environment var
     char *conf_home = getenv("XDG_CONFIG_HOME");
-
+#endif
+    //windows uses different env vars
+#ifdef _WIN32
+    char *conf_home = getenv("APPDATA");
+#endif
     //if $XDG_CONFIG_HOME has been set, set config_DIR to it.
     if(conf_home != NULL){
         strncpy(config_DIR,conf_home, PATH_MAX);
@@ -50,7 +60,7 @@ FILE* get_config_file(CONFIGSTRUCT *config){
     if(!(config_File = fopen(cFile, "r"))){
         FILE* writeconfig;
         if(!(writeconfig = fopen(cFile, "w"))){
-            if (mkdir(config_DIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
+            if (makedir(config_DIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
                 printf("error occurred while creating config directory. does ~/.config exist?");
                 free(config_DIR); 
                 exit(-1);

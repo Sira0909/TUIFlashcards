@@ -334,7 +334,7 @@ void type(FlashcardSet *flashcard_set){
                 printProgress(form_win, currentcard, question_count);
                 werase(text);
                 wbkgd(text, COLOR_PAIR(2));
-                wprintw(text, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);
+                mvwprintw(text, 0, 1, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);
                 wattron(text,A_UNDERLINE);
                 mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : "definition");
                 if(sides[currentcard]<0){

@@ -1,5 +1,9 @@
-
+#ifdef _WIN32
+#include <limits.h>
+#endif
+#ifndef _WIN32
 #include <linux/limits.h>
+#endif
 #include <macros.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -224,14 +228,17 @@ int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
             remove(filePath);
         }
         else{
+	    printf("failed to update list\n");
             return -1;
         }
+	printf("updated list format\n");
         strcat(filePath, ".list");
         
     }
     FILE *VocabFile = fopen(filePath, "r");
     
     if(VocabFile == NULL){
+	printf("Failed to open file (%s)\n",filePath);
         return -1;
     }
 
@@ -266,6 +273,7 @@ int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
         }
         bool starbool = (starred == 1) ? true : false;
         if(addcard(flashcard_set, term, defn, starbool) == -1){
+	    printf("failed to add card\n");
             return -1;
         }
     }
