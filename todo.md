@@ -7,3 +7,6 @@ stuff for version 0.3
 - spaced repetition stuff
 - test mode, as outlined in src/UI/study/test.c
     - figure out why the forms keep bugging
+- animations
+- create a config file and a default list on first build
+- consistant variable format
