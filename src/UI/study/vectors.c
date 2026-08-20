@@ -113,4 +113,6 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount){
     erasewindow(table_window);
     erasewindow(vector_window);
     free(vectorTable.hooks);
+    free(items[0]);
+    free(items[1]);
 }
