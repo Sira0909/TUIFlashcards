@@ -17,19 +17,6 @@
 #include <UI.h>
 #include <flashcards.h>
 
-char *selectionkeybinds[11][2] = {
-    {config.keylayout.str_lkey, "left"},
-    {config.keylayout.str_dkey,"down"},
-    {config.keylayout.str_ukey,"up"},
-    {config.keylayout.str_rkey,"right"},
-    {"<enter>", "select list"},
-    {" ", " "},
-    {"a", "add list"},
-    {"d", "delete list"},
-    {"f", "create folder"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
 
 struct GetListMenuMetadata {
     char* directory;
@@ -41,15 +28,64 @@ struct GetListMenuMetadata {
 #define Metadata ((struct GetListMenuMetadata*)(((MENU*)menu)->metadata))
 
 static char* _getLists(int start_at, char* directory, void (*to_call)(char*));
-static int getLists_keybinds(void* menu);
 static int getLists_quit(void* menu);
 static int getLists_delete(void* menu);
 static int getLists_addlist(void* menu);
 static int getLists_createfolder(void* menu);
 static int getLists_select(void* menu);
 
+struct entries{
+    int numfiles;
+    int numdirs;
+    char (*entries)[128];
+    char (*highlight);
+};
+struct entries getEntries(char* dir);
 char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
+    struct entries entries = getEntries(dir);
+    if(entries.numdirs != -1){
 
+        MENU selectmenu;
+
+
+        // create window for menu. this menu object is defined globally, see above
+        WINDOW* select_menu_window = create_newwin(LINES-5, 34, 3, (COLS - 32)/2);
+
+        // init the menu
+        init_Menu(&selectmenu, entries.numfiles+entries.numdirs, 32,LINES-8, &select_menu_window, "select list", entries.highlight, entries.entries);
+        struct GetListMenuMetadata metadata= {dir, entries.numdirs, entries.entries, to_call, NULL};
+        selectmenu.metadata = &metadata;
+        wrefresh(selectmenu.window);
+
+        selectmenu.selected = start_at;
+        if (selectmenu.selected >= entries.numfiles+entries.numdirs) selectmenu.selected = entries.numfiles+entries.numdirs-1;
+        
+
+
+        bind_keys(selectionkeybinds, render_Menu, 11)
+            {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
+            {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
+            {10, "<enter>", "select list", getLists_select},
+            {-1, " ", " ",NULL},
+            {'a', "a", "add list", &getLists_addlist},
+            {'d', "d", "delete list", &getLists_delete},
+            {'f', "f", "create folder", &getLists_createfolder},
+            {27, " ", " ", getLists_quit}, //escape
+            {'q', "q / <esc>", "quit", getLists_quit},
+            {-1, "?", "list keybinds", NULL}
+        };
+        
+        run(&selectmenu, selectionkeybinds);
+    
+        free(entries.entries);
+        free(entries.highlight);
+
+        return metadata.pickedList;
+    }
+    return NULL;
+
+}
+struct entries getEntries(char* dir){
     DIR *dp;
 
     struct dirent *entry;
@@ -84,7 +120,7 @@ char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
     //make sure at least one. if not, prompt to create
     if(numfiles == 0){
         addList(dir);
-        return NULL;
+        return (struct entries){-1, -1, NULL, NULL};
     }
     else{
         char (*entries)[128] = calloc(numdirs+numfiles, sizeof(char[128]));
@@ -125,50 +161,12 @@ char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
         }
 
         closedir(dp);
-
-        // now select between them
-
-
-
-        MENU selectmenu;
-
-
-        // create window for menu. this menu object is defined globally, see above
-        WINDOW* select_menu_window = create_newwin(LINES-5, 34, 3, (COLS - 32)/2);
-
-        // init the menu
-        init_Menu(&selectmenu, numfiles+numdirs, 32,LINES-8, &select_menu_window, "select list", highlight, entries);
-        struct GetListMenuMetadata metadata= {dir, numdirs, entries, to_call, NULL};
-        selectmenu.metadata = &metadata;
-        wrefresh(selectmenu.window);
-
-        selectmenu.selected = start_at;
-        if (selectmenu.selected >= numfiles+numdirs) selectmenu.selected = numfiles+numdirs-1;
-        
-        addHook_Menu(&selectmenu, (struct hook){config.keylayout.dkey, &menu_down});
-        addHook_Menu(&selectmenu, (struct hook){config.keylayout.ukey, &menu_up});
-        addHook_Menu(&selectmenu, (struct hook){'q', &getLists_quit});
-        addHook_Menu(&selectmenu, (struct hook){27,  &getLists_quit});
-        addHook_Menu(&selectmenu, (struct hook){'d', &getLists_delete});
-        addHook_Menu(&selectmenu, (struct hook){'a', &getLists_addlist});
-        addHook_Menu(&selectmenu, (struct hook){'f', &getLists_createfolder});
-        addHook_Menu(&selectmenu, (struct hook){10, &getLists_select});
-        addHook_Menu(&selectmenu, (struct hook){'?', &getLists_keybinds});
-        run_Menu(&selectmenu);
-        free(selectmenu.hooks);
-        free(highlight);
-
-        return metadata.pickedList;
+        return (struct entries){numfiles, numdirs, entries, highlight};
     }
-    return NULL;
-
-}
-int getLists_keybinds(void* menu){
-    list_keybinds(11, selectionkeybinds);                       return 1;
 }
 
 int getLists_quit(void* menu){
-        free(Metadata->files);
+        //free(Metadata->files);
         erasewindow(((MENU*)menu)->window);
         ((MENU*)menu)->window= NULL;
         return -1;
@@ -211,6 +209,7 @@ int getLists_delete(void* menu){
             }
         }
         wrefresh(((MENU*)menu)->window);
+        mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
         return 1;   
 }
 int getLists_addlist(void* menu){
@@ -231,15 +230,15 @@ int getLists_createfolder(void* menu){
 }
 int getLists_select(void* menu){
         if(((MENU*)menu)->selected<Metadata->numdirs){
-            char dir[PATH_MAX];
-            strncpy(dir, Metadata->directory, PATH_MAX);
-            strcat(dir, "/");
-            strcat(dir, Metadata->files[((MENU*)menu)->selected]);
+            char newdir[PATH_MAX];
+            strncpy(newdir, Metadata->directory, PATH_MAX);
+            strcat(newdir, Metadata->files[((MENU*)menu)->selected]);
+            strcat(newdir, "/");
             
             wbkgd(((MENU*)menu)->window, COLOR_PAIR(8));
             werase(((MENU*)menu)->window);
             wrefresh(((MENU*)menu)->window);
-            Metadata->pickedList = _getLists(0, dir,Metadata->call);
+            Metadata->pickedList = _getLists(0, newdir,Metadata->call);
             wbkgd(((MENU*)menu)->window, COLOR_PAIR(2));
 
             if (Metadata->pickedList!=NULL){

@@ -1,3 +1,7 @@
+## Version 0.2.2:
+- cleaned up codebase a bit
+- Bug fixes
+
 ## Version 0.2.1:
 - Added config options to change movement keys. you can now choose between "nvim", "arrow", and "ijkl". The option has been added to the settings menu
 - fixed issues with deleting terms

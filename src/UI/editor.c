@@ -11,23 +11,6 @@
 #include <form.h>
 #include <sys/stat.h>
 
-char *editkeybinds[15][2]= { 
-    {config.keylayout.str_lkey, "left"},
-    {config.keylayout.str_dkey,"down"},
-    {config.keylayout.str_ukey,"up"},
-    {config.keylayout.str_rkey,"right"},
-    {"<enter>", "edit text"},
-    {" ", " "},
-    {"s", "star flashcard"},
-    {"a", "add flashcard"},
-    {"A", "add new definitions"},
-    {"d", "delete flashcard"},
-    {"D", "remove definitions"},
-    {" ", " "},
-    {"w", "save"},
-    {"q", "quit without save"},
-    {"?", "list keybinds"}
-};
 
 // set and unset every time the main editor function is run
 struct EditorMetadata {
@@ -50,59 +33,65 @@ int editor_writeSet(void* table);
 int editor_quit(void* table);
 int editor_showkeybinds(void* table);
 int editor_removeDefinition(void* table);
-void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
-    int columns = flashcardset->num_columns;
 
-    if (columns<2) return;
+
+TABLE editor_setup(FlashcardSet* flashcardset, struct EditorMetadata metadata, WINDOW** edit_list_menu_window){
+    int columns = flashcardset->num_columns;
 
     TABLE flashcardTable;
 
     int height = min(51, LINES - 5); // this way always big enough
-    int width = 21*columns-1;
-    WINDOW* edit_list_menu_window = create_newwin(height+2, width+2, (LINES - height)/2-1, (COLS - width)/2);
-    WINDOW* tablewindow = derwin(edit_list_menu_window, height, width, 1, 1);
-
-    char (*items)[128] = calloc(metadata.flashcardset->capacity, sizeof(char[128]));
-
-    char (*(defns[columns-1]))[128]; 
-    for(int i = 0 ; i < columns-1;i++){
-        defns[i]=calloc(metadata.flashcardset->capacity, sizeof(char[128]));
-    }
-
+    int width = 23*columns-1;
+    *edit_list_menu_window = create_newwin(height+2, width+2, (LINES - height)/2-1, (COLS - width)/2);
+    WINDOW* tablewindow = derwin(*edit_list_menu_window, height, width, 1, 1);
+    char (**table)[128] = calloc(columns,sizeof(char*));
     char (*starred) = calloc(metadata.flashcardset->capacity, sizeof(char));
+    char (*headers)[128] = calloc(columns,sizeof(char[128]));
 
-    getpairslimiter(metadata.flashcardset, starred, items, defns[0],0);
-    for(int i = 1; i < columns-1; i++){
-        getDefinitionList(metadata.flashcardset, i, defns[i]);
-    }
-
-    char (*(table[columns]))[128];
-    table[0]=items;
-    for(int i = 1; i < columns; i++){
-        table[i]=defns[i-1];
-    }
     
 
-    char headers[columns][128];
+
+    for(int i = 0 ; i < columns;i++){
+        table[i]=calloc(metadata.flashcardset->capacity, sizeof(char[128]));
+    }
+
+
+    getpairslimiter(metadata.flashcardset, starred, table[0], table[1],0);
+    for(int i = 1; i < columns-1; i++){
+        getDefinitionList(metadata.flashcardset, i, table[i+1]);
+        
+    }
+
+    
+
     strcpy(headers[0],"term");
     for(int i = 1; i < columns; i++){
         //TODO: support for definition names
-        char str[20];//just in case someone wants 4,000,000,000 definitions for some reason. gotta support that /sarcasm
+        char str[22];//just in case someone wants 4,000,000,000 definitions for some reason. gotta support that /sarcasm
         sprintf(str, "definition %d", i);
         strcpy(headers[i],str);
     }
+    init_Table(&flashcardTable, max(1,metadata.flashcardset->num_items), columns,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
 
-    wbkgd(edit_list_menu_window, COLOR_PAIR(2));
-    box(edit_list_menu_window, 0, 0);
+    wbkgd(*edit_list_menu_window, COLOR_PAIR(2));
+    box(*edit_list_menu_window, 0, 0);
 
-    wrefresh(edit_list_menu_window);
+    wrefresh(*edit_list_menu_window);
     // init the menu
-    init_Table(&flashcardTable, metadata.flashcardset->num_items, columns,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
-    flashcardTable.metadata=&metadata;
     wrefresh(flashcardTable.window);
+    return flashcardTable;
+
+}
+void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
+
+    if (flashcardset->num_columns<2) return;
+    
+    WINDOW* edit_list_menu_window;
+    TABLE flashcardTable = editor_setup(flashcardset, metadata, &edit_list_menu_window);
+    flashcardTable.metadata=&metadata;
     
 
-    render_Table(&flashcardTable, starred) ;
+    render_Table(&flashcardTable);
     box(edit_list_menu_window, 0, 0);
     printProgress(edit_list_menu_window, 0, flashcardset->num_items);
 
@@ -110,30 +99,33 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
     wrefresh(edit_list_menu_window);
 
-    addHook_Table(&flashcardTable, (struct hook){config.keylayout.lkey, table_left });
-    addHook_Table(&flashcardTable, (struct hook){config.keylayout.dkey, table_down });
-    addHook_Table(&flashcardTable, (struct hook){config.keylayout.ukey, table_up });
-    addHook_Table(&flashcardTable, (struct hook){config.keylayout.rkey, table_right });
-    addHook_Table(&flashcardTable, (struct hook){config.keylayout.dkey, editor_update });
-    addHook_Table(&flashcardTable, (struct hook){config.keylayout.ukey, editor_update });
-    addHook_Table(&flashcardTable, (struct hook){'s', editor_star });
-    addHook_Table(&flashcardTable, (struct hook){10, editor_selectField });
-    addHook_Table(&flashcardTable, (struct hook){'q', editor_quit });
-    addHook_Table(&flashcardTable, (struct hook){27,  editor_quit });
-    addHook_Table(&flashcardTable, (struct hook){'?',  editor_showkeybinds });
-    addHook_Table(&flashcardTable, (struct hook){'a',  editor_addCard });
-    addHook_Table(&flashcardTable, (struct hook){'A',  editor_addDefinition });
-    addHook_Table(&flashcardTable, (struct hook){'d',  editor_deleteCard });
-    addHook_Table(&flashcardTable, (struct hook){'D',  editor_removeDefinition });
-    addHook_Table(&flashcardTable, (struct hook){'w',  editor_writeSet });
+    bind_keys(editkeybinds, render_Table, 16) 
+        {config.keylayout.lkey, config.keylayout.str_lkey, "left",&table_left},
+        {config.keylayout.dkey, config.keylayout.str_dkey,"down",&table_down},
+        {config.keylayout.ukey, config.keylayout.str_ukey,"up", &table_up},
+        {config.keylayout.rkey, config.keylayout.str_rkey,"right", &table_right},
+        {10, "<enter>", "edit text", &editor_selectField},
+        {config.keylayout.dkey, " ", " ", &editor_update},
+        {'s', "s", "star flashcard",&editor_star},
+        {'a', "a", "add flashcard", &editor_addCard},
+        {'A', "A", "add new definitions",&editor_addDefinition},
+        {'d', "d", "delete flashcard",&editor_deleteCard},
+        {'D', "D", "remove definitions",&editor_removeDefinition},
+        {config.keylayout.ukey, " ", " ", &editor_update},
+        {'w', "w", "save", &editor_writeSet},
+        {'q', "q", "quit without save", &editor_quit},
+        {27, "?", "list keybinds", &editor_quit}
+    };
 
-    run_Table(&flashcardTable);
 
-    free(flashcardTable.hooks);
+    run(&flashcardTable,editkeybinds);
+
     for(int i=0; i<flashcardTable.num_cols;i++){
             free(flashcardTable.table_data[i]);
     }
+    free(flashcardTable.table_data);
     free(flashcardTable.highlighted);
+    free(flashcardTable.headers);
     //cleanup
     erasewindow(flashcardTable.window);
     erasewindow(edit_list_menu_window);
@@ -348,10 +340,6 @@ int editor_quit(void* table){
                 }
                 return 1;
 }
-int editor_showkeybinds(void* table){
-                list_keybinds(15, editkeybinds);
-                return 1;
-}
 
 // Add new flashcard list
 void addList(char* dir){
@@ -384,6 +372,9 @@ void addList(char* dir){
     }
     if(create==1){return;}
     
+    if(strcmp(file+strlen(file)-6,".list")&&strlen(file)+5<PATH_MAX){
+        strcat(file, ".list"); 
+    }
     strcat(newfile, trim_whitespaces(file));
     if(create==2){
         for(int i = strlen(dir)+1;i<strnlen(newfile,PATH_MAX);i++){

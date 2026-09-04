@@ -1,6 +1,7 @@
+# Maintainer: Sira0909 <sira6060@proton.me>
 license=('0BSD')
 pkgname=tuiflashcards-git
-pkgdesc='ncurses based flashcard application' 
+pkgdesc='A ncurses based flashcard application' 
 makedepends=('git' ncurses)
 provides=("${pkgname%-git}")
 conflicts=("${pkgname%-git}")
@@ -8,7 +9,7 @@ url="https://github.com/Sira0909/TUIFlashcards"
 source=("${pkgname%-git}::git+https://github.com/Sira0909/TUIFlashcards.git")
 arch=('x86_64')
 sha256sums=('SKIP')
-pkgver=0.2
+pkgver=0.2.1
 pkgrel=1
 
 

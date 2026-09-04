@@ -11,27 +11,6 @@
 
 
 
-void list_keybinds(int numBinds, char *((*keybinds)[2])){
-    WINDOW* helpwindow = create_newwin(numBinds+4, 32, (LINES-numBinds-2)/2, COLS/2 - 15);
-    wbkgd(helpwindow, COLOR_PAIR(2));
-    wattron(helpwindow, A_BOLD);
-
-    box(helpwindow, 0, 0);
-
-
-    mvwprintw(helpwindow, 1, 1, "keybinds:");
-
-    for(int i = 0; i<numBinds; i++){
-        mvwprintw(helpwindow, 3+i, 1, "%s", keybinds[i][0]);
-        
-        mvwprintw(helpwindow, 3+i, 31-strnlen(keybinds[i][1],20), "%s", keybinds[i][1]);
-    }
-
-    wrefresh(helpwindow);
-    getch();
-    erasewindow(helpwindow);
-
-}
 
 void showmsg(char* msg){
     int mlen = strnlen(msg, 128);
@@ -63,17 +42,22 @@ int getConfirmation(char *question, char* successmsg, char* failmsg){
     int ch=0;
     bool selection = true;
     while (ch!= 10){
+        touchwin(confirmWindow);
         wrefresh(confirmWindow);
         ch = getch();
-        if(ch == config.keylayout.dkey|| config.keylayout.lkey){
+        if(ch == config.keylayout.dkey|| ch ==config.keylayout.lkey){
             selection= false;
-            mvwchgat(confirmWindow,4,ctr+1,2,A_BOLD, 3,NULL);
             mvwchgat(confirmWindow,4,ctr-4,3,A_NORMAL, 2,NULL);
+            mvwchgat(confirmWindow,4,ctr+1,2,A_BOLD, 3,NULL);
         }
-        if(ch == config.keylayout.ukey|| config.keylayout.rkey){
+        if(ch == config.keylayout.ukey|| ch ==config.keylayout.rkey){
             selection = true;
             mvwchgat(confirmWindow,4,ctr-4,3,A_BOLD, 3,NULL);
             mvwchgat(confirmWindow,4,ctr+1,2,A_NORMAL, 2,NULL);
+        }
+        if(ch == 'q' ||ch == 27){
+            selection = false;
+            break;
         }
     }
     if(selection&&successmsg!=NULL){

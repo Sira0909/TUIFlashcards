@@ -158,12 +158,16 @@ void fill_defaults(CONFIGSTRUCT *config){
 
     char cardDir[PATH_MAX];
     strcpy(cardDir,config->config_dir);
-    strcat(cardDir, "/Lists");
+    strcat(cardDir, "/Lists/");
     strcpy(config->flashcard_dir, cardDir);
     config->showKeybindsHelp = 1;
     config->autoaccent = 1;
 }
-#define LINE_MAX_SIZE 128
+#define LINE_MAX_SIZE 256 
+#if LINE_MAX_SIZE>PATH_MAX //im too tired to use strncpy
+#undef LINE_MAX_SIZE
+#define LINE_MAX_SIZE PATH_MAX+15 //sizeof("flashcard_dir: "-'\0')
+#endif
 int get_config_struct(CONFIGSTRUCT *config){
     FILE *config_File = get_config_file(config);
     fill_defaults(config);
@@ -192,6 +196,9 @@ int get_config_struct(CONFIGSTRUCT *config){
                 setting[i]='\0';
                 if(strcmp(trimmedsetting, "flashcard_dir")==0){
                     strcpy(config->flashcard_dir,line+i+2);
+                    if(config->flashcard_dir[strlen(config->flashcard_dir)-1]!='/'){
+                        strcat(config->flashcard_dir, "/");
+                    }
                 }
                 else if(strcmp(trimmedsetting, "show_keybinds_help")==0){
                     if(line[i+2]=='1')
@@ -299,6 +306,7 @@ int writeconfig(){
     fprintf(conf, "\nkeyboard_layout: %s", layout);
     fprintf(conf, "\nshow_keybinds_help: %d", config.showKeybindsHelp);
     fprintf(conf, "\nauto_accent: %d", config.autoaccent);
+    fclose(conf);
 
     return 1;
 }

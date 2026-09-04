@@ -1,4 +1,3 @@
-#include <stdlib.h>
 
 #include <macros.h>
 #include <flashcards.h>
@@ -16,22 +15,13 @@
 
 
 
-char *(mainkeybinds[5][2]) = {
-    {config.keylayout.str_dkey,"down"},
-    {config.keylayout.str_ukey,"up"},
-    {"<enter>", "select"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
-
 WINDOW* keybindHelp;
 
 
-int main_menu_quit(void* menu);
 int main_menu_select(void * menu);
 int main_menu_keybinds(void* menu);
 
-void main_menu(CONFIGSTRUCT config){
+void main_menu(){
     // keybind helper window
     if(config.showKeybindsHelp){
         keybindHelp = create_newwin(3, 18, LINES-4, (COLS-18)/2);
@@ -42,6 +32,14 @@ void main_menu(CONFIGSTRUCT config){
     }
 
 
+    bind_keys(mainkeybinds, render_Menu, 7)
+        {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
+        {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
+        {10, "<enter>", "select", &main_menu_select},
+        {27, "", "", &quit},
+        {'q', "q", "quit", &quit},
+        {-1, "?", "List Keybinds", NULL}
+    };
 
 
     // create MENU object for main menu (see MENU.c, MENU.h)
@@ -55,19 +53,16 @@ void main_menu(CONFIGSTRUCT config){
 
     // init the menu
     init_Menu(&mainmenu, 8, 20, 8, &menu_window, "Let's Study!", NULL, items);
-    
-    // add commands to menu, see below and menu.c
-    addHook_Menu(&mainmenu, (struct hook){config.keylayout.dkey, &menu_down});
-    addHook_Menu(&mainmenu, (struct hook){config.keylayout.ukey, &menu_up});
-    addHook_Menu(&mainmenu, (struct hook){'q', &main_menu_quit});
-    addHook_Menu(&mainmenu, (struct hook){27,  &main_menu_quit});
-    addHook_Menu(&mainmenu, (struct hook){10,  &main_menu_select});
-    addHook_Menu(&mainmenu, (struct hook){'?', &main_menu_keybinds});
 
-
-    // run
-    run_Menu(&mainmenu);
-    free(mainmenu.hooks);
+    //this is to allow get_settings to rebind keybinds
+    int rerun = 2; 
+    while(rerun == 2){
+        rerun = run(&mainmenu,mainkeybinds);
+        if(rerun==2){
+            mainkeybinds[1].keycode =config.keylayout.dkey;
+            mainkeybinds[2].keycode =config.keylayout.ukey;
+        }
+    }
     
     
     // clean up
@@ -75,8 +70,6 @@ void main_menu(CONFIGSTRUCT config){
 
 }
 
-// when quit
-int main_menu_quit(void* menu){return -1;}
 
 // select option
 int main_menu_select(void * menu){
@@ -95,8 +88,7 @@ int main_menu_select(void * menu){
             break;
         case 5:
             get_global_settings();
-            ((MENU*)menu)->hooks[0].trigger = config.keylayout.dkey;
-            ((MENU*)menu)->hooks[1].trigger = config.keylayout.ukey;
+            return 2;//tells main to rerun run and update keybinds
             break;
         case 6: // "Quit"
             return -1;
@@ -107,5 +99,3 @@ int main_menu_select(void * menu){
     }
     return 1;
 }
-//display keybinds
-int main_menu_keybinds(void* menu){list_keybinds(5, mainkeybinds); return 1;}

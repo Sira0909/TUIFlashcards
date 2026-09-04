@@ -1,3 +1,4 @@
+//this quiz is excepted from using run() because ? is required for smth else and I don't want to deal with that :(
 #include <string.h>
 #include <study.h>
 

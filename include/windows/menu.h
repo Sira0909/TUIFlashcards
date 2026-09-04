@@ -14,18 +14,15 @@ typedef struct _menu_struct{
     char *highlighted;
     int hookcount;
     int maxhooks;
-    struct hook *hooks;
     void* metadata;
 } MENU;
 
 void init_Menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char* highlighted, char (*menuitems)[]);
 
-void addHook_Menu(MENU *p_menu, struct hook hook);
 
-void run_Menu(MENU* p_menu);
 
 // draws menu
-void render_Menu(MENU *p_menu, char* highlighted);
+int render_Menu(void *menu);
 
 // changes selected item
 void changeselect_Menu(MENU *p_menu, int change);

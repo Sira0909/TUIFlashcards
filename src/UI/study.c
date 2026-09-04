@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <time.h>
 
 #include <flashcards.h>
 #include <study.h>
@@ -15,21 +14,74 @@
 //
 //
 
-char *getModeKeybinds[10][2] = {
-    {config.keylayout.str_dkey,"down"},
-    {config.keylayout.str_ukey,"up"},
-    {config.keylayout.str_rkey,"right"},
-    {config.keylayout.str_lkey,"left"},
-    {" ", " "},
-    {"<enter>", "toggle"},
-    {" ", " "},
-    {"?", "list keybinds"},
-    {" ", " "}
+struct modeMetadata {
+    int selectedx;
+    int selectedy;
+    WINDOW* mainPlayWindow;
+    WINDOW *games[2][3];
+    FlashcardSet* flashcard_set;
+    char ListPath[PATH_MAX];
 };
+#define Metadata ((struct modeMetadata*)(metadata))
+
+int render_Mode(void* metadata);
+struct modeMetadata Mode_setup(char* list);
+int fill(struct modeMetadata metadata);
+int Mode_down(void* window);
+int Mode_up(void* window);
+int Mode_left(void* window);
+int Mode_right(void* window);
+int Mode_select(void* window);
+
 
 
 //TODO: add more modes
 void pickMode(char* list){
+    bind_keys(getModeKeybinds, render_Mode, 10)
+        {config.keylayout.dkey, config.keylayout.str_dkey,"down", &Mode_down},
+        {config.keylayout.ukey, config.keylayout.str_ukey,"up", &Mode_up},
+        {config.keylayout.rkey, config.keylayout.str_rkey,"right", &Mode_right},
+        {config.keylayout.lkey, config.keylayout.str_lkey,"left", &Mode_left},
+        {27, " ", " ", &quit},
+        {10, "<enter>", "toggle", &Mode_select},
+        {'q',"q / <esc>", "quit", &quit},
+        {-1, " ", " ", NULL},
+        {-1, "?", "list keybinds", NULL},
+    };
+    struct modeMetadata metadata =Mode_setup(list);
+    if (-1 == fill(metadata)) {
+        deleteSetPointer(&metadata.flashcard_set);
+        return ;
+    }
+
+
+    run(&metadata, getModeKeybinds);
+    erasewindow(metadata.mainPlayWindow);
+    deleteSetPointer(&metadata.flashcard_set);
+}
+
+
+
+
+
+
+int render_Mode(void* metadata){
+        //correct which is selected
+        for(int i = 0; i < 2; i++){
+            for(int j = 0; j < 3; j++){
+                if(i == Metadata->selectedy && j == Metadata->selectedx){
+                    wbkgd(Metadata->games[i][j], COLOR_PAIR(3));
+                } else
+                    wbkgd(Metadata->games[i][j], COLOR_PAIR(2));
+                wrefresh(Metadata->games[i][j]);
+            }
+        }
+        
+        wrefresh(Metadata->mainPlayWindow);
+        return 1;
+}
+struct modeMetadata Mode_setup(char* list){
+
     WINDOW* mainPlayWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
     wbkgd(mainPlayWindow, COLOR_PAIR(2));
     box(mainPlayWindow, 0, 0);
@@ -41,126 +93,96 @@ void pickMode(char* list){
     WINDOW* bottom = derwin(mainPlayWindow, 9, 23, 10, 26);
     WINDOW* bottomright = derwin(mainPlayWindow, 9, 23, 10, 50);
 
+    FlashcardSet* flashcard_set = create_Flashcard_Set_Object();
+    struct modeMetadata ret =  (struct modeMetadata) {0, 0, mainPlayWindow, { {topleft, top, topright}, {bottomleft, bottom, bottomright} }, flashcard_set, {}};
+
     wbkgd(topleft, COLOR_PAIR(3));
+    for(int i = 0; i < 2; i++){
+        for(int j = 0; j < 3; j++){
+            box(ret.games[i][j], 0, 0);
+            wattron(ret.games[i][j], A_BOLD);
+        }
+    }
 
-    box(topleft, 0, 0);
-    box(top, 0, 0);
-    box(topright, 0, 0);
-    box(bottomleft, 0, 0);
-    box(bottom, 0, 0);
-    box(bottomright, 0, 0);
-
-    wattron(topleft, A_BOLD);
-    wattron(top, A_BOLD);
-    wattron(topright, A_BOLD);
-    wattron(bottomleft, A_BOLD);
-    wattron(bottom, A_BOLD);
-    wattron(bottomright, A_BOLD);
 
     mvwprintw(topleft, 4, (23- 10)/2, "Flashcards" );
     mvwprintw(top, 4, (23 - 15)/2, "Multiple Choice" );
     mvwprintw(topright, 4, (23 - 4)/2, "Type" );
 
 
-    char ListPath[PATH_MAX];
+    
+    
+
     if(list[0] == '/' || list[0] == '~' || ( (list[0]& ~32) == 'C' && list[1] == ':' && (list[2] == '/' || list[2]=='\\'))){
-        strncpy(ListPath, list, PATH_MAX);
+        strncpy(ret.ListPath, list, PATH_MAX);
     }
     else{
-        strcpy(ListPath, config.flashcard_dir);
-        strncat(ListPath, list, PATH_MAX-strnlen(config.flashcard_dir, 128));
-    }
-    
-    FlashcardSet* flashcard_set = create_Flashcard_Set_Object();
-    
-    if (-1 == fillFlashcardSet(flashcard_set, ListPath)) {
-        deleteSetPointer(&flashcard_set);
-        return;
+        strcpy(ret.ListPath, config.flashcard_dir);
+        strncat(ret.ListPath, list, PATH_MAX-strnlen(config.flashcard_dir, 128));
     }
 
 
     wattron(topleft, A_BOLD);
     wrefresh(mainPlayWindow);
+    
+    return ret;
 
-    int selectedx = 0;
-    int selectedy = 0;
+}
+int fill(struct modeMetadata metadata){
+    return fillFlashcardSet(metadata.flashcard_set, metadata.ListPath);
+}
 
-    WINDOW *games[2][3] = { {topleft, top, topright}, {bottomleft, bottom, bottomright} };
 
-    int ch;
-    while ((ch = getch())){
-        
-        if( ch == config.keylayout.lkey){ 
-            selectedx = (selectedx - 1);
-            if (selectedx < 0) selectedx = 2;
-        }
-        else if( ch == config.keylayout.dkey){
-            selectedy = (selectedy - 1);
-            if (selectedy < 0) selectedy = 1;
-        }
-        else if( ch == config.keylayout.ukey){
-            selectedy = (selectedy + 1);
-            if (selectedy > 1) selectedy = 0;
-        }
-        else if( ch == config.keylayout.rkey){
-            selectedx = (selectedx + 1);
-            if (selectedx > 2) selectedx = 0;
-        }
-        else if( ch == 27 || ch == 'q'){
-            erasewindow(mainPlayWindow);
-            deleteSetPointer(&flashcard_set);
-            return;
-        }
-        else if( ch == 10){
-            {
+int Mode_down(void* metadata){
+    
+    Metadata->selectedy = (Metadata->selectedy - 1);
+    if (Metadata->selectedy < 0) Metadata->selectedy = 1;
+    return 1;
+}
+int Mode_up(void* metadata){
+    Metadata->selectedy = (Metadata->selectedy + 1);
+    if (Metadata->selectedy > 1) Metadata->selectedy = 0;
+    return 1;
 
-                //hide the menu
-                WINDOW* coverWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
-                wbkgd(coverWindow, COLOR_PAIR(1));
-                wrefresh(coverWindow);
-                //run the study meathod
-                switch(selectedy*3+selectedx){
-                    case 0:
-                        flashcard(flashcard_set);
-                        break;
-                    case 1:
-                        multipleChoice(flashcard_set);
-                        break;
-                    case 2:
-                        type(flashcard_set);
-                        break;
-                    case 3: // unfinished, so hidden but accesible fortesting
-                        test(flashcard_set);
-                        break;
-                }
-                //save any changes in stars
-                writeFlashcardSet(flashcard_set, ListPath,0);
-                //uncover
-                erasewindow(coverWindow);
-                box(mainPlayWindow, 0, 0);
-                wrefresh(mainPlayWindow);
-            }
-        }
-        else if(ch == '?'){
-            list_keybinds(7, getModeKeybinds);
-            box(mainPlayWindow, 0, 0);
-            wrefresh(mainPlayWindow);
-        }
-        for(int i = 0; i < 2; i++){
-            for(int j = 0; j < 3; j++){
-                if(i == selectedy && j == selectedx){
-                    wbkgd(games[i][j], COLOR_PAIR(3));
-                } else
-                    wbkgd(games[i][j], COLOR_PAIR(2));
-                wrefresh(games[i][j]);
-            }
-        }
-        
-        wrefresh(mainPlayWindow);
+}
+int Mode_left(void* metadata){
+    Metadata->selectedx = (Metadata->selectedx - 1);
+    if (Metadata->selectedx < 0) Metadata->selectedx = 2;
+    return 1;
+}
+int Mode_right(void* metadata){
+    Metadata->selectedx = (Metadata->selectedx + 1);
+    if (Metadata->selectedx > 2) Metadata->selectedx = 0;
+    return 1;
+}
+
+int Mode_select(void* metadata){
+    //hide the menu
+    WINDOW* coverWindow = create_newwin(20, 75, (LINES-23)/2, (COLS-74)/2);
+    wbkgd(coverWindow, COLOR_PAIR(1));
+    wrefresh(coverWindow);
+    //run the study meathod
+    switch(Metadata->selectedy*3+Metadata->selectedx){
+        case 0:
+            flashcard(Metadata->flashcard_set);
+            break;
+        case 1:
+            multipleChoice(Metadata->flashcard_set);
+            break;
+        case 2:
+            type(Metadata->flashcard_set);
+            break;
+        case 3: // unfinished, so hidden but accesible for testing
+            test(Metadata->flashcard_set);
+            break;
     }
-    getch();
-    erasewindow(mainPlayWindow);
-    deleteSetPointer(&flashcard_set);
+    //save any changes in stars
+    writeFlashcardSet(Metadata->flashcard_set, Metadata->ListPath,0);
+    //uncover
+    erasewindow(coverWindow);
+    box(Metadata->mainPlayWindow, 0, 0);
+    wrefresh(Metadata->mainPlayWindow);
+    return 1;
 }
 
 
@@ -172,12 +194,7 @@ void pickMode(char* list){
 
 
 
-
-
-
-
 int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starred_only){
-    srand(time(NULL));
     int numCards=0;
     // filter out unstarred if only starred
     for(int i = 0; i<flashcard_set->num_items;i++){
@@ -204,7 +221,10 @@ int getOrder(FlashcardSet *flashcard_set, int *(order), bool shuffle, bool starr
         wattron(errorWin,A_BOLD);
 
         mvwprintw(errorWin,1,1, "No cards match criteria");
-        mvwprintw(errorWin,0,1, "%c%s%c", ACS_RTEE, "Error", ACS_LTEE);      
+
+        mvwaddch(errorWin, 0, 1, ACS_RTEE);
+        wprintw(errorWin,"%s", "Error");      
+        waddch(errorWin, ACS_LTEE);
 
         wrefresh(errorWin);
         getch();

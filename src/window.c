@@ -33,3 +33,5 @@ void wprintctr(WINDOW* window, int height, int width, char* string){
 void wprintctrx(WINDOW* window, int y, int width, char* string){
     mvwprintw(window, y, (width-strlen(string))/2, "%s", string);
 }
+
+

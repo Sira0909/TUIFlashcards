@@ -16,7 +16,7 @@ else
 	endif
 endif
 TUIFlashcards: $(C_SOURCES) $(HEADERS)
-	$(CC) $(C_SOURCES) -I ./include/ $(LDFLAGS) $(CCFLAGS) -o $@ -g -lformw -lncursesw 
+	$(CC) $(C_SOURCES) -I ./include/ $(LDFLAGS) $(CCFLAGS) -o $@ -g -lformw -lncursesw -Wall
 
 install: TUIFlashcards
 	cp TUIFlashcards $(DESTDIR)

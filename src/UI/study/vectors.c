@@ -7,16 +7,6 @@
 #include <UI.h>
 
 
-char *vectorKeybinds[8][2] = {
-    {config.keylayout.str_dkey,"down"},
-    {config.keylayout.str_ukey,"up"},
-    {" ", " "},
-    {"<enter>", "toggle"},
-    {"a", "select all"},
-    {"c", "deselect all"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
 struct vectorMetadata{
     bool *vectorin;
     bool *vectorout;
@@ -26,9 +16,6 @@ struct vectorMetadata{
 
 
 int vector_quit(void* table){return -1;}
-int vector_keybinds(void*table){
-    list_keybinds(8, vectorKeybinds);                         return 1;
-}
 int vector_select(void*table){
     TABLE* Table = (TABLE*) table;
     if( Table->selected_col==0){
@@ -97,22 +84,23 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount){
     wrefresh(vector_window);
 
      
-    // character from getch()
+    bind_keys(vectorKeybinds, render_Table, 12)
+        {config.keylayout.dkey,config.keylayout.str_dkey,"down", &table_down},
+        {config.keylayout.ukey,config.keylayout.str_ukey,"up",   &table_up},
+        {config.keylayout.lkey,config.keylayout.str_lkey,"left", &table_left},
+        {config.keylayout.rkey,config.keylayout.str_rkey,"right",&table_right},
+        {-1, " ", " ",NULL},
+        {10, "<enter>", "toggle", &vector_select},
+        {'a',"a", "select all", &vector_all},
+        {'c',"c", "deselect all", &vector_none},
+        {-1," ", " ",NULL},
+        {'q', "q", "quit",&quit},
+        {27, "?", "list keybinds",quit}
+    };
 
-    addHook_Table(&vectorTable, (struct hook){config.keylayout.lkey, &table_left});
-    addHook_Table(&vectorTable, (struct hook){config.keylayout.dkey, &table_down});
-    addHook_Table(&vectorTable, (struct hook){config.keylayout.ukey, &table_up});
-    addHook_Table(&vectorTable, (struct hook){config.keylayout.rkey, &table_right});
-    addHook_Table(&vectorTable, (struct hook){27, &vector_quit});
-    addHook_Table(&vectorTable, (struct hook){'q', &vector_quit});
-    addHook_Table(&vectorTable, (struct hook){'?', &vector_keybinds});
-    addHook_Table(&vectorTable, (struct hook){10, &vector_select});
-    addHook_Table(&vectorTable, (struct hook){'a',&vector_all});
-    addHook_Table(&vectorTable, (struct hook){'c',&vector_none});
-    run_Table(    &vectorTable);
+    run(&vectorTable,vectorKeybinds);
     erasewindow(table_window);
     erasewindow(vector_window);
-    free(vectorTable.hooks);
     free(items[0]);
     free(items[1]);
 }

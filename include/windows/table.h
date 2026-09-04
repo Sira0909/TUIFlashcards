@@ -17,18 +17,15 @@ typedef struct _table_struct{
     char *highlighted;
     int hookcount;
     int maxhooks;
-    struct hook *hooks;
     void* metadata;
 } TABLE;
 
 
 void init_Table(TABLE *p_table, int rows, int cols, int width, int height, WINDOW** window, char *title, char (*headers)[128], char (**table_data)[128], char* highlighted);
 
-void addHook_Table(TABLE *p_table, struct hook hook);
 
-void run_Table(TABLE* p_table);
 
-void render_Table(TABLE *p_table, char (*starred));
+int render_Table(void *menu);
 
 void changeselect_Table(TABLE *p_table, int changerow, int changecol);
 

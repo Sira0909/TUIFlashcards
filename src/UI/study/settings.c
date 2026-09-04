@@ -14,14 +14,6 @@
 
 
 
-char *flashcard_settingskeybinds[10][2] = {
-    {config.keylayout.str_dkey,"down"},
-    {config.keylayout.str_ukey,"up"},
-    {" ", " "},
-    {"<enter>", "toggle"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
 
 struct settingMetadata{
     bool settings_done;
@@ -35,9 +27,6 @@ struct settingMetadata{
 #define Metadata ((struct settingMetadata*)(((MENU*)menu)->metadata))
 
 
-int study_settings_keybinds(void* menu){
-    list_keybinds(6, flashcard_settingskeybinds);                         return 1;
-}
 
 int study_settings_quit(void* menu){
     erasewindow(((MENU*)menu)->window);
@@ -117,14 +106,16 @@ bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle
     flags[1] = *shuffle ? '*' : 0;
     items[1][19] = *shuffle ? '*' : ' ';
 
-    addHook_Menu(&setting_menu, (struct hook){config.keylayout.dkey, &menu_down});
-    addHook_Menu(&setting_menu, (struct hook){config.keylayout.ukey, &menu_up});
-    addHook_Menu(&setting_menu, (struct hook){27, &study_settings_quit});
-    addHook_Menu(&setting_menu, (struct hook){'q', &study_settings_quit});
-    addHook_Menu(&setting_menu, (struct hook){'?', &study_settings_keybinds});
-    addHook_Menu(&setting_menu, (struct hook){10, &study_settings_select});
-    run_Menu(&setting_menu);
-    free(setting_menu.hooks);
+    bind_keys(settings_keybinds, render_Menu, 8)
+        {config.keylayout.dkey,config.keylayout.str_dkey,"down",menu_down},
+        {config.keylayout.ukey,config.keylayout.str_ukey,"up",menu_up},
+        {-1, " ", " ",NULL},
+        {10,"<enter>", "toggle",study_settings_select},
+        {27," ", " ", quit},
+        {'q',"q", "quit", quit},
+        {-1, "?", "list keybinds",NULL}
+    };
+    run(&setting_menu,settings_keybinds);
     return meta.settings_done;
 
 

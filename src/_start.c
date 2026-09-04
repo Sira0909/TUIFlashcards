@@ -13,11 +13,14 @@
 
 
 #include <config.h>
+#include <time.h>
+#include <stdlib.h>
 
 
 CONFIGSTRUCT config;
 
 int main(int argc, char *argv[]){
+    srand(time(0));
 
     init_ncurses();
     if(process_flags(argc, argv)==true){
@@ -34,7 +37,7 @@ int main(int argc, char *argv[]){
 
 
     
-    main_menu(config);
+    main_menu();
 
     // clean up
     endwin();

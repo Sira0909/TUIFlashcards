@@ -5,7 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 // draws menu
-void render_Menu(MENU *p_menu, char* highlighted){
+int render_Menu(void *menu){
+    MENU *p_menu = (MENU*) menu;
     // the center of available table space
     int ideal = (p_menu->height) / 2;
     int center;
@@ -50,7 +51,7 @@ void render_Menu(MENU *p_menu, char* highlighted){
         else
             wchgat(p_menu->window, -1,A_NORMAL, 2, NULL);
         // starred items are yellow
-        if(highlighted != NULL && highlighted[i] == '*') {
+        if(p_menu->highlighted != NULL && p_menu->highlighted[i] == '*') {
             // starred selected is yellow on red and bold
             if (p_menu->selected ==i)
                     wchgat(p_menu->window, -1,A_BOLD, 5, NULL);
@@ -65,11 +66,12 @@ void render_Menu(MENU *p_menu, char* highlighted){
     box(p_menu->window, 0, 0);
     wmove(p_menu->window, 0, 1); waddch(p_menu->window, ACS_RTEE);wprintw(p_menu->window, "%s", p_menu->title); waddch(p_menu->window, ACS_LTEE);
     wrefresh(p_menu->window);
-    
+    return 1;
 }
 
 //draws the table
-void render_Table(TABLE *p_table, char (*starred)){
+int render_Table(void *window){ 
+    TABLE* p_table = (TABLE*) window;
     //erases window, resets background
     werase(p_table->window);
     wbkgd(p_table->window, COLOR_PAIR(2));
@@ -142,7 +144,7 @@ void render_Table(TABLE *p_table, char (*starred)){
             wmove(p_table->window, i+1, col*(1+max_length));
             
             // starred items are yellow
-            if(starred != NULL && starred[center - ideal +i] == '*') {
+            if(p_table->highlighted!= NULL && p_table->highlighted[center - ideal +i] == '*') {
                 // starred selected is yellow on red and bold
                 if (p_table->selected_row ==center - ideal +i && p_table->selected_col == col)
                         wchgat(p_table->window, max_length,A_BOLD, 5, NULL);
@@ -181,4 +183,5 @@ void render_Table(TABLE *p_table, char (*starred)){
 
     wrefresh(p_table->window);
     
+    return 1;
 }
