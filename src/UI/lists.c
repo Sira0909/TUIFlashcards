@@ -18,9 +18,15 @@
 #include <flashcards.h>
 
 
-struct GetListMenuMetadata {
-    char* directory;
+struct entries{
+    int numfiles;
     int numdirs;
+    char (*entries)[128];
+    char (*highlight);
+};
+struct GetListMenuMetadata {
+    struct entries entryData;
+    char* directory;
     char (*files)[128];// includes files and directories. first [numdirs] are directories, after are files
     void (*call)(char*);
     char* pickedList;
@@ -34,56 +40,46 @@ static int getLists_addlist(void* menu);
 static int getLists_createfolder(void* menu);
 static int getLists_select(void* menu);
 
-struct entries{
-    int numfiles;
-    int numdirs;
-    char (*entries)[128];
-    char (*highlight);
-};
 struct entries getEntries(char* dir);
 char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
     struct entries entries = getEntries(dir);
-    if(entries.numdirs != -1){
 
-        MENU selectmenu;
-
-
-        // create window for menu. this menu object is defined globally, see above
-        WINDOW* select_menu_window = create_newwin(LINES-5, 34, 3, (COLS - 32)/2);
-
-        // init the menu
-        init_Menu(&selectmenu, entries.numfiles+entries.numdirs, 32,LINES-8, &select_menu_window, "select list", entries.highlight, entries.entries);
-        struct GetListMenuMetadata metadata= {dir, entries.numdirs, entries.entries, to_call, NULL};
-        selectmenu.metadata = &metadata;
-        wrefresh(selectmenu.window);
-
-        selectmenu.selected = start_at;
-        if (selectmenu.selected >= entries.numfiles+entries.numdirs) selectmenu.selected = entries.numfiles+entries.numdirs-1;
-        
+    MENU selectmenu;
 
 
-        bind_keys(selectionkeybinds, render_Menu, 11)
-            {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
-            {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
-            {10, "<enter>", "select list", getLists_select},
-            {-1, " ", " ",NULL},
-            {'a', "a", "add list", &getLists_addlist},
-            {'d', "d", "delete list", &getLists_delete},
-            {'f', "f", "create folder", &getLists_createfolder},
-            {27, " ", " ", getLists_quit}, //escape
-            {'q', "q / <esc>", "quit", getLists_quit},
-            {-1, "?", "list keybinds", NULL}
-        };
-        
-        run(&selectmenu, selectionkeybinds);
+    // create window for menu. this menu object is defined globally, see above
+    WINDOW* select_menu_window = create_newwin(LINES-5, 34, 3, (COLS - 32)/2);
+
+    // init the menu
+    init_Menu(&selectmenu, entries.numfiles+entries.numdirs, 32,LINES-8, &select_menu_window, "select list", entries.highlight, entries.entries);
+    struct GetListMenuMetadata metadata= {entries, dir, entries.entries, to_call, NULL};
+    selectmenu.metadata = &metadata;
+    wrefresh(selectmenu.window);
+
+    selectmenu.selected = start_at;
+    if (selectmenu.selected >= entries.numfiles+entries.numdirs) selectmenu.selected = entries.numfiles+entries.numdirs-1;
     
-        free(entries.entries);
-        free(entries.highlight);
 
-        return metadata.pickedList;
-    }
-    return NULL;
 
+    bind_keys(selectionkeybinds, render_Menu, 11)
+        {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
+        {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
+        {10, "<enter>", "select list", getLists_select},
+        {-1, " ", " ",NULL},
+        {'a', "a", "add list", &getLists_addlist},
+        {'d', "d", "delete list", &getLists_delete},
+        {'f', "f", "create folder", &getLists_createfolder},
+        {27, " ", " ", getLists_quit}, //escape
+        {'q', "q / <esc>", "quit", getLists_quit},
+        {-1, "?", "list keybinds", NULL}
+    };
+    
+    run(&selectmenu, selectionkeybinds);
+
+    free(entries.entries);
+    free(entries.highlight);
+
+    return metadata.pickedList;
 }
 struct entries getEntries(char* dir){
     DIR *dp;
@@ -117,52 +113,46 @@ struct entries getEntries(char* dir){
         }
     }
     closedir(dp);
-    //make sure at least one. if not, prompt to create
-    if(numfiles == 0){
-        addList(dir);
-        return (struct entries){-1, -1, NULL, NULL};
-    }
-    else{
-        char (*entries)[128] = calloc(numdirs+numfiles, sizeof(char[128]));
-        char (*highlight) = calloc(numdirs+numfiles, sizeof(char));
-        
+
+    char (*entries)[128] = calloc(numdirs+numfiles, sizeof(char[128]));
+    char (*highlight) = calloc(numdirs+numfiles, sizeof(char));
+    
+    if((dp = opendir(dir)) == NULL) {
+        //just in case this suddenly doesnt work
+        makedir(dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if((dp = opendir(dir)) == NULL) {
-            //just in case this suddenly doesnt work
-            makedir(dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-            if((dp = opendir(dir)) == NULL) {
-                int error = errno;
-                endwin();
-                printf("ERROR: Could not open or create flashcard directory. error description:%s", strerror(error));
-                exit(-1);
-            }
+            int error = errno;
+            endwin();
+            printf("ERROR: Could not open or create flashcard directory. error description:%s", strerror(error));
+            exit(-1);
         }
-        chdir(dir);
-
-        // get all the file paths
-        int i = 0;
-        int j = 0;
-        while((entry = readdir(dp)) != NULL){
-            lstat(entry->d_name, &statbuf);
-            if(entry->d_name[0]!='.'){
-                if(!S_ISDIR(statbuf.st_mode)){
-                    if(i<numfiles){
-                        strncpy(entries[numdirs+i], entry->d_name,127);
-                        i++;
-                    }
-                }
-                else{
-                    if(j < numdirs){
-                        strncpy(entries[j], entry->d_name,127);
-                        highlight[j]='*';
-                        j++;
-                    }
-                }
-            }
-        }
-
-        closedir(dp);
-        return (struct entries){numfiles, numdirs, entries, highlight};
     }
+    chdir(dir);
+
+    // get all the file paths
+    int i = 0;
+    int j = 0;
+    while((entry = readdir(dp)) != NULL){
+        lstat(entry->d_name, &statbuf);
+        if(entry->d_name[0]!='.'){
+            if(!S_ISDIR(statbuf.st_mode)){
+                if(i<numfiles){
+                    strncpy(entries[numdirs+i], entry->d_name,127);
+                    i++;
+                }
+            }
+            else{
+                if(j < numdirs){
+                    strncpy(entries[j], entry->d_name,127);
+                    highlight[j]='*';
+                    j++;
+                }
+            }
+        }
+    }
+
+    closedir(dp);
+    return (struct entries){numfiles, numdirs, entries, highlight};
 }
 
 int getLists_quit(void* menu){
@@ -172,45 +162,49 @@ int getLists_quit(void* menu){
         return -1;
 }
 int getLists_delete(void* menu){
-        wattron(((MENU*)menu)->window, A_BOLD);
-        mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Really delete (needs capital Y)?");
-        wattroff(((MENU*)menu)->window, A_BOLD);
-        wrefresh(((MENU*)menu)->window);
-        if (getch()=='Y'){
-            char path[PATH_MAX];
-            strcpy(path,Metadata->directory);
-            strcat(path, "/");
-            strcat(path,Metadata->files[((MENU*)menu)->selected]);
-            int status = remove(path);
-            if(status == 0){
+    if(Metadata->entryData.numdirs==0 &&Metadata->entryData.numfiles==0){
+        showmsg("There is no file or folder to delete! Create one with 'a'");
+        return 1;
+    }
+    wattron(((MENU*)menu)->window, A_BOLD);
+    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Really delete (needs capital Y)?");
+    wattroff(((MENU*)menu)->window, A_BOLD);
+    wrefresh(((MENU*)menu)->window);
+    if (getch()=='Y'){
+        char path[PATH_MAX];
+        strcpy(path,Metadata->directory);
+        strcat(path, "/");
+        strcat(path,Metadata->files[((MENU*)menu)->selected]);
+        int status = remove(path);
+        if(status == 0){
 
-                wattron(((MENU*)menu)->window, A_BOLD);
-                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "File deleted.");
-                wattroff(((MENU*)menu)->window, A_BOLD);
+            wattron(((MENU*)menu)->window, A_BOLD);
+            mvwprintw(((MENU*)menu)->window, LINES-7, 1, "File deleted.");
+            wattroff(((MENU*)menu)->window, A_BOLD);
 
 
 
-                getLists_quit(menu);
-                Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
-                return -1;
+            getLists_quit(menu);
+            Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
+            return -1;
+        }
+        else{
+            if(((MENU*)menu)->selected<Metadata->entryData.numdirs){
+                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
+                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete. Is it empty?");
             }
             else{
-                if(((MENU*)menu)->selected<Metadata->numdirs){
-                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
-                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete. Is it empty?");
-                }
-                else{
-                    wattron(((MENU*)menu)->window, A_BOLD);
-                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
-                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete file.");
-                    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete.(%s)",strerror(status));
-                    wattroff(((MENU*)menu)->window, A_BOLD);
-                }
+                wattron(((MENU*)menu)->window, A_BOLD);
+                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
+                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete file.");
+                mvwprintw(((MENU*)menu)->window, LINES-7, 1, "Failed to delete.(%s)",strerror(status));
+                wattroff(((MENU*)menu)->window, A_BOLD);
             }
         }
-        wrefresh(((MENU*)menu)->window);
-        mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
-        return 1;   
+    }
+    wrefresh(((MENU*)menu)->window);
+    mvwprintw(((MENU*)menu)->window, LINES-7, 1, "                                ");
+    return 1;   
 }
 int getLists_addlist(void* menu){
     //addlist
@@ -229,7 +223,11 @@ int getLists_createfolder(void* menu){
     return -1;
 }
 int getLists_select(void* menu){
-        if(((MENU*)menu)->selected<Metadata->numdirs){
+    if(Metadata->entryData.numdirs==0 &&Metadata->entryData.numfiles==0){
+        showmsg("There is no file or folder to select! Create one with 'a'");
+        return 1;
+    }
+        if(((MENU*)menu)->selected<Metadata->entryData.numdirs){
             char newdir[PATH_MAX];
             strncpy(newdir, Metadata->directory, PATH_MAX);
             strcat(newdir, Metadata->files[((MENU*)menu)->selected]);

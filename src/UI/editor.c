@@ -71,7 +71,7 @@ TABLE editor_setup(FlashcardSet* flashcardset, struct EditorMetadata metadata, W
         sprintf(str, "definition %d", i);
         strcpy(headers[i],str);
     }
-    init_Table(&flashcardTable, max(1,metadata.flashcardset->num_items), columns,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
+    init_Table(&flashcardTable, metadata.flashcardset->num_items, columns,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
 
     wbkgd(*edit_list_menu_window, COLOR_PAIR(2));
     box(*edit_list_menu_window, 0, 0);
@@ -93,7 +93,12 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
 
     render_Table(&flashcardTable);
     box(edit_list_menu_window, 0, 0);
-    printProgress(edit_list_menu_window, 0, flashcardset->num_items);
+    if(flashcardset->num_items>0){
+        printProgress(edit_list_menu_window, 0, flashcardset->num_items);
+    }
+    else{
+        printProgress(edit_list_menu_window, -1, 0); // "0/0"
+    }
 
     //add title
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
@@ -135,7 +140,12 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
 }
 int editor_update(void*table){
     TABLE* Table = (TABLE*)table;
-    printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
+    if(Metadata->flashcardset->num_items>0){
+        printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
+    }
+    else{
+        printProgress(wgetparent(Table->window), -1, 0); // "0/0"
+    }
     wrefresh(wgetparent(Table->window));
     return 1;
 }
@@ -146,8 +156,9 @@ int editor_addDefinition(void*table){
     werase(wgetparent(Table->window));
     wrefresh(wgetparent(Table->window));
     if(addDefn(Metadata->flashcardset, NULL)==-1){
-        //TODO: proper error handling
+        showmsg("an error occured trying to add a definition. Exiting!");
         endwin();
+        printf("error: realloc failed in flaschards.c:addDefn()");
         exit(-1);
     }
 
@@ -161,8 +172,9 @@ int editor_removeDefinition(void*table){
         werase(wgetparent(Table->window));
         wrefresh(wgetparent(Table->window));
         if(delDefn(Metadata->flashcardset, Table->selected_col-1)==-1){
-            //TODO: proper error handling
+            showmsg("an error occured trying to remove a definition. Exiting!");
             endwin();
+            printf("error: realloc failed in flaschards.c:delDefn()");
             exit(-1);
         }
 
@@ -170,134 +182,147 @@ int editor_removeDefinition(void*table){
         return -1;
     }
     else{
-        //TODO: add handling
+        showmsg("Cannot delete the term column");
         return 1;
     }
 }
 int editor_star(void* table){
-                TABLE* Table = (TABLE*)table;
-                Metadata->CurrentCard.is_starred = !Metadata->CurrentCard.is_starred;
-                Table->highlighted[Table->selected_row]=(Metadata->CurrentCard.is_starred)? '*': ' ';
-                return 1;
+    if(Metadata->flashcardset->num_items==0){
+        showmsg("There is no card to star!");
+        return 1;
+    }
+    TABLE* Table = (TABLE*)table;
+    Metadata->CurrentCard.is_starred = !Metadata->CurrentCard.is_starred;
+    Table->highlighted[Table->selected_row]=(Metadata->CurrentCard.is_starred)? '*': ' ';
+    return 1;
 }
 int editor_selectField(void* table){
-                TABLE* Table = (TABLE*)table;
-                if(Table->selected_col == 0){
-                    // edit the term
-                    char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, Metadata->flashcardset->cards[(Table)->selected_row].term);
-                    // if empty or cancelled, dont change anything
-                    if(Term==NULL)
-                        return 1;
-                    if(is_all_space(Term))
-                        free(Term);
-                    else if(Term != NULL){
-                        // change set; update table
-                        strcpy(Metadata->flashcardset->cards[Table->selected_row].term, Term);
-                        getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1],0);
-                        refresh();
-                        free(Term);
-                    }
-                }
-                else{
-                    // edit the defnition
-                    char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, Metadata->flashcardset->cards[(Table)->selected_row].definition[Table->selected_col-1]);
-                    // if empty or cancelled, dont change anything
-                    if(Defn==NULL)
-                        return 1;
-                    if(is_all_space(Defn))
-                        free(Defn);
-                    else if(Defn != NULL){
-                        // change set; update table
-                        strcpy(Metadata->flashcardset->cards[(Table)->selected_row].definition[Table->selected_col-1], Defn);
-                        getDefinitionList(Metadata->flashcardset, Table->selected_col-1, Table->table_data[Table->selected_col]);
-                        refresh();
-                        free(Defn);
-                    }
-                }
-                return 1;
+    if(Metadata->flashcardset->num_items==0){
+        showmsg("There is no card to edit!");
+        return 1;
+    }
+    TABLE* Table = (TABLE*)table;
+    if(Table->selected_col == 0){
+        // edit the term
+        char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, Metadata->flashcardset->cards[(Table)->selected_row].term);
+        // if empty or cancelled, dont change anything
+        if(Term==NULL)
+            return 1;
+        if(is_all_space(Term))
+            free(Term);
+        else if(Term != NULL){
+            // change set; update table
+            strcpy(Metadata->flashcardset->cards[Table->selected_row].term, Term);
+            getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1],0);
+            refresh();
+            free(Term);
+        }
+    }
+    else{
+        // edit the defnition
+        char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, Metadata->flashcardset->cards[(Table)->selected_row].definition[Table->selected_col-1]);
+        // if empty or cancelled, dont change anything
+        if(Defn==NULL)
+            return 1;
+        if(is_all_space(Defn))
+            free(Defn);
+        else if(Defn != NULL){
+            // change set; update table
+            strcpy(Metadata->flashcardset->cards[(Table)->selected_row].definition[Table->selected_col-1], Defn);
+            getDefinitionList(Metadata->flashcardset, Table->selected_col-1, Table->table_data[Table->selected_col]);
+            refresh();
+            free(Defn);
+        }
+    }
+    return 1;
 }
 int editor_deleteCard(void* table){
-                TABLE* Table = (TABLE*)table;
+    if(Metadata->flashcardset->num_items==0){
+        showmsg("There is no card to delete!");
+        return 1;
+    }
 
-                //get confirmation
-                wattron(Table->window, A_BOLD);
-                mvwprintw(Table->window, Table->height-1, 0, "really delete? (y/n)");
-                wattroff(Table->window, A_BOLD);
-                wrefresh(Table->window);
+    TABLE* Table = (TABLE*)table;
 
-                if ('y' == getch()){
-                    deletecard(Metadata->flashcardset, Table->selected_row);
+    //get confirmation
+    wattron(Table->window, A_BOLD);
+    mvwprintw(Table->window, Table->height-1, 0, "really delete? (y/n)");
+    wattroff(Table->window, A_BOLD);
+    wrefresh(Table->window);
 
-                    // update table
-                    for(int i=0; i<Table->num_cols;i++){
-                            free(Table->table_data[i]);
-                            Table->table_data[i]=calloc(Metadata->flashcardset->num_items, sizeof(char[128]));
-                    }
-                    free(Table->highlighted);
-                    Table->highlighted = calloc(Metadata->flashcardset->capacity, sizeof(char));
-                    getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1],0);
-                    for(int i=2; i<Table->num_cols;i++){
-                        getDefinitionList(Metadata->flashcardset, i-1, Table->table_data[i]);
-                    }
-                    Table->num_rows = Metadata->flashcardset->num_items;
-                    // if that was the bottommost card, move all down.
-                    if (Table->num_rows <= Table->selected_row){
-                        changeselect_Table(Table, -1, 0);
-                    }
-                }
-                printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
-                wrefresh(wgetparent(Table->window));
-                mvwprintw(Table->window, Table->height-1, 1, "                    ");
-                return 1;
+    if ('y' == getch()){
+        deletecard(Metadata->flashcardset, Table->selected_row);
+
+        // update table
+        for(int i=0; i<Table->num_cols;i++){
+                free(Table->table_data[i]);
+                Table->table_data[i]=calloc(Metadata->flashcardset->num_items, sizeof(char[128]));
+        }
+        free(Table->highlighted);
+        Table->highlighted = calloc(Metadata->flashcardset->capacity, sizeof(char));
+        getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1],0);
+        for(int i=2; i<Table->num_cols;i++){
+            getDefinitionList(Metadata->flashcardset, i-1, Table->table_data[i]);
+        }
+        Table->num_rows = Metadata->flashcardset->num_items;
+        // if that was the bottommost card, move all down.
+        if (Table->num_rows <= Table->selected_row){
+            changeselect_Table(Table, -1, 0);
+        }
+    }
+    printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
+    wrefresh(wgetparent(Table->window));
+    mvwprintw(Table->window, Table->height-1, 1, "                    ");
+    return 1;
 }
 int editor_addCard(void* table){
-    //TODO: make this add for all defns
-                TABLE* Table = (TABLE*) table;
+    TABLE* Table = (TABLE*) table;
 
-                //get term 
-                char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
-                //ensure not empty/cancelled
-                if (Term != NULL){
-                    if(is_all_space(Term)){
-                        free(Term);
-                        return 1;
-                    }
-                    // get definition
-                    char Defns[Metadata->flashcardset->num_columns][MAX_FLASHCARD_SET_DEFN_SIZE];
-                    strcpy(Defns[0],Term);
-                    free(Term);
-                    for(int i = 1; i < Metadata->flashcardset->num_columns;i++){
-                        char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, NULL);
-                        //ensure not empty/cancelled
-                        if(Defn == NULL){
-                            return 1;
-                        }
-                        if (Defn != NULL && is_all_space(Defn)){
-                                free(Defn);
-                                return 1;
-                        }
-                        strcpy(Defns[i],Defn);
-                        free(Defn);
-                    }
-                    //update
-                    addcard(Metadata->flashcardset, Defns[0], Defns+1, 0);
-                    for(int i=0; i<Table->num_cols;i++){
-                            free(Table->table_data[i]);
-                            Table->table_data[i]=calloc(Metadata->flashcardset->num_items, sizeof(char[128]));
-                    }
-                    free(Table->highlighted);
-                    Table->highlighted = calloc(Metadata->flashcardset->capacity, sizeof(char));
-                    getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1],0);
-                    for(int i=2; i<Table->num_cols;i++){
-                        getDefinitionList(Metadata->flashcardset, i-1, Table->table_data[i]);
-                    }
-                    Table->num_rows = Metadata->flashcardset->num_items;
-                    refresh();
-
-                }
-                printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
-                wrefresh(wgetparent(Table->window));
+    //get term 
+    char* Term = getString("Term?", MAX_FLASHCARD_SET_ITEM_SIZE, NULL);
+    //ensure not empty/cancelled
+    if (Term != NULL){
+        if(is_all_space(Term)){
+            free(Term);
+            return 1;
+        }
+        // get definition
+        char Defns[Metadata->flashcardset->num_columns][MAX_FLASHCARD_SET_DEFN_SIZE];
+        strcpy(Defns[0],Term);
+        free(Term);
+        for(int i = 1; i < Metadata->flashcardset->num_columns;i++){
+            //TODO: make this give a name for defns
+            char* Defn = getString("Definition?", MAX_FLASHCARD_SET_DEFN_SIZE, NULL);
+            //ensure not empty/cancelled
+            if(Defn == NULL){
                 return 1;
+            }
+            if (Defn != NULL && is_all_space(Defn)){
+                    free(Defn);
+                    return 1;
+            }
+            strcpy(Defns[i],Defn);
+            free(Defn);
+        }
+        //update
+        addcard(Metadata->flashcardset, Defns[0], Defns+1, 0);
+        for(int i=0; i<Table->num_cols;i++){
+                free(Table->table_data[i]);
+                Table->table_data[i]=calloc(Metadata->flashcardset->num_items, sizeof(char[128]));
+        }
+        free(Table->highlighted);
+        Table->highlighted = calloc(Metadata->flashcardset->capacity, sizeof(char));
+        getpairslimiter(Metadata->flashcardset, Table->highlighted, Table->table_data[0], Table->table_data[1],0);
+        for(int i=2; i<Table->num_cols;i++){
+            getDefinitionList(Metadata->flashcardset, i-1, Table->table_data[i]);
+        }
+        Table->num_rows = Metadata->flashcardset->num_items;
+        refresh();
+
+    }
+    printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
+    wrefresh(wgetparent(Table->window));
+    return 1;
 }
 
 int editor_writeSet(void* table){
@@ -372,7 +397,7 @@ void addList(char* dir){
     }
     if(create==1){return;}
     
-    if(strcmp(file+strlen(file)-6,".list")&&strlen(file)+5<PATH_MAX){
+    if(strlen(file)<6||(strcmp(file+strlen(file)-6,".list")&&strlen(file)+5<PATH_MAX)){
         strcat(file, ".list"); 
     }
     strcat(newfile, trim_whitespaces(file));
@@ -387,8 +412,8 @@ void addList(char* dir){
     }
     free(file);
 
-    FILE* temp = fopen(newfile, "w");
-    fclose(temp);
+    FlashcardSet* fcs = create_Flashcard_Set_Object();
+    writeFlashcardSet(fcs, newfile, 1);
     editList(newfile);
     return;
    

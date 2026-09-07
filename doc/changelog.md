@@ -1,4 +1,5 @@
 ## Version 0.2.2:
+- get_lists can show no lists without prompting user to add a list
 - cleaned up codebase a bit
 - Bug fixes
 

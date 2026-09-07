@@ -1,5 +1,4 @@
 stuff for v0.2.2
-- get_lists can show no lists without asking for addlist
 - create a config file and a default list on first build
 - put lists into files
 

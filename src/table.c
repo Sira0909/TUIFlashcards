@@ -17,12 +17,12 @@ void init_Table(TABLE *p_table, int rows, int cols, int width, int height, WINDO
 }
 
 void changeselect_Table(TABLE *p_table, int changerow, int changecol){
+    if(p_table->num_rows==0||p_table->num_cols==0){
+        return;
+    }
     p_table->selected_row += changerow;
     p_table->selected_col += changecol;
 
-    if(p_table->num_rows==0){
-        return;
-    }
     // dont overflow checks
     if (!(p_table->selected_row<p_table->num_rows)){ p_table->selected_row = p_table->num_rows-1; changerow = -1;}          
     if (!(p_table->selected_col<p_table->num_cols)){ p_table->selected_col = p_table->num_cols-1; changecol = -1;}
