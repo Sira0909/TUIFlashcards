@@ -1,6 +1,6 @@
 stuff for v0.2.2
 - create a config file and a default list on first build
-- put lists into files
+- put lists into folders
 
 stuff for version 0.3
 
