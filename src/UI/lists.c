@@ -21,7 +21,7 @@
 struct entries{
     int numfiles;
     int numdirs;
-    char (*entries)[128];
+    char (*entries)[128]; //actual file paths
     char (*highlight);
 };
 struct GetListMenuMetadata {
@@ -43,6 +43,16 @@ static int getLists_select(void* menu);
 struct entries getEntries(char* dir);
 char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
     struct entries entries = getEntries(dir);
+    char (*files)[128] = calloc(entries.numfiles+entries.numdirs, sizeof(char[128])); // visual entries, not actual filenames
+
+
+    //cutoff .list suffix
+    for(int i = 0; i < entries.numfiles+entries.numdirs; i++){
+        strcpy(files[i], entries.entries[i]);
+        if(strcmp(files[i]+strlen(files[i])-5, ".list")==0){ 
+            files[i][strlen(files[i])-5]='\0';
+        }
+    }
 
     MENU selectmenu;
 
@@ -51,8 +61,9 @@ char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
     WINDOW* select_menu_window = create_newwin(LINES-5, 34, 3, (COLS - 32)/2);
 
     // init the menu
-    init_Menu(&selectmenu, entries.numfiles+entries.numdirs, 32,LINES-8, &select_menu_window, "select list", entries.highlight, entries.entries);
-    struct GetListMenuMetadata metadata= {entries, dir, entries.entries, to_call, NULL};
+    init_Menu(&selectmenu, entries.numfiles+entries.numdirs, 32,LINES-8, &select_menu_window, "select list", entries.highlight, files);
+
+    struct GetListMenuMetadata metadata= {entries, dir, files, to_call, NULL};
     selectmenu.metadata = &metadata;
     wrefresh(selectmenu.window);
 
@@ -156,7 +167,7 @@ struct entries getEntries(char* dir){
 }
 
 int getLists_quit(void* menu){
-        //free(Metadata->files);
+        //free(Metadata->entryData.entries);
         erasewindow(((MENU*)menu)->window);
         ((MENU*)menu)->window= NULL;
         return -1;
@@ -174,7 +185,7 @@ int getLists_delete(void* menu){
         char path[PATH_MAX];
         strcpy(path,Metadata->directory);
         strcat(path, "/");
-        strcat(path,Metadata->files[((MENU*)menu)->selected]);
+        strcat(path,Metadata->entryData.entries[((MENU*)menu)->selected]);
         int status = remove(path);
         if(status == 0){
 
@@ -183,7 +194,7 @@ int getLists_delete(void* menu){
             wattroff(((MENU*)menu)->window, A_BOLD);
 
 
-
+            //TODO: theres gotta be a better way
             getLists_quit(menu);
             Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
             return -1;
@@ -227,10 +238,10 @@ int getLists_select(void* menu){
         showmsg("There is no file or folder to select! Create one with 'a'");
         return 1;
     }
-        if(((MENU*)menu)->selected<Metadata->entryData.numdirs){
+        if(((MENU*)menu)->selected<Metadata->entryData.numdirs){ // selecting a directory
             char newdir[PATH_MAX];
             strncpy(newdir, Metadata->directory, PATH_MAX);
-            strcat(newdir, Metadata->files[((MENU*)menu)->selected]);
+            strcat(newdir, Metadata->entryData.entries[((MENU*)menu)->selected]);
             strcat(newdir, "/");
             
             wbkgd(((MENU*)menu)->window, COLOR_PAIR(8));
@@ -248,20 +259,21 @@ int getLists_select(void* menu){
             return 1;
         }
         else if (Metadata->call == NULL){ 
-            Metadata->pickedList = Metadata->files[((MENU*)menu)->selected]; 
+            Metadata->pickedList = Metadata->entryData.entries[((MENU*)menu)->selected]; 
             getLists_quit(menu); return -1;
         }
-        else{
+        else{ //selecting a file
             wbkgd(((MENU*)menu)->window, COLOR_PAIR(8));
             werase(((MENU*)menu)->window);
             wrefresh(((MENU*)menu)->window);
             char list[PATH_MAX];
             strncpy(list,Metadata->directory, PATH_MAX-128);
             strcat(list,"/");
-            strncat(list,Metadata->files[((MENU*)menu)->selected], 128);
+            strncat(list,Metadata->entryData.entries[((MENU*)menu)->selected], 128);
             if(strcmp(list+strlen(list)-5, ".list")){
                 if(updateList(list)==1){
                     remove(list);
+                    strncat(Metadata->entryData.entries[((MENU*)menu)->selected], ".list", 128);//note that all lists should have a length under 32 because that is the largest size that addList accepts
                 }
                 else{
                     return -1;

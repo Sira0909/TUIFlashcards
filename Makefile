@@ -5,6 +5,7 @@ DESTDIR = "/usr/bin/"
 CC?=gcc
 EXTENTION=
 
+
 ifeq ($(OS),Windows_NT)
 	EXTENTION=.exe
 	CCFLAGS+= -I C:\msys64\ucrt64\include\ncurses
@@ -22,3 +23,21 @@ install: TUIFlashcards
 	cp TUIFlashcards $(DESTDIR)
 clean:
 	rm -f ./TUIFlashcards$(EXTENTION)
+
+
+
+
+ifdef XDG_CONFIG_HOME
+CONFIGHOME?="${XDG_CONFIG_HOME}/TUIFlashcards/"
+else ifdef APPDATA
+CONFIGHOME?= "${APPDATA}/TUIFlashcards/"
+else ifdef HOME
+CONFIGHOME?= "${HOME}/.config/TUIFlashcards/"
+endif
+bootstrapConfig:
+	mkdir $(CONFIGHOME)
+	mkdir $(CONFIGHOME)/Lists/
+	cp ./doc/exampleList.list $(CONFIGHOME)/Lists/exampleList.list
+
+
+	
