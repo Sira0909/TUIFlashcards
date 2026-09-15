@@ -51,7 +51,7 @@ int render_Menu(void *menu){
         else
             wchgat(p_menu->window, -1,A_NORMAL, 2, NULL);
         // starred items are yellow
-        if(p_menu->highlighted != NULL && p_menu->highlighted[i] == '*') {
+        if(p_menu->highlighted != NULL && p_menu->highlighted[i]&0x1) {
             // starred selected is yellow on red and bold
             if (p_menu->selected ==i)
                     wchgat(p_menu->window, -1,A_BOLD, 5, NULL);
@@ -59,6 +59,16 @@ int render_Menu(void *menu){
             // starred nonselected is yellow on white
             else
                 wchgat(p_menu->window, -1 ,A_NORMAL, 4, NULL);
+            
+        }
+        if(p_menu->highlighted != NULL && p_menu->highlighted[i]&0x2) {
+            // selected 
+            if (p_menu->selected ==i)
+                    wchgat(p_menu->window, -1,A_BOLD, 12, NULL);
+                
+            // nonselected 
+            else
+                wchgat(p_menu->window, -1 ,A_NORMAL, 11, NULL);
             
         }
 
@@ -91,7 +101,7 @@ int render_Table(void *window){
     else center = p_table->selected_row;
 
     // max length of a column
-    int max_length = (p_table->width - (p_table->num_cols-1))/p_table->num_cols;
+    unsigned int max_length = (p_table->width - (p_table->num_cols-1))/p_table->num_cols;
 
 
 
@@ -100,6 +110,7 @@ int render_Table(void *window){
         for (int col = p_table->num_cols-1; col >= 0; col --){
 
 
+            
             // selected item is red
             if (p_table->selected_row ==center - ideal + i && p_table->selected_col == col) {
                 
@@ -144,7 +155,7 @@ int render_Table(void *window){
             wmove(p_table->window, i+1, col*(1+max_length));
             
             // starred items are yellow
-            if(p_table->highlighted!= NULL && p_table->highlighted[center - ideal +i] == '*') {
+            if(p_table->highlighted!= NULL && p_table->highlighted[center - ideal +i]&1) {
                 // starred selected is yellow on red and bold
                 if (p_table->selected_row ==center - ideal +i && p_table->selected_col == col)
                         wchgat(p_table->window, max_length,A_BOLD, 5, NULL);
@@ -157,6 +168,19 @@ int render_Table(void *window){
                 else
                     wchgat(p_table->window, max_length,A_NORMAL, 4, NULL);
                 
+            }
+            if(p_table->highlighted!= NULL && p_table->highlighted[center - ideal +i]&2) {
+                // selected 
+                if (p_table->selected_row ==center - ideal +i && p_table->selected_col == col)
+                        wchgat(p_table->window, max_length,A_BOLD, 12, NULL);
+                
+                //  selected row
+                else if(p_table->selected_row ==center - ideal +i)
+                        wchgat(p_table->window, max_length,A_BOLD, 11, NULL);
+                    
+                // not selected 
+                else
+                    wchgat(p_table->window, max_length,A_NORMAL, 11, NULL);
             }
 
             mvwaddch(p_table->window, i+1, col*(1+max_length)-1, ACS_VLINE);

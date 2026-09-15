@@ -45,6 +45,6 @@ int run(void* window, struct _keybind* binds){
         }
     }
 }
-int quit(void* window){
+int quit(__attribute__((unused)) void* window){
     return -1;
 }

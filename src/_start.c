@@ -62,7 +62,7 @@ bool process_flags(int argc, char *argv[]){
     return false;
 }
 
-void init_ncurses(){
+void init_ncurses(void){
     setlocale(LC_ALL, "");
     // init ncurses
     initscr();
@@ -93,6 +93,8 @@ void init_ncurses(){
     init_pair(8, COLOR_WHITE , COLOR_BLUE);     // errased window:      white on blue
     init_pair(9, COLOR_BLACK , COLOR_GREEN);     // correct:            black on green
     init_pair(10, COLOR_BLACK , COLOR_RED);      // incorrect:          black on red
+    init_pair(11, COLOR_MAGENTA, COLOR_WHITE);      // multi-select:          black on red
+    init_pair(12, COLOR_MAGENTA, COLOR_RED);      // multi-select selected:          black on red
 
     // set ncurses modes
     cbreak();//change later

@@ -1,5 +1,6 @@
 stuff for v0.2.2
-- put lists into folders
+- test for bugs
+
 
 stuff for version 0.3
 

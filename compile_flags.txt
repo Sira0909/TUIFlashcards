@@ -1,4 +1,5 @@
 -Iinclude/
 -Wall
+-Wextra
 -lformw
 -lncursesw

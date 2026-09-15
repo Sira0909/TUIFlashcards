@@ -38,7 +38,7 @@ void type(FlashcardSet *flashcard_set){
         return;
     }
     int order[flashcard_set->num_items];
-    int maxlength =25;
+    unsigned int maxlength =25;
     //int mistakeorder[flashcard_set->num_items];
     int mistakeindex = 0;
 

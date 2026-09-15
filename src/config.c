@@ -275,7 +275,7 @@ int get_config_struct(CONFIGSTRUCT *config){
     return countUndefconfigs;
 }
 
-int writeconfig(){
+int writeconfig(void){
     char confFile[PATH_MAX];
     strcpy(confFile, config.config_dir);
     strcat(confFile, "/config");

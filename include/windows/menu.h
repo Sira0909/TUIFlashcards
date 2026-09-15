@@ -12,9 +12,8 @@ typedef struct _menu_struct{
     char *title;
     char (*menuitems)[128];
     char *highlighted;
-    int hookcount;
-    int maxhooks;
     void* metadata;
+    int data; //for smaller communications that dont need a full metadata struct
 } MENU;
 
 void init_Menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char* highlighted, char (*menuitems)[]);

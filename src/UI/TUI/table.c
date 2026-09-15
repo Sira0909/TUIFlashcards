@@ -8,7 +8,7 @@
 
 //constructor
 void init_Table(TABLE *p_table, int rows, int cols, int width, int height, WINDOW** window, char *title, char (*headers)[128], char (**table_data)[128], char* highlighted){
-    *p_table = (TABLE){*window, width, height, rows, cols, 0, 0, title, headers, table_data, highlighted, 0, 1};
+    *p_table = (TABLE){*window, width, height, rows, cols, 0, 0, title, headers, table_data, highlighted, 0, 1, NULL};
 
     // draws background but doesnt render yet
     wattron(*window, COLOR_PAIR(2));

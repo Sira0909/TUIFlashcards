@@ -7,7 +7,7 @@
 #include <flashcards.h>
 
 //constructor
-FlashcardSet* create_Flashcard_Set_Object(){
+FlashcardSet* create_Flashcard_Set_Object(void){
     FlashcardSet* flashcard_set = (FlashcardSet*)malloc(sizeof(FlashcardSet));
 
     flashcard_set->num_items = 0;
@@ -203,7 +203,7 @@ int updateList(char* filePath){
 void getpairslimiter(FlashcardSet* flashcard_set, char isstarred[], char items[][128],char definitions[][128], int index){
     for(int i = 0; i< flashcard_set->num_items; i++){
         if(flashcard_set->cards[i].is_starred){
-            isstarred[i] = '*';
+            isstarred[i]=1;
         }
         else isstarred[i] = ' ';
         strncpy(items[i],flashcard_set->cards[i].term, 127);

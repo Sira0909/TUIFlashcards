@@ -1,3 +1,10 @@
+//
+//repeatable UI elements, such as messages, confirmation boxes, and menus, go here.
+//
+
+
+
+
 #include <macros.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +14,9 @@
 #include <form.h>
 #include <config.h>
 
+#include <UI.h>
 #include <windows/window.h>
+#include <windows/menu.h>
 
 
 
@@ -77,7 +86,6 @@ char* getString(char* title, int maxsize, char* startingText){
 
 
 
-
     //set up form box
 
     //create 1 element form
@@ -94,16 +102,16 @@ char* getString(char* title, int maxsize, char* startingText){
     
     //assign window
     scale_form(Form, &rows, &cols);
-    my_form_win = newwin(rows+4, cols+4,(LINES - rows-2)/2,(COLS - cols-2)/2);
+    int boxwidth = max(30,strlen(title)); 
+    my_form_win = newwin(rows+4, boxwidth+4,(LINES - rows-2)/2,(COLS - boxwidth-2)/2);
 
     // if we have starting text, use it
     if(startingText!=NULL){
         set_field_buffer(FileNameField[0], 0, startingText);
-        //form_driver(Form, REQ_END_FIELD);
     }
 
     set_form_win(Form, my_form_win);
-    set_form_sub(Form, derwin(my_form_win, rows, cols, 3, 2));
+    set_form_sub(Form, derwin(my_form_win, rows, cols, 3, (boxwidth+4-cols)/2));
     
     //set form background
     wbkgd(my_form_win, COLOR_PAIR(2));
@@ -111,9 +119,10 @@ char* getString(char* title, int maxsize, char* startingText){
 
     box(my_form_win, 0, 0);
     //wmove(my_form_win, 0, 1); waddch(my_form_win, ACS_RTEE);wprintw(my_form_win, "%s", "double escape to cancel"); waddch(my_form_win, ACS_LTEE);
-    mvwprintw(my_form_win, 1, (cols-strlen(title)+1)/2, "%s", title);
+    mvwprintw(my_form_win, 1, (boxwidth+4-strlen(title))/2, "%s", title);
 
     post_form(Form);
+    form_driver(Form, REQ_END_FIELD);
     wrefresh(my_form_win);
 
     curs_set(1);
@@ -204,4 +213,36 @@ char* getString(char* title, int maxsize, char* startingText){
     refresh();
 
     return NULL;
+}
+int _select(void* menu){return 2; (void)menu;}
+
+int makeSelection(int numOptions, char (*options)[128], char* title){
+    bind_keys(menukeybinds, render_Menu, 7)
+        {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
+        {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
+        {10, "<enter>", "select", &_select},
+        {27, "", "", &quit},
+        {'q', "q", "quit/cancel", &quit},
+        {-1, "?", "List Keybinds", NULL}
+    };
+
+
+    // create MENU object for main menu (see MENU.c, MENU.h)
+    MENU menu;
+
+
+    // create window for menu. this menu object is defined globally, see above
+    WINDOW* menu_window = create_newwin(numOptions+3, 34, (LINES - numOptions)/2, (COLS - 32)/2);
+
+    // init the menu
+    init_Menu(&menu, numOptions, 34, numOptions+3, &menu_window, title, NULL, options);
+
+    int res = run(&menu,menukeybinds);
+    delwin(menu_window);
+    if(res == -1){
+        return -1;
+    }
+    else{
+        return menu.selected;
+    }
 }

@@ -5,7 +5,7 @@
 #include <UI.h>
 
 void init_Menu(MENU *p_menu, int size, int width, int height, WINDOW** window, char *title, char* highlighted, char (*menuitems)[]){
-    *p_menu = (MENU){*window, width, height, size, 0, title, menuitems, highlighted, 0, 1};
+    *p_menu = (MENU){*window, width, height, size, 0, title, menuitems, highlighted, NULL, 0};
     wbkgd(p_menu->window, COLOR_PAIR(2));
 
 }

@@ -1,3 +1,5 @@
+#include "macros.h"
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -38,7 +40,10 @@ static int getLists_quit(void* menu);
 static int getLists_delete(void* menu);
 static int getLists_addlist(void* menu);
 static int getLists_createfolder(void* menu);
+static int getLists_open(void* menu);
 static int getLists_select(void* menu);
+static int getLists_move(void* menu);
+static int getLists_rename(void* menu);
 
 struct entries getEntries(char* dir);
 char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
@@ -72,17 +77,21 @@ char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
     
 
 
-    bind_keys(selectionkeybinds, render_Menu, 11)
+    bind_keys(selectionkeybinds, render_Menu, 15)
         {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
-        {10, "<enter>", "select list", getLists_select},
-        {-1, " ", " ",NULL},
-        {'a', "a", "add list", &getLists_addlist},
-        {'d', "d", "delete list", &getLists_delete},
-        {'f', "f", "create folder", &getLists_createfolder},
-        {27, " ", " ", getLists_quit}, //escape
-        {'q', "q / <esc>", "quit", getLists_quit},
-        {-1, "?", "list keybinds", NULL}
+        {10, "<enter>",     "open list", getLists_open},
+        {-1, " ",           " ",NULL},
+        {' ',"<space>",     "select list", getLists_select},
+        {'m',"m",           "move selected", getLists_move},
+        {-1, " ",           " ",NULL},
+        {'a',"a",           "add list", &getLists_addlist},
+        {'d',"d",           "delete list", &getLists_delete},
+        {'r',"r",           "rename list", getLists_rename},
+        {'f',"f",           "create folder", &getLists_createfolder},
+        {27, " ",           " ", getLists_quit}, //escape
+        {'q',"q / <esc>",   "quit", getLists_quit},
+        {-1, "?",           "list keybinds", NULL}
     };
     
     run(&selectmenu, selectionkeybinds);
@@ -155,7 +164,7 @@ struct entries getEntries(char* dir){
             else{
                 if(j < numdirs){
                     strncpy(entries[j], entry->d_name,127);
-                    highlight[j]='*';
+                    highlight[j]=1;
                     j++;
                 }
             }
@@ -233,7 +242,7 @@ int getLists_createfolder(void* menu){
     Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
     return -1;
 }
-int getLists_select(void* menu){
+int getLists_open(void* menu){
     if(Metadata->entryData.numdirs==0 &&Metadata->entryData.numfiles==0){
         showmsg("There is no file or folder to select! Create one with 'a'");
         return 1;
@@ -284,6 +293,112 @@ int getLists_select(void* menu){
             wbkgd(((MENU*)menu)->window, COLOR_PAIR(2));
             return 1;
         }
+}
+static int getLists_select(void* menu){
+    Metadata->entryData.highlight[((MENU*)menu)->selected]^=0x2;
+    return 1;
+}
+static int getLists_move(void* menu){
+    char *newLoc= getString("where would you like to move them?", PATH_MAX-128, Metadata->directory);
+    render_Menu(menu);
+    if(newLoc==NULL || is_all_space(newLoc)){
+        showmsg("operation canceled");
+        return 1;
+    }
+    DIR* dir = opendir(newLoc);    
+    if(errno==ENOENT){
+        if(getConfirmation("That directory does not exist. Create it?", NULL, "Operation canceled")){
+            render_Menu(menu);
+            if (makedir(newLoc, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ 
+                showmsg("failed to create directory. Operation canceled");
+                free(newLoc);
+                return 1;
+            }
+            showmsg("directory created successfully");
+            //continues to move
+        }
+        else{
+            free(newLoc);
+            showmsg("operation canceled");
+            return 1;
+        }
+    }
+    else if (errno == ENOTDIR){
+        showmsg("There is already a file there! Operation canceled");
+        free(newLoc);
+        return 1;
+
+    }
+    else if (dir){
+        closedir(dir);
+    }
+    else{
+        showmsg("an error occured. canceling operation");
+        return 1;
+    }
+
+    char filename[PATH_MAX];
+    strncpy(filename,newLoc,PATH_MAX);
+    strncat(filename,"/",PATH_MAX-1);
+    for(int i = 0; i < ((MENU*)menu)->height;i++){
+        if(((MENU*)menu)->highlighted[i]&0x2){
+            filename[strnlen(newLoc, PATH_MAX-1)+1]=0;
+            strncat(filename, Metadata->entryData.entries[i], PATH_MAX-1);
+            rename(Metadata->entryData.entries[i], filename);
+        }
+    }
+
+    free(newLoc);
+    Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
+    return -1;
+}
+static int getLists_rename(void* menu){
+    char newfile[PATH_MAX]={0};
+    strcpy(newfile, trim_whitespaces(Metadata->directory));
+
+    char* file = getString("new name for this list?", 31, Metadata->files[((MENU*)menu)->selected]);
+    if (file == NULL) return 1;
+    if(is_all_space(file)){
+        free(file);
+        return 1;
+    }
+    
+    int create = 0;
+ 
+    for(unsigned int i = 0; i < strnlen(file,31); i++){
+        if(file[i]=='/'){
+            if(getConfirmation("Did you mean to put this list into a folder?", NULL, "List creation canceled")){
+                create = 2;
+            }
+            else{
+                create = 1;
+            }
+            break;
+
+        }
+
+    }
+    if(create==1){return 1;}
+    
+    if(strlen(file)<6||(strcmp(file+strlen(file)-6,".list")&&strlen(file)+5<PATH_MAX)){
+        strcat(file, ".list"); 
+    }
+    strcat(newfile, trim_whitespaces(file));
+    if(create==2){
+        for(unsigned int i = strlen(Metadata->directory)+1;i<strnlen(newfile,PATH_MAX);i++){
+            if(newfile[i]=='/'){
+                newfile[i]='\0';
+                if(makedir(newfile,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)==-1){showmsg("Failed to create directory");return 1;}
+                newfile[i]='/';
+            }
+        }
+    }
+    free(file);
+    rename(Metadata->entryData.entries[((MENU*)menu)->selected], newfile);
+    getLists_quit(menu);
+    Metadata->pickedList = _getLists(((MENU*)menu)->selected,Metadata->directory,Metadata->call);
+
+    return -1;
 }
 #undef Metadata 
 

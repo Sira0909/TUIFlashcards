@@ -193,7 +193,7 @@ int editor_star(void* table){
     }
     TABLE* Table = (TABLE*)table;
     Metadata->CurrentCard.is_starred = !Metadata->CurrentCard.is_starred;
-    Table->highlighted[Table->selected_row]=(Metadata->CurrentCard.is_starred)? '*': ' ';
+    Table->highlighted[Table->selected_row]=(Metadata->CurrentCard.is_starred)? 1: ' ';
     return 1;
 }
 int editor_selectField(void* table){
@@ -382,7 +382,7 @@ void addList(char* dir){
     
     int create = 0;
  
-    for(int i = 0; i < strnlen(file,31); i++){
+    for(unsigned int i = 0; i < strnlen(file,31); i++){
         if(file[i]=='/'){
             if(getConfirmation("Did you mean to put this list into a folder?", NULL, "List creation canceled")){
                 create = 2;
@@ -402,7 +402,7 @@ void addList(char* dir){
     }
     strcat(newfile, trim_whitespaces(file));
     if(create==2){
-        for(int i = strlen(dir)+1;i<strnlen(newfile,PATH_MAX);i++){
+        for(unsigned int i = strlen(dir)+1;i<strnlen(newfile,PATH_MAX);i++){
             if(newfile[i]=='/'){
                 newfile[i]='\0';
                 if(makedir(newfile,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)==-1){showmsg("Failed to create directory");return;}

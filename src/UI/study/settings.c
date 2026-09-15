@@ -39,13 +39,13 @@ int study_settings_select(void* menu){
     switch(settingsmenu->selected){
         case 0:
             *(Metadata->starred) = !(*(Metadata->starred));
-            settingsmenu->highlighted[0] = *(Metadata->starred) ? '*' : 0;
-            settingsmenu->menuitems[0][19] = *(Metadata->starred)? '*' : ' ';
+            settingsmenu->highlighted[0] = *(Metadata->starred) ? 1 : 0;
+            settingsmenu->menuitems[0][19] = *(Metadata->starred)? 1 : ' ';
             break;
         case 1:
             *Metadata->shuffled = !(*Metadata->shuffled);
-            settingsmenu->highlighted[1] = *Metadata->shuffled ? '*' : 0;
-            settingsmenu->menuitems[1][19] = *Metadata->shuffled ? '*' : ' ';
+            settingsmenu->highlighted[1] = *Metadata->shuffled ? 1 : 0;
+            settingsmenu->menuitems[1][19] = *Metadata->shuffled ? 1 : ' ';
             break;
         case 3:
             sprintf(numStr, "%d", *(Metadata->questionCount));
@@ -55,7 +55,7 @@ int study_settings_select(void* menu){
             }
             strncpy(numStr,newstr ,10);
             free(newstr);
-            for(int i = 0; i < strnlen(numStr,10);i++){
+            for(unsigned int i = 0; i < strnlen(numStr,10);i++){
                 if(!isdigit(numStr[i])){
                     showmsg("Invalid Number. Please input a numeric value");
                     return 1;
@@ -101,10 +101,10 @@ bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle
 
      
     // character from getch()
-    flags[0] = *starred_only ? '*' : 0;
-    items[0][19] = *starred_only ? '*' : ' ';
-    flags[1] = *shuffle ? '*' : 0;
-    items[1][19] = *shuffle ? '*' : ' ';
+    flags[0] = *starred_only ? 1 : 0;
+    items[0][19] = *starred_only ? 1 : ' ';
+    flags[1] = *shuffle ? 1 : 0;
+    items[1][19] = *shuffle ? 1 : ' ';
 
     bind_keys(settings_keybinds, render_Menu, 8)
         {config.keylayout.dkey,config.keylayout.str_dkey,"down",menu_down},

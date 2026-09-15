@@ -27,10 +27,10 @@ void erasewindow(WINDOW* window){
     delwin(window);
 }
 
-void wprintctr(WINDOW* window, int height, int width, char* string){
+void wprintctr(WINDOW* window, unsigned int height, unsigned int width, char* string){
     mvwprintw(window, (height-strlen(string)/width)/2, (width > strlen(string))?(width-strlen(string))/2 : 1, "%s", string);
 }
-void wprintctrx(WINDOW* window, int y, int width, char* string){
+void wprintctrx(WINDOW* window, int y, unsigned int width, char* string){
     mvwprintw(window, y, (width-strlen(string))/2, "%s", string);
 }
 

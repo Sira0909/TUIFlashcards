@@ -94,7 +94,7 @@ struct modeMetadata Mode_setup(char* list){
     WINDOW* bottomright = derwin(mainPlayWindow, 9, 23, 10, 50);
 
     FlashcardSet* flashcard_set = create_Flashcard_Set_Object();
-    struct modeMetadata ret =  (struct modeMetadata) {0, 0, mainPlayWindow, { {topleft, top, topright}, {bottomleft, bottom, bottomright} }, flashcard_set, {}};
+    struct modeMetadata ret =  (struct modeMetadata) {0, 0, mainPlayWindow, { {topleft, top, topright}, {bottomleft, bottom, bottomright} }, flashcard_set, {0}};
 
     wbkgd(topleft, COLOR_PAIR(3));
     for(int i = 0; i < 2; i++){

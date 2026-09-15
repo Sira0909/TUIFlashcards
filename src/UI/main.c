@@ -21,7 +21,7 @@ WINDOW* keybindHelp;
 int main_menu_select(void * menu);
 int main_menu_keybinds(void* menu);
 
-void main_menu(){
+void main_menu(void){
     // keybind helper window
     if(config.showKeybindsHelp){
         keybindHelp = create_newwin(3, 18, LINES-4, (COLS-18)/2);

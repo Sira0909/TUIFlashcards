@@ -29,7 +29,7 @@ int settings_save(void* Table);
 int settings_select(void* Table);
 int settings_fixAfterKeybinds(void* Table);
 TABLE setup_global_settings_table(int width, int height, WINDOW* tablewindow);
-bool get_global_settings(){
+bool get_global_settings(void){
     bind_keys(global_settings_keybinds, render_Table, 7)
         {config.keylayout.dkey, config.keylayout.str_dkey,"down", &table_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &table_up},
@@ -67,8 +67,8 @@ bool get_global_settings(){
     }
 
     char selected[6] = {0,0,0,0,0,0};
-    selected[0] = (config.autoaccent) ? '*': ' ';
-    selected[1] = (config.showKeybindsHelp) ? '*': ' '; 
+    selected[0] = (config.autoaccent) ? 1: ' ';
+    selected[1] = (config.showKeybindsHelp) ? 1: ' '; 
 
 
     char headers[2][128] = {"Setting", ""};
@@ -125,12 +125,12 @@ int settings_select(void* Table){
     switch(settingstable->selected_row){
         case 0:
             Metadata->newConfig.autoaccent = !Metadata->newConfig.autoaccent;
-            settingstable->highlighted[0] = Metadata->newConfig.autoaccent ? '*' : 0;
+            settingstable->highlighted[0] = Metadata->newConfig.autoaccent ? 1 : 0;
             strcpy(settingstable->table_data[1][0], (Metadata->newConfig.autoaccent) ? "On": "Off");
             break;
         case 1:
             Metadata->newConfig.showKeybindsHelp = !Metadata->newConfig.showKeybindsHelp;
-            settingstable->highlighted[1] = Metadata->newConfig.showKeybindsHelp ? '*' : 0;
+            settingstable->highlighted[1] = Metadata->newConfig.showKeybindsHelp ? 1 : 0;
             strcpy(settingstable->table_data[1][1], (Metadata->newConfig.showKeybindsHelp) ? "On": "Off");
             break;
         case 2:

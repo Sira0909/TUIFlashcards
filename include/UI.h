@@ -33,6 +33,7 @@ int getConfirmation(char *question, char* successmsg, char* failmsg);
 
 void list_keybinds(struct _keybind* binds);
 void showmsg(char* msg);
+int makeSelection(int numOptions, char (*options)[128], char* title);
 
 int quit(void* window);
 int run(void* window, struct _keybind* binds);

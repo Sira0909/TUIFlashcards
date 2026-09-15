@@ -41,7 +41,7 @@ void shufflePreserveGraphemes(char* string){
     wchar_t splitgraphemes[strlen(string)];
 
     int j=0;
-    for(int i = 0 ; i <strlen(string);i++){
+    for(unsigned int i = 0 ; i <strlen(string);i++){
         if(string[i] == 195-256){
             splitgraphemes[j] = 0xC300+string[i+1];
             i++;

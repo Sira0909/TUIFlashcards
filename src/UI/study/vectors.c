@@ -15,7 +15,7 @@ struct vectorMetadata{
 #define Metadata ((struct vectorMetadata*)(((TABLE*)table)->metadata))
 
 
-int vector_quit(void* table){return -1;}
+int vector_quit(__attribute__((unused)) void* table){return -1;}
 int vector_select(void*table){
     TABLE* Table = (TABLE*) table;
     if( Table->selected_col==0){
@@ -63,7 +63,7 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount){
 
         sprintf(items[0][i], "[%c] Definition %d", (selectin) ?'x':' ', i);//TODO: support names
         sprintf(items[1][i], "[%c] Definition %d", (selectout)?'x':' ', i);//TODO: support names
-        selected[i]='*';//maybe change
+        selected[i]=1;//maybe change
     }
 
 

@@ -12,8 +12,8 @@ ifeq ($(OS),Windows_NT)
 else
 	UNAME := $(shell uname -s)
 	ifeq ($(UNAME),Darwin)
-		LDFLAGS += "-L/usr/local/opt/ncurses/lib"
-		CCFLAGS += "-I/usr/local/opt/ncurses/include"
+		LDFLAGS += "-L/usr/local/opt/ncurses/lib -L/opt/homebrew/opt/ncurses/lib "
+		CCFLAGS += "-I/usr/local/opt/ncurses/include -I/opt/homebrew/opt/ncurses/include"
 	endif
 endif
 TUIFlashcards: $(C_SOURCES) $(HEADERS)

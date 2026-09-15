@@ -19,7 +19,7 @@ struct MultipleChoice_metadata{
     bool (*vectorsout);// term->____
 
     //window info
-    int maxlength;
+    unsigned int maxlength;
     WINDOW* responseWindow;
     WINDOW* text;
     WINDOW* ans[2][2];

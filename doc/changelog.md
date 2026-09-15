@@ -1,6 +1,7 @@
 ## Version 0.2.2:
 - running `$ make bootstrapConfig` will create a config directory and place an example list inside
 - get_lists can show no lists without prompting user to add a list
+- get_lists now includes functionality for moving, renaming lists!
 - cleaned up codebase a bit
 - Bug fixes
 
