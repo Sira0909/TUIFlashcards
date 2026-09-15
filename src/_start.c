@@ -9,10 +9,12 @@
 #include <unistd.h>
 #include <ncurses.h>
 #include <form.h>
+
 #include <main.h>
-
-
 #include <config.h>
+#include <animation.h>
+
+
 #include <time.h>
 #include <stdlib.h>
 
@@ -22,18 +24,19 @@ CONFIGSTRUCT config;
 int main(int argc, char *argv[]){
     srand(time(0));
 
-    init_ncurses();
-    if(process_flags(argc, argv)==true){
-        return 0;
-    }
-    
-
     
     int conferrors = get_config_struct(&config);
     if(conferrors>0){
         printf("there are %d errors in your config file. certain values might not be what you want", conferrors);
         getc(stdin);
     }
+
+    if(process_flags(argc, argv)==true){
+        return 0;
+    }
+
+    init_ncurses();
+    init_Animation(); 
 
 
     
@@ -69,6 +72,7 @@ void init_ncurses(void){
 
     //start color
     start_color();
+    scrollok(stdscr,true);
 
 
 

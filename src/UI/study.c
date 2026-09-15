@@ -66,9 +66,11 @@ void pickMode(char* list){
 
 
 int render_Mode(void* metadata){
+        touchwin(Metadata->mainPlayWindow);
         //correct which is selected
         for(int i = 0; i < 2; i++){
             for(int j = 0; j < 3; j++){
+                touchwin(Metadata->games[i][j]);
                 if(i == Metadata->selectedy && j == Metadata->selectedx){
                     wbkgd(Metadata->games[i][j], COLOR_PAIR(3));
                 } else

@@ -32,7 +32,7 @@
 
 
 void test(FlashcardSet *flashcard_set){
-    return;// not really usable yet. delete this if you want
+//    return;// not really usable yet. delete this if you want
     //return; // unfinished
     // test will allways be shuffled and multivector, no settings menu needed
     int order[flashcard_set->num_items];
@@ -131,7 +131,7 @@ void test(FlashcardSet *flashcard_set){
         }
         for(int i = 0; i < numchoices; i++){
             char ans[2] = {(char)('a'+answers[i]), 0};
-            //set_field_buffer(rfield[page*perPage+i], 1, ans);
+            set_field_buffer(rfield[page*perPage+i], 1, ans);
             //TODO: add defns
             set_field_buffer(afield[page*perPage+i], 0, flashcard_set->cards[order[page*perPage+answers[i]]].definition[0]);
             set_field_buffer(qfield[page*perPage+i], 0, flashcard_set->cards[order[page*perPage+i]].term);
@@ -147,27 +147,50 @@ void test(FlashcardSet *flashcard_set){
         char questionstr[MAX_FLASHCARD_SET_ITEM_SIZE];
         strcpy(questionstr, answerstr);
 
-        //shufflePreserveGraphemes(questionstr);
+        shufflePreserveGraphemes(questionstr);
 
-        //rfield[perSect+i] = new_field(1, 20, spacing*(i%perPage), 1, strlen(answerstr)/20, 1);
-        //qfield[perSect+i] = new_field(1, 20, spacing*(i%perPage), 1, strlen(answerstr)/20, 1);
-        //afield[perSect+i] = new_field(1, 1, spacing*(i%perPage), 0, 0, 0); 
-        //nfield[perSect+i] = new_field(1, 3, spacing*(i%perPage), 0, 0, 0); 
-        //set_field_back(rfield[perSect+i], COLOR_PAIR(3) | A_UNDERLINE);
-        //set_field_back(nfield[perSect+i], COLOR_PAIR(2) | A_BOLD);
-        //set_field_back(qfield[perSect+i], COLOR_PAIR(2));
-        //set_field_back(afield[perSect+i], COLOR_PAIR(2));
-        //field_opts_off(afield[perSect+i], O_VISIBLE);
-        //set_field_buffer(rfield[perSect+i], 1, answerstr);
-        //set_field_buffer(qfield[perSect+i], 0, questionstr);
-        //set_field_buffer(nfield[perSect+i], 0, num);
+        rfield[perSect+i] = new_field(1, 20, spacing*(i%perPage), 1, strlen(answerstr)/20, 1);
+        qfield[perSect+i] = new_field(1, 20, spacing*(i%perPage), 1, strlen(answerstr)/20, 1);
+        afield[perSect+i] = new_field(1, 1, spacing*(i%perPage), 0, 0, 0); 
+        nfield[perSect+i] = new_field(1, 3, spacing*(i%perPage), 0, 0, 0); 
+        set_field_back(rfield[perSect+i], COLOR_PAIR(3) | A_UNDERLINE);
+        set_field_back(nfield[perSect+i], COLOR_PAIR(2) | A_BOLD);
+        set_field_back(qfield[perSect+i], COLOR_PAIR(2));
+        set_field_back(afield[perSect+i], COLOR_PAIR(2));
+        field_opts_off(afield[perSect+i], O_VISIBLE);
+        set_field_buffer(rfield[perSect+i], 1, answerstr);
+        set_field_buffer(qfield[perSect+i], 0, questionstr);
+        set_field_buffer(nfield[perSect+i], 0, num);
         num[0]=(num[0]=='z')?'a':num[0]+1;
         //set_field_type(field[i], TYPE_ALPHA, 0);
         if (i%perPage==0){
-//            set_new_page(rfield[perSect+i], TRUE);
-            //set_new_page(qfield[perSect+i], TRUE);
-            //set_new_page(afield[perSect+i], TRUE);
-            //set_new_page(nfield[perSect+i], TRUE);
+            set_new_page(rfield[perSect+i], TRUE);
+            set_new_page(qfield[perSect+i], TRUE);
+            set_new_page(afield[perSect+i], TRUE);
+            set_new_page(nfield[perSect+i], TRUE);
+        }
+    }
+    //
+    // Multiple Choice
+    //
+    for(int i = 0; i < perSect; i++){
+        nfield[i] = new_field(1, 3, spacing*(i%perPage), 0, 2, 1);
+        rfield[i] = new_field(1, 1, spacing*(i%perPage), 1, 0, 1);
+        qfield[i] = new_field(1, 15, spacing*(i%perPage), 0, MAX_FLASHCARD_SET_ITEM_SIZE/15, 0);
+        afield[i] = new_field(1, 15, spacing*(i%perPage), 0, MAX_FLASHCARD_SET_DEFN_SIZE/15, 0);
+        set_field_back(rfield[i], COLOR_PAIR(3) | A_UNDERLINE);
+        set_field_back(qfield[i], COLOR_PAIR(2));
+        set_field_back(nfield[i], COLOR_PAIR(2) | A_BOLD);
+        set_field_back(afield[i], COLOR_PAIR(2));
+        field_opts_on(rfield[i], O_AUTOSKIP);
+        //field_opts_off(qfield[i], O_EDIT);
+        //set_field_type(field[i], TYPE_ALPHA, 0);
+        if (i!=0 && i%perPage==0){
+            set_new_page(rfield[i], TRUE);
+            set_new_page(qfield[i], TRUE);
+            set_new_page(nfield[i], TRUE);
+            set_new_page(afield[i], TRUE);
+            pages++;
         }
     }
     rfield[2*perSect] = NULL;

@@ -1,4 +1,5 @@
 #include "flashcards.h"
+#include <curses.h>
 #include <string.h>
 #include <stdlib.h>
 #include <study.h>
@@ -24,6 +25,7 @@ struct MultipleChoice_metadata{
     WINDOW* text;
     WINDOW* ans[2][2];
     WINDOW* ansBox[2][2];
+    WINDOW* resultwin;
 
 
     //state
@@ -255,6 +257,7 @@ bool MC_setup(struct MultipleChoice_metadata* metadata, FlashcardSet* flashcard_
     metadata->ansBox[0][1] = derwin(metadata->responseWindow, ansBoxHeight-2, ansBoxWidth-2, (boxHeight)-ansBoxHeight  ,   2               );
     metadata->ansBox[1][0] = derwin(metadata->responseWindow, ansBoxHeight-2, ansBoxWidth-2, (boxHeight)-ansBoxHeight*2,   3+maxlength/2   );
     metadata->ansBox[1][1] = derwin(metadata->responseWindow, ansBoxHeight-2, ansBoxWidth-2, (boxHeight)-ansBoxHeight  ,   3+maxlength/2   );
+    metadata->resultwin=NULL;
     #undef maxlength
 
     wbkgd(metadata->responseWindow, COLOR_PAIR(2));
@@ -356,19 +359,23 @@ int MultipleChoice_starcurrent(void*metadata){
         return 1;
 }
 int MultipleChoice_select(void*metadata){
-    move(LINES-3, 0);
-    clrtoeol();
+    if(Metadata->resultwin!=NULL){
+        erasewindow(Metadata->resultwin);
+        Metadata->resultwin=NULL;
+    }
 
     if(Metadata->selectedx*2+Metadata->selectedy != Metadata->correctans){ // incorrect
+        Metadata->resultwin = create_newwin(1,16+strlen(Metadata->choices[Metadata->correctans]),LINES-3, (COLS-16-strlen(Metadata->choices[Metadata->correctans]))/2);
         //setallbkgd(10);
-        attron(COLOR_PAIR(10));
-        mvprintw(LINES-3, (COLS-16-strlen(Metadata->choices[Metadata->correctans]))/2, "Correct answer: %s", Metadata->choices[Metadata->correctans]);
-        attron(COLOR_PAIR(1));
+        wbkgd(Metadata->resultwin, COLOR_PAIR(10));
+        mvwprintw(Metadata->resultwin, 0,0, "Correct answer: %s", Metadata->choices[Metadata->correctans]);
+        wrefresh(Metadata->resultwin);
     }
     else {
-        attron(COLOR_PAIR(9));
-        mvprintw(LINES-3, (COLS-8)/2, "Correct!");
-        attron(COLOR_PAIR(1));
+        Metadata->resultwin = create_newwin(1, 8,LINES-3, (COLS-8)/2);
+        wattron(Metadata->resultwin, COLOR_PAIR(9));
+        mvwprintw(Metadata->resultwin, 0,0, "Correct!");
+        wrefresh(Metadata->resultwin);
     }
 
 

@@ -1,7 +1,9 @@
 #include <ncurses.h>
+#include <animation.h>
 #include <windows/window.h>
 #include <string.h>
 #include <UI.h>
+#include <poll.h>
 
 void list_keybinds(struct _keybind* binds){
     int numBinds = binds[0].keycode;
@@ -28,9 +30,19 @@ void list_keybinds(struct _keybind* binds){
 int run(void* window, struct _keybind* binds){
     int count = binds[0].keycode;
     int (*render)(void* structure) = binds[0].effect;
+
+    struct pollfd pfds[1];
+    pfds[0].fd = 0;
+    pfds[0].events = POLLIN;
     
     while(1){
-        render(window);
+        do{
+            render(window);
+            poll(pfds,1, 500);
+            updateAnimation();
+            refresh();
+        }
+        while(!(pfds[0].revents&POLLIN));
         int ch = getch();
 	if(ch == '?'){//comes before so callers can do post-operations
 	    list_keybinds(binds);

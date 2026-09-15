@@ -1,3 +1,6 @@
+## Version 0.3:
+- Background animations!
+
 ## Version 0.2.2:
 - running `$ make bootstrapConfig` will create a config directory and place an example list inside
 - get_lists can show no lists without prompting user to add a list
