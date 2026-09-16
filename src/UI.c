@@ -37,10 +37,10 @@ int run(void* window, struct _keybind* binds){
     
     while(1){
         do{
-            render(window);
-            poll(pfds,1, 500);
             updateAnimation();
             refresh();
+            render(window);
+            poll(pfds,1, 100);
         }
         while(!(pfds[0].revents&POLLIN));
         int ch = getch();

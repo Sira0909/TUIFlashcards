@@ -29,8 +29,14 @@ int settings_save(void* Table);
 int settings_select(void* Table);
 int settings_fixAfterKeybinds(void* Table);
 TABLE setup_global_settings_table(int width, int height, WINDOW* tablewindow);
+int render_settings(void* Table){
+    render_Table(Table);
+    touchwin(Metadata->mainWindow);
+    wrefresh(Metadata->mainWindow);
+    return 1;
+}
 bool get_global_settings(void){
-    bind_keys(global_settings_keybinds, render_Table, 7)
+    bind_keys(global_settings_keybinds, render_settings, 7)
         {config.keylayout.dkey, config.keylayout.str_dkey,"down", &table_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &table_up},
         {10, "<enter>", "toggle", &settings_select},

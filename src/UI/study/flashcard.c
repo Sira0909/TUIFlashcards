@@ -1,7 +1,10 @@
+#include <curses.h>
 #include <study.h>
 #include <windows/window.h>
 #include <ncurses.h>
 #include <config.h>
+#include <poll.h>
+#include <animation.h>
 //#include <stdlib.h>
 //#include <string.h>
 
@@ -46,6 +49,10 @@ void flashcard(FlashcardSet *flashcard_set){
     int side = 0;
     int ch = -1;
     bool done = false;
+
+    struct pollfd pfds[1];
+    pfds[0].fd = 0;
+    pfds[0].events = POLLIN;
     while (!done){
         char* card_text;
         if((/*default_side+*/side)%flashcard_set->num_columns)
@@ -61,6 +68,15 @@ void flashcard(FlashcardSet *flashcard_set){
         //wprintw(FlashcardWindow, "%d", order[currentcard]);
         printProgress(FlashcardWindow, currentcard, numCards);
         wrefresh(FlashcardWindow);
+        do{
+            updateAnimation();
+            refresh();
+            touchwin(FlashcardWindow);
+            touchwin(text);
+            wrefresh(FlashcardWindow);
+            poll(pfds,1, 100);
+        }
+        while(!(pfds[0].revents&POLLIN));
 
 
         ch = getch();

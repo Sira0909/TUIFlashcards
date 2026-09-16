@@ -12,14 +12,14 @@ void init_Animation(void){
 
 void updateAnimation(void){
     scrl(-1);
-    int numchars = COLS/5;
+    int numchars = COLS/15;
     char line[COLS+1];
     for(int i = 0; i < COLS; i++){
         line[i]=' ';
     }
     line[COLS]=0;
     for(int i=0; i <numchars; i++){
-        line[rand()%COLS] = '|';
+        line[rand()%COLS] = 'O';
     }
     mvprintw(0,0,"%s", line);
 }

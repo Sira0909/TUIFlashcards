@@ -1,4 +1,5 @@
 #include <UI.h>
+#include <curses.h>
 #include <string.h>
 #include <macros.h>
 #include <flashcards.h>
@@ -34,6 +35,13 @@ int editor_quit(void* table);
 int editor_showkeybinds(void* table);
 int editor_removeDefinition(void* table);
 
+
+int render_editor(void* Table){
+    render_Table(Table);
+    touchwin(wgetparent(((TABLE*)Table)->window));
+    wrefresh(wgetparent(((TABLE*)Table)->window));
+    return 1;
+}
 
 TABLE editor_setup(FlashcardSet* flashcardset, struct EditorMetadata metadata, WINDOW** edit_list_menu_window){
     int columns = flashcardset->num_columns;
@@ -104,7 +112,7 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
     wrefresh(edit_list_menu_window);
 
-    bind_keys(editkeybinds, render_Table, 16) 
+    bind_keys(editkeybinds, render_editor, 16) 
         {config.keylayout.lkey, config.keylayout.str_lkey, "left",&table_left},
         {config.keylayout.dkey, config.keylayout.str_dkey,"down",&table_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &table_up},

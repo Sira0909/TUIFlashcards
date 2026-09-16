@@ -1,6 +1,8 @@
 //this quiz is excepted from using run() because ? is required for smth else and I don't want to deal with that :(
 #include <string.h>
 #include <study.h>
+#include <animation.h>
+#include <poll.h>
 
 
 #define _XOPEN_SOURCE 600
@@ -124,7 +126,20 @@ void type(FlashcardSet *flashcard_set){
 
     bool wasJustBacktick = false;
     bool wasJustTilde = false;
-    while((ch = getch())){
+    struct pollfd pfds[1];
+    pfds[0].fd = 0;
+    pfds[0].events = POLLIN;
+    while(1){
+        do{
+            updateAnimation();
+            refresh();
+            touchwin(form_win);
+            touchwin(form_sub);
+            wrefresh(form_win);
+            poll(pfds,1, 100);
+        }
+        while(!(pfds[0].revents&POLLIN));
+        ch=getch();
         touchwin(form_win);
         if(starWin!=NULL){
             erasewindow(starWin);
