@@ -22,21 +22,24 @@
 CONFIGSTRUCT config;
 
 int main(int argc, char *argv[]){
+    //seed rng
     srand(time(0));
 
+    // process cmd flags
+    if(process_flags(argc, argv)==true){
+        return 0;
+    }
     
+    //get config
     int conferrors = get_config_struct(&config);
     if(conferrors>0){
         printf("there are %d errors in your config file. certain values might not be what you want", conferrors);
         getc(stdin);
     }
 
-    if(process_flags(argc, argv)==true){
-        return 0;
-    }
 
     init_ncurses();
-    init_Animation(); 
+    init_Animation(config); 
 
 
     
@@ -107,6 +110,7 @@ void init_ncurses(void){
     curs_set(0);
     set_escdelay(100);
 
+    //windows doesnt need this
 #ifndef _WIN32
     //allow ctrl+s
     struct termios term;

@@ -37,8 +37,7 @@ int run(void* window, struct _keybind* binds){
     
     while(1){
         do{
-            updateAnimation();
-            refresh();
+            updateAnimation(config);
             render(window);
             poll(pfds,1, 100);
         }

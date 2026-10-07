@@ -17,14 +17,16 @@ typedef struct _FLASHCARDPAIR{  // flashcard, front and back
 typedef struct _FLASHCARDSET{   // vector of flashcards
     int num_items;
     int num_columns;
+    int defn_capacity;
     int capacity;
+    char (*defnNames)[128];
     Flashcard* cards;
 } FlashcardSet;
     
 FlashcardSet* create_Flashcard_Set_Object();
 
 int addcard(FlashcardSet* flashcardset, char name[MAX_FLASHCARD_SET_ITEM_SIZE], char definition[][MAX_FLASHCARD_SET_DEFN_SIZE], int starred);
-int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DEFN_SIZE]);
+int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DEFN_SIZE], char defnName[128]);
 int delDefn(FlashcardSet* flashcard_set, int index);
 
 void deletecard(FlashcardSet* flashcardset, int index);

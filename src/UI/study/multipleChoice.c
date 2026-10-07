@@ -156,7 +156,7 @@ bool MC_setup(struct MultipleChoice_metadata* metadata, FlashcardSet* flashcard_
         Metadata->vectorsout[i]=true;
     }
 
-    if (!get_settings(flashcard_set, &(Metadata->starred_only), &(Metadata->shuffle), &(Metadata->question_count), (Metadata->vectorsin), Metadata->vectorsout)){
+    if (!get_settings(flashcard_set, &(Metadata->starred_only), &(Metadata->shuffle), &(Metadata->question_count), (Metadata->vectorsin), Metadata->vectorsout, flashcard_set->defnNames)){
         free(Metadata->vectorsin);
         free(Metadata->vectorsout);
         return false;

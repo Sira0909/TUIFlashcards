@@ -7,6 +7,7 @@ void printProgress(WINDOW* win, int current, int max){
     getmaxyx(win, y, x);
     int width;
     char testbuffer[20]; sprintf(testbuffer, "%d/%d", current+1, max); width = strlen(testbuffer);   // get the width of the progress bar to right align
+    mvwaddch(win, 0, x-4-width, ACS_HLINE);
     mvwaddch(win, 0, x-3-width, ACS_RTEE);
     wprintw(win, "%d/%d", current+1, max);
     waddch(win, ACS_LTEE);

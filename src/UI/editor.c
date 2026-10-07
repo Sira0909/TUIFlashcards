@@ -29,6 +29,7 @@ int editor_star(void* table);
 int editor_selectField(void* table);
 int editor_deleteCard(void* table);
 int editor_addCard(void* table);
+int editor_renameDefn(void* table);
 int editor_addDefinition(void* table);
 int editor_writeSet(void* table);
 int editor_quit(void* table);
@@ -74,10 +75,9 @@ TABLE editor_setup(FlashcardSet* flashcardset, struct EditorMetadata metadata, W
 
     strcpy(headers[0],"term");
     for(int i = 1; i < columns; i++){
-        //TODO: support for definition names
-        char str[22];//just in case someone wants 4,000,000,000 definitions for some reason. gotta support that /sarcasm
-        sprintf(str, "definition %d", i);
-        strcpy(headers[i],str);
+        //char str[22];//just in case someone wants 4,000,000,000 definitions for some reason. gotta support that /sarcasm
+        //sprintf(str, "definition %d", i);
+        strcpy(headers[i],flashcardset->defnNames[i-1]);
     }
     init_Table(&flashcardTable, metadata.flashcardset->num_items, columns,width, height, &tablewindow, "Editing Flashcards", headers, table, starred);
 
@@ -112,12 +112,13 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
     wrefresh(edit_list_menu_window);
 
-    bind_keys(editkeybinds, render_editor, 16) 
+    bind_keys(editkeybinds, render_editor, 17) 
         {config.keylayout.lkey, config.keylayout.str_lkey, "left",&table_left},
         {config.keylayout.dkey, config.keylayout.str_dkey,"down",&table_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &table_up},
         {config.keylayout.rkey, config.keylayout.str_rkey,"right", &table_right},
         {10, "<enter>", "edit text", &editor_selectField},
+        {'r', "r", "rename definition", &editor_renameDefn},
         {config.keylayout.dkey, " ", " ", &editor_update},
         {'s', "s", "star flashcard",&editor_star},
         {'a', "a", "add flashcard", &editor_addCard},
@@ -163,7 +164,7 @@ int editor_addDefinition(void*table){
     wbkgd(wgetparent(Table->window), COLOR_PAIR(1));
     werase(wgetparent(Table->window));
     wrefresh(wgetparent(Table->window));
-    if(addDefn(Metadata->flashcardset, NULL)==-1){
+    if(addDefn(Metadata->flashcardset, NULL, NULL)==-1){
         showmsg("an error occured trying to add a definition. Exiting!");
         endwin();
         printf("error: realloc failed in flaschards.c:addDefn()");
@@ -373,6 +374,25 @@ int editor_quit(void* table){
                 }
                 return 1;
 }
+int editor_renameDefn(void*table){
+    if (((TABLE*)table)->selected_col!=0){
+        char* Name = getString("New name?", 128, NULL);
+        if(Name==NULL){
+            return 1;
+        }
+        else if(is_all_space(Name)){
+            free(Name);
+            return 1;
+        }
+        strncpy(Metadata->flashcardset->defnNames[((TABLE*)table)->selected_col-1], Name,128);
+        strncpy(((TABLE*)table)->headers[((TABLE*)table)->selected_col], Name,128);
+
+        free(Name);
+    }
+    return 1;
+    
+
+}
 
 // Add new flashcard list
 void addList(char* dir){
@@ -426,6 +446,7 @@ void addList(char* dir){
     return;
    
 }
+
 
 void addDir(char* parentDir){
 

@@ -1,4 +1,4 @@
-#define ReleaseVersion "0.2"
+#define ReleaseVersion "0.3"
 
 #include <limits.h>
 #ifndef PATH_MAX

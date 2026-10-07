@@ -11,4 +11,5 @@ stuff for version 0.3
 - test mode, as outlined in src/UI/study/test.c
     - figure out why the forms keep bugging: some calloc issue? idk
 - animations
+    - why is it bugging
 - consistant variable format

@@ -34,6 +34,7 @@ typedef struct _CONFIG{ //structure to hold config variables
     char flashcard_dir[PATH_MAX];
     int showKeybindsHelp;
     int autoaccent;
+    int animations;
 } CONFIGSTRUCT;
 
 extern CONFIGSTRUCT config; // structure instance

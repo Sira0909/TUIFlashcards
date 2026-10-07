@@ -14,9 +14,12 @@ FlashcardSet* create_Flashcard_Set_Object(void){
 
     //default 32 max items
     flashcard_set->capacity = 32;
+    flashcard_set->defn_capacity = 1;
     
-    flashcard_set->num_columns = 2;
+    flashcard_set->num_columns = 1;
     flashcard_set->cards = (Flashcard* )calloc(flashcard_set->capacity, sizeof(Flashcard));
+    flashcard_set->defnNames = calloc(1, sizeof(char[128]));
+    //strncpy(flashcard_set->defnNames[0], "definition 1",13);
 
     return flashcard_set;
 }
@@ -50,8 +53,30 @@ int addcard(FlashcardSet* flashcard_set, char term[MAX_FLASHCARD_SET_ITEM_SIZE],
 
     return 0;
 }
-int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DEFN_SIZE]){
+int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DEFN_SIZE], char defnName[128]){
+    if (flashcard_set->num_columns > flashcard_set->defn_capacity){
+
+        //size doubles
+        char (*newNames)[128] = realloc(flashcard_set->defnNames, flashcard_set->defn_capacity*2*sizeof(char[128]));
+        //check realloc success
+        if (newNames == NULL){
+            return -1;
+            
+        }
+
+        //update fields
+        flashcard_set->defn_capacity*= 2;
+        flashcard_set->defnNames = newNames;
+    }
     flashcard_set->num_columns++;
+    if(defnName==NULL){
+        strcpy(flashcard_set->defnNames[flashcard_set->num_columns-2], "definition ");
+
+        itoa(flashcard_set->num_columns-1, flashcard_set->defnNames[flashcard_set->num_columns-2]+11);
+    }
+    else{
+        strcpy(flashcard_set->defnNames[flashcard_set->num_columns-2], defnName);
+    }
     for(int i =0; i < flashcard_set->num_items; i++){
         flashcard_set->cards[i].definition = (char(*)[MAX_FLASHCARD_SET_DEFN_SIZE]) realloc(flashcard_set->cards[i].definition,(flashcard_set->num_columns-1)*sizeof(char[MAX_FLASHCARD_SET_DEFN_SIZE]));
         if (flashcard_set->cards->definition==NULL){
@@ -137,9 +162,15 @@ int writeFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX], int 
     if(VocabFile == NULL){
         return -1;
     }
-    fprintf(VocabFile, "\"Version\":%d\n", 1); //denotes flashcard version
+    fprintf(VocabFile, "\"Version\":%d\n", 2); //denotes flashcard version
     fprintf(VocabFile, "\"Columns\":%d\n", flashcard_set->num_columns);
     fprintf(VocabFile, "\"Terms\":%d\n", flashcard_set->num_items);
+    fprintf(VocabFile, "\"Definitions\":{\n");
+    for(int i = 0; i<flashcard_set->num_columns-1;i++){
+        fprintf(VocabFile, "%s\n", flashcard_set->defnNames[i]);
+    }
+    fprintf(VocabFile, "}\n");
+
     fprintf(VocabFile, "\"Flashcards\":{");
     for(int i = 0; i<flashcard_set->num_items;i++){
         fprintf(VocabFile, "\n%s", flashcard_set->cards[i].term);
@@ -219,6 +250,7 @@ void getDefinitionList(FlashcardSet* flashcard_set, int index,char (*(definition
 // gets flashcard set from file
 int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
     if(strcmp(filePath+strlen(filePath)-5, ".list")){
+        //TODO: confirmation needed. dont delete data.
         if(updateList(filePath)==1){
             remove(filePath);
         }
@@ -239,9 +271,31 @@ int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
 
     int version;
     int num_items = 0; 
+    int num_columns = 0;
+    //TODO: use like json or smth
     fscanf(VocabFile, "\"Version\":%d\n", &version); //denotes flashcard version
-    fscanf(VocabFile, "\"Columns\":%d\n", &(flashcard_set->num_columns));
+    fscanf(VocabFile, "\"Columns\":%d\n", &(num_columns));
     fscanf(VocabFile, "\"Terms\":%d\n", &num_items);
+    if(version == 2){
+        fscanf(VocabFile, "\"Definitions\":{\n");
+        for(int i = 0; i < num_columns-1; i++){
+            char defn[128];
+            if(fgets(defn,128, VocabFile)==NULL){
+                printf("file corrupt?");
+                return -1;
+            }
+            trim_whitespaces(defn);
+            addDefn(flashcard_set, NULL,defn);
+
+        }
+        fscanf(VocabFile, "}\n");
+    }
+    else{
+        for(int i = 0; i < num_columns-1; i++){
+            addDefn(flashcard_set, NULL,NULL);
+        }
+        
+    }
 
 
     fscanf(VocabFile, "\"Flashcards\":{\n");

@@ -223,7 +223,7 @@ void test(FlashcardSet *flashcard_set){
 
     
 
-    int basefield=0;
+    //int basefield=0;
 
     int ch;
     wmove(mainquiz, 1,27);

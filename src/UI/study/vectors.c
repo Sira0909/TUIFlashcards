@@ -20,35 +20,35 @@ int vector_select(void*table){
     TABLE* Table = (TABLE*) table;
     if( Table->selected_col==0){
         Metadata->vectorin[Table->selected_row] = !Metadata->vectorin[Table->selected_row];
-        sprintf(Table->table_data[0][Table->selected_row], "[%c] Definition %d", (Metadata->vectorin[Table->selected_row]) ?'x':' ', Table->selected_row);//TODO: support names
+        Table->table_data[0][Table->selected_row][1] = (Metadata->vectorin[Table->selected_row]) ?'x':' ';
     }
     if( Table->selected_col==1){
         Metadata->vectorout[Table->selected_row] = !Metadata->vectorout[Table->selected_row];
-        sprintf(Table->table_data[1][Table->selected_row], "[%c] Definition %d", (Metadata->vectorout[Table->selected_row]) ?'x':' ', Table->selected_row);//TODO: support names
+        Table->table_data[1][Table->selected_row][1] = (Metadata->vectorout[Table->selected_row]) ?'x':' ';
     }
     return 1;
 }
 int vector_all(void*table){
     TABLE* Table = (TABLE*) table;
     for(int i = 0; i < Metadata->vectorCount;i++){
-        Metadata->vectorin[Table->selected_row] = true;
-        Metadata->vectorout[Table->selected_row] = true;
-        sprintf(Table->table_data[0][Table->selected_row], "[x] Definition %d", Table->selected_row);//TODO: support names
-        sprintf(Table->table_data[1][Table->selected_row], "[x] Definition %d", Table->selected_row);//TODO: support names
+        Metadata->vectorin[i] = true;
+        Metadata->vectorout[i] = true;
+        Table->table_data[0][i][1] = 'x';
+        Table->table_data[1][i][1] = 'x';
     }
     return 1;
 }
 int vector_none(void*table){
     TABLE* Table = (TABLE*) table;
     for(int i = 0; i < Metadata->vectorCount;i++){
-        Metadata->vectorin[Table->selected_row]  = false;
-        Metadata->vectorout[Table->selected_row] = false;
-        sprintf(Table->table_data[0][Table->selected_row], "[ ] Definition %d", Table->selected_row);//TODO: support names
-        sprintf(Table->table_data[1][Table->selected_row], "[ ] Definition %d", Table->selected_row);//TODO: support names
+        Metadata->vectorin[i]  = false;
+        Metadata->vectorout[i] = false;
+        Table->table_data[0][i][1] = ' ';
+        Table->table_data[1][i][1] = ' ';
     }
     return 1;
 }
-void editVectors(bool *vectorin,bool *vectorout,int vectorCount){
+void editVectors(bool *vectorin,bool *vectorout,int vectorCount, char (*defnNames)[128]){
     struct vectorMetadata meta = {vectorin,vectorout,vectorCount};
     TABLE vectorTable;
 
@@ -61,8 +61,8 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount){
         bool selectin=vectorin[i];
         bool selectout=vectorout[i];
 
-        sprintf(items[0][i], "[%c] Definition %d", (selectin) ?'x':' ', i);//TODO: support names
-        sprintf(items[1][i], "[%c] Definition %d", (selectout)?'x':' ', i);//TODO: support names
+        sprintf(items[0][i], "[%c] %s", (selectin) ?'x':' ', defnNames[i]);
+        sprintf(items[1][i], "[%c] %s", (selectout)?'x':' ', defnNames[i]);
         selected[i]=1;//maybe change
     }
 

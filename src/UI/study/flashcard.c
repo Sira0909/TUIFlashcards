@@ -69,7 +69,7 @@ void flashcard(FlashcardSet *flashcard_set){
         printProgress(FlashcardWindow, currentcard, numCards);
         wrefresh(FlashcardWindow);
         do{
-            updateAnimation();
+            updateAnimation(config);
             refresh();
             touchwin(FlashcardWindow);
             touchwin(text);

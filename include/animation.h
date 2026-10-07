@@ -1,3 +1,4 @@
 
-void init_Animation(void);
-void updateAnimation(void);
+#include "config.h"
+void init_Animation(CONFIGSTRUCT config);
+void updateAnimation(CONFIGSTRUCT config);

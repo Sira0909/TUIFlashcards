@@ -23,6 +23,7 @@ struct settingMetadata{
     bool *vectorin;
     bool *vectorout;
     int vectorCount;
+    char (*defnNames)[128];
 };
 #define Metadata ((struct settingMetadata*)(((MENU*)menu)->metadata))
 
@@ -68,7 +69,7 @@ int study_settings_select(void* menu){
             wbkgd(wgetparent(settingsmenu->window), COLOR_PAIR(1));
             werase(wgetparent(settingsmenu->window));
             wrefresh(wgetparent(settingsmenu->window));
-            editVectors(Metadata->vectorin, Metadata->vectorout, Metadata->vectorCount);
+            editVectors(Metadata->vectorin, Metadata->vectorout, Metadata->vectorCount, Metadata->defnNames);
             
             break;
         case 6:
@@ -82,9 +83,9 @@ int study_settings_select(void* menu){
 
 
 //get seettings for study section
-bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle, int* question_count, bool vectorsin[], bool vectorsout[]){
+bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle, int* question_count, bool vectorsin[], bool vectorsout[], char (*defnNames)[128]){
 
-    struct settingMetadata meta = {false, starred_only,shuffle, question_count,  vectorsin, vectorsout,  flashcard_set->num_columns-1};
+    struct settingMetadata meta = {false, starred_only,shuffle, question_count,  vectorsin, vectorsout,  flashcard_set->num_columns-1, defnNames};
     
     MENU setting_menu;
 

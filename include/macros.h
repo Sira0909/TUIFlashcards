@@ -25,6 +25,7 @@
 //for keybinds
 #define ctrl(x)           ((x) & 0x1f)
 
+int itoa(int i, char* a);
 char* trim_whitespaces(char *str);
 
 int is_all_space(char *string);
