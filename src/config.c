@@ -79,7 +79,9 @@ FILE* get_config_file(CONFIGSTRUCT *config){
                              "// 0: no accents\n"\
                              "// 1: `a->á, ~n->ñ, ``->`\n"\
                              "// maybe more to come\n"\
-                             "auto_accent: 1");
+                             "auto_accent: 1\n"\
+                             "//enable animations\n"\
+                             "animations: 1");
 
         fclose(writeconfig);
         
@@ -162,6 +164,7 @@ void fill_defaults(CONFIGSTRUCT *config){
     strcpy(config->flashcard_dir, cardDir);
     config->showKeybindsHelp = 1;
     config->autoaccent = 1;
+    config->animations = 0;
 }
 #define LINE_MAX_SIZE 256 
 #if LINE_MAX_SIZE>PATH_MAX //im too tired to use strncpy
@@ -260,6 +263,19 @@ int get_config_struct(CONFIGSTRUCT *config){
                         countUndefconfigs++;
                     }
                 }
+                else if (strcmp(trimmedsetting, "animations")==0){
+                    if(strcmp(&(line[i+2]),"1")==0){
+                        config->animations=1;
+                    }
+                    else if (strcmp(&(line[i+2]),"0")==0){
+                        config->animations=0;
+                    }
+                    else{
+                        printf("undefined value: %s\n", &(line[i+2]));
+                        countUndefconfigs++;
+                    }
+
+                }
                 else {
                     printf("%s\n", line);
                     countUndefconfigs++;
@@ -306,6 +322,7 @@ int writeconfig(void){
     fprintf(conf, "\nkeyboard_layout: %s", layout);
     fprintf(conf, "\nshow_keybinds_help: %d", config.showKeybindsHelp);
     fprintf(conf, "\nauto_accent: %d", config.autoaccent);
+    fprintf(conf, "\nanimations: %d", config.autoaccent);
     fclose(conf);
 
     return 1;

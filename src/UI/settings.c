@@ -46,7 +46,7 @@ bool get_global_settings(void){
 
     };
 
-    int height = 6;
+    int height = 8;
     int width = 58;
     // create window for menu. 
     WINDOW* setting_window = create_newwin(height+2, 35, (LINES - height)/2, (COLS - 33)/2);
@@ -54,31 +54,33 @@ bool get_global_settings(void){
     struct settings_metadata metadata = {config, setting_window};
 
     TABLE settings_table;
-    char items[6][128] = { "Automatic accents", "Show how to access keybinds", "Keyboard Layout", "", "Save", "Cancel"};
-    char value[6][128] = {"","","","",""}; 
+    char items[7][128] = { "Automatic accents", "Show how to access keybinds", "Animations", "Keyboard Layout", "", "Save", "Cancel"};
+    char value[7][128] = {"","","","","",""}; 
     strcpy(value[0], (config.autoaccent) ? "On": "Off");
     strcpy(value[1], (config.showKeybindsHelp) ? "On": "Off");
+    strcpy(value[2], (config.animations) ? "On": "Off");
     char (*table[2])[128] = {items, value};
     switch(metadata.newConfig.keylayout.layout){
         case KEYBOARD_UNSET:
         case KEYBOARD_ARROW:
-            strcpy(value[2], "AROW");
+            strcpy(value[3], "AROW");
             break;
         case KEYBOARD_IJKL:
-            strcpy(value[2], "IJKL");
+            strcpy(value[3], "IJKL");
             break;
         case KEYBOARD_NVIM:
-            strcpy(value[2], "NVIM");
+            strcpy(value[3], "NVIM");
             break;
     }
 
-    char selected[6] = {0,0,0,0,0,0};
+    char selected[7] = {0,0,0,0,0,0,0};
     selected[0] = (config.autoaccent) ? 1: ' ';
     selected[1] = (config.showKeybindsHelp) ? 1: ' '; 
+    selected[2] = (config.animations) ? 1: ' '; 
 
 
     char headers[2][128] = {"Setting", ""};
-    init_Table(&settings_table, 5, 2, width, height, &tablewindow, "Settings", headers, table, selected);
+    init_Table(&settings_table, 7, 2, width, height, &tablewindow, "Settings", headers, table, selected);
     settings_table.metadata=&metadata;//for fixing window after keybinds
 
     wbkgd(setting_window, COLOR_PAIR(2));
@@ -140,28 +142,33 @@ int settings_select(void* Table){
             strcpy(settingstable->table_data[1][1], (Metadata->newConfig.showKeybindsHelp) ? "On": "Off");
             break;
         case 2:
+            Metadata->newConfig.animations= !Metadata->newConfig.animations;
+            settingstable->highlighted[2] = Metadata->newConfig.animations ? 1 : 0;
+            strcpy(settingstable->table_data[1][2], (Metadata->newConfig.animations) ? "On": "Off");
+            break;
+        case 3:
             switch(Metadata->newConfig.keylayout.layout){
                 case KEYBOARD_UNSET:
                 case KEYBOARD_ARROW:
                     setkeylayout(&Metadata->newConfig, KEYBOARD_IJKL);
-                    strcpy(settingstable->table_data[1][2], "IJKL");
+                    strcpy(settingstable->table_data[1][3], "IJKL");
                     break;
                 case KEYBOARD_IJKL:
                     setkeylayout(&Metadata->newConfig, KEYBOARD_NVIM);
-                    strcpy(settingstable->table_data[1][2], "NVIM");
+                    strcpy(settingstable->table_data[1][3], "NVIM");
                     break;
                 case KEYBOARD_NVIM:
                     setkeylayout(&Metadata->newConfig, KEYBOARD_ARROW);
-                    strcpy(settingstable->table_data[1][2], "AROW");
+                    strcpy(settingstable->table_data[1][3], "AROW");
                     break;
             }
 
             break;
-        case 4:
+        case 5:
             // clean up
             settings_save(Table);
             return -1;
-        case 5:
+        case 6:
             return -1;
     }
     return 1;
