@@ -69,7 +69,7 @@ void ensureNotEqual(int* a, int numCards, int b, int c, int d){
 
 int getquestion(void* metadata){
     int side = Metadata->sides[Metadata->currentcard];
-    int numCards = Metadata->flashcard_set->num_items;
+    int numCards = Metadata->question_count;
     Metadata->question =   (side<0)
                         ?currentflashcard.term
                         //TODO: add defns

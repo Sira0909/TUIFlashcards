@@ -441,6 +441,7 @@ void addList(char* dir){
     free(file);
 
     FlashcardSet* fcs = create_Flashcard_Set_Object();
+    addDefn(fcs, NULL, (char[128]){"definition 1"});
     writeFlashcardSet(fcs, newfile, 1);
     editList(newfile);
     return;

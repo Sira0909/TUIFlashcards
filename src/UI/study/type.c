@@ -111,7 +111,7 @@ void type(FlashcardSet *flashcard_set){
     wattron(text, A_BOLD); 
     mvwprintw(text, 0, 1, "%s", (sides[0]>0)?currentFlashcard.definition[abs(sides[0])-1]: currentFlashcard.term);
     wattron(text,A_UNDERLINE);
-    mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : flashcard_set->defnNames[abs(sides[currentcard])]);
+    mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : flashcard_set->defnNames[abs(sides[currentcard])-1]);
     wattroff(text,A_UNDERLINE);
     wrefresh(form_win);
 
@@ -222,7 +222,7 @@ void type(FlashcardSet *flashcard_set){
                         wbkgd(text, COLOR_PAIR(2));
                         mvwprintw(text, 0, 1, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);
                         wattron(text,A_UNDERLINE);
-                        mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : flashcard_set->defnNames[abs(sides[currentcard])]);
+                        mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : flashcard_set->defnNames[abs(sides[currentcard])-1]);
                         wattroff(text,A_UNDERLINE);
                         wrefresh(form_win);
                         break;
@@ -354,7 +354,7 @@ void type(FlashcardSet *flashcard_set){
                 wbkgd(text, COLOR_PAIR(2));
                 mvwprintw(text, 0, 1, "%s", (sides[currentcard]>0)?currentFlashcard.definition[abs(sides[currentcard])-1]: currentFlashcard.term);
                 wattron(text,A_UNDERLINE);
-                mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : flashcard_set->defnNames[abs(sides[currentcard])]);
+                mvwprintw(text, 9, 1,  "%s", (sides[currentcard]>0)?"term" : flashcard_set->defnNames[abs(sides[currentcard])-1]);
                 wattroff(text,A_UNDERLINE);
                 wrefresh(form_win);
                 break;

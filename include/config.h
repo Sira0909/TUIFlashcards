@@ -29,6 +29,7 @@ typedef struct _keyboard{
                         
 
 typedef struct _CONFIG{ //structure to hold config variables
+    int version; //config file version
     KEYBOARD keylayout;
     char config_dir[PATH_MAX];
     char flashcard_dir[PATH_MAX];
