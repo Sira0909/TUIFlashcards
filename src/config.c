@@ -322,7 +322,7 @@ int writeconfig(void){
     fprintf(conf, "\nkeyboard_layout: %s", layout);
     fprintf(conf, "\nshow_keybinds_help: %d", config.showKeybindsHelp);
     fprintf(conf, "\nauto_accent: %d", config.autoaccent);
-    fprintf(conf, "\nanimations: %d", config.autoaccent);
+    fprintf(conf, "\nanimations: %d", config.animations);
     fclose(conf);
 
     return 1;

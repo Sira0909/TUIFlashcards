@@ -48,6 +48,12 @@ int vector_none(void*table){
     }
     return 1;
 }
+int render_vector(void* Table){
+    touchwin(wgetparent(((TABLE*)Table)->window));
+    wnoutrefresh(wgetparent(((TABLE*)Table)->window));
+    render_Table(Table);
+    return 1;
+}
 void editVectors(bool *vectorin,bool *vectorout,int vectorCount, char (*defnNames)[128]){
     struct vectorMetadata meta = {vectorin,vectorout,vectorCount};
     TABLE vectorTable;
@@ -84,7 +90,7 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount, char (*defnName
     wrefresh(vector_window);
 
      
-    bind_keys(vectorKeybinds, render_Table, 12)
+    bind_keys(vectorKeybinds, render_vector, 12)
         {config.keylayout.dkey,config.keylayout.str_dkey,"down", &table_down},
         {config.keylayout.ukey,config.keylayout.str_ukey,"up",   &table_up},
         {config.keylayout.lkey,config.keylayout.str_lkey,"left", &table_left},

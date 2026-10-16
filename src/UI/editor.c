@@ -38,9 +38,9 @@ int editor_removeDefinition(void* table);
 
 
 int render_editor(void* Table){
-    render_Table(Table);
     touchwin(wgetparent(((TABLE*)Table)->window));
-    wrefresh(wgetparent(((TABLE*)Table)->window));
+    wnoutrefresh(wgetparent(((TABLE*)Table)->window));
+    render_Table(Table);
     return 1;
 }
 

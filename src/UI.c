@@ -1,5 +1,8 @@
 #include <ncurses.h>
 #include <animation.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/signalfd.h>
 #include <windows/window.h>
 #include <string.h>
 #include <UI.h>
@@ -31,15 +34,24 @@ int run(void* window, struct _keybind* binds){
     int count = binds[0].keycode;
     int (*render)(void* structure) = binds[0].effect;
 
-    struct pollfd pfds[1];
+    sigset_t mask; sigemptyset(&mask);
+    sigaddset(&mask,SIGALRM);
+    sigprocmask(SIG_BLOCK, &mask, NULL);
+    struct pollfd pfds[2];
     pfds[0].fd = 0;
     pfds[0].events = POLLIN;
+    pfds[1].fd = signalfd(-1, &mask,0);
+    pfds[1].events = POLLIN;
     
     while(1){
         do{
-            updateAnimation(config);
             render(window);
-            poll(pfds,1, 100);
+            poll(pfds,2, 100);
+            if(pfds[1].revents&POLLIN){
+                struct signalfd_siginfo ignore;
+                read(pfds[1].fd, &ignore, sizeof(ignore));
+                updateAnimation(config);
+            }
         }
         while(!(pfds[0].revents&POLLIN));
         int ch = getch();

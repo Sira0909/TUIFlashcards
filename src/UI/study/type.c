@@ -141,7 +141,7 @@ void type(FlashcardSet *flashcard_set){
                 touchwin(resultWin);
                 wrefresh(resultWin);
             }
-            poll(pfds,1, 100);
+            poll(pfds,1, 250);
         }
         while(!(pfds[0].revents&POLLIN));
         ch=getch();

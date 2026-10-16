@@ -1,4 +1,5 @@
 
+#include <curses.h>
 #include <macros.h>
 #include <flashcards.h>
 #include <config.h>
@@ -17,10 +18,16 @@
 
 WINDOW* keybindHelp;
 
+int render_main(void* menu){
+    touchwin(keybindHelp);
+    wnoutrefresh(keybindHelp);
+    render_Menu((MENU*)menu);
+    return 1;
+}
+
 
 int main_menu_select(void * menu);
 int main_menu_keybinds(void* menu);
-
 void main_menu(void){
     // keybind helper window
     if(config.showKeybindsHelp){
@@ -32,7 +39,7 @@ void main_menu(void){
     }
 
 
-    bind_keys(mainkeybinds, render_Menu, 7)
+    bind_keys(mainkeybinds, render_main, 7)
         {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
         {10, "<enter>", "select", &main_menu_select},
@@ -73,9 +80,10 @@ void main_menu(void){
 
 // select option
 int main_menu_select(void * menu){
-    if (keybindHelp != NULL) // erase keybinds now
+    if (keybindHelp != NULL){ // erase keybinds now
         erasewindow(keybindHelp);
-    keybindHelp=NULL;
+        keybindHelp=NULL;
+    }
     switch(((MENU*)menu)->selected){
         case 0: // "Study"
             getLists(pickMode);

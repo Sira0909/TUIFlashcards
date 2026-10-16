@@ -332,30 +332,24 @@ int MultipleChoice_right(void* metadata){
     return 1;
 }
 int MultipleChoice_starprevious(void*metadata){
-        move(LINES-3, 0);
-        clrtoeol();
+    
         if(Metadata->currentcard>0){
-            attron(COLOR_PAIR(1));
-            Metadata->flashcard_set->cards[Metadata->order[Metadata->currentcard-1]].is_starred = !Metadata->flashcard_set->cards[Metadata->order[Metadata->currentcard-1]].is_starred;
-            wprintctrx(stdscr, LINES-3, COLS, (Metadata->flashcard_set->cards[Metadata->order[Metadata->currentcard-1]].is_starred) ? "Previous flashcard has been starred" : "Previous flashcard has been unstarred");
-            attron(COLOR_PAIR(1));
+            card(Metadata->currentcard-1).is_starred = !card(Metadata->currentcard-1).is_starred;
             
+            showmsg((card(Metadata->currentcard-1).is_starred) ? "Previous flashcard has been starred" : "Previous flashcard has been unstarred");
+            return 1;
+
         }
         else{
-            attron(COLOR_PAIR(1));
-            currentflashcard.is_starred = !currentflashcard.is_starred;
-            wprintctrx(stdscr, LINES-3, COLS, (currentflashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
-            attron(COLOR_PAIR(1));
+            return MultipleChoice_starcurrent(metadata);
         }
-        return 1;
 }
 int MultipleChoice_starcurrent(void*metadata){
-        move(LINES-3, 0);
-        clrtoeol();
-        attron(COLOR_PAIR(1));
         currentflashcard.is_starred = !currentflashcard.is_starred;
-        wprintctrx(stdscr, LINES-3, COLS, (currentflashcard.is_starred) ? "Flashcard has been starred" : "Flashcard has been unstarred");
-        attron(COLOR_PAIR(1));
+        if(currentflashcard.is_starred)
+            showmsg("Flashcard has been starred");
+        else
+            showmsg("Flashcard has been unstarred");
         return 1;
 }
 int MultipleChoice_select(void*metadata){
