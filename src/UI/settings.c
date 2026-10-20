@@ -20,7 +20,9 @@ struct settings_metadata {
 //get settings 
 int settings_save(void* Table);
 int settings_select(void* Table);
+
 TABLE setup_global_settings_table(int width, int height, WINDOW* tablewindow);
+
 int settings_resize(void*Table){
     touchwin(stdscr);refresh();
     mvwin(Metadata->mainWindow,(LINES - height)/2, (COLS - 33)/2);
@@ -35,6 +37,8 @@ int render_settings(void* Table){
     wrefresh(Metadata->mainWindow);
     return 1;
 }
+
+
 bool get_global_settings(void){
     bind_keys(global_settings_keybinds, render_settings, 7)
         {config.keylayout.dkey, config.keylayout.str_dkey,"down", &table_down},

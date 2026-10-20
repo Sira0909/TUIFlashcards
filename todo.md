@@ -11,8 +11,9 @@ stuff for version 0.3
 - animations
     - why is it bugging
         - answer: kitty hates me
-- consistant variable format
+    - how do I fix kitty
 - test for bugs
 
 
 stuff for version 0.4
+- spaced repetition stuff

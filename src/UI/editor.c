@@ -163,12 +163,12 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
 }
 int editor_update(void*table){
     TABLE* Table = (TABLE*)table;
-    if(Metadata->flashcardset->num_items>0){
+
+    if(Metadata->flashcardset->num_items>0)
         printProgress(wgetparent(Table->window), Table->selected_row, Metadata->flashcardset->num_items);
-    }
-    else{
+    else
         printProgress(wgetparent(Table->window), -1, 0); // "0/0"
-    }
+                                                         
     wrefresh(wgetparent(Table->window));
     return 1;
 }
@@ -408,6 +408,40 @@ int editor_renameDefn(void*table){
 
 }
 
+
+void editList(char ListName[]){
+
+
+    //get file path 
+    char ListPath[PATH_MAX];
+    if(ListName[0] == '/' || ListName[0] == '~' || ( (ListName[0]& ~32) == 'C' && ListName[1] == ':' && (ListName[2] == '/' || ListName[2]=='\\'))){
+        strncpy(ListPath, ListName, PATH_MAX);
+    }
+    else{
+        strcpy(ListPath, config.flashcard_dir);
+        strncat(ListPath, ListName, PATH_MAX-strnlen(config.flashcard_dir, 128));
+    }
+    FlashcardSet* flashcardset=create_Flashcard_Set_Object();
+    struct EditorMetadata metadata= {ListPath, flashcardset};
+    
+
+    //populate list 
+    if (-1 == fillFlashcardSet(metadata.flashcardset, ListPath)) {
+        deleteSetPointer(&metadata.flashcardset);
+        return;
+    }
+    _editList(flashcardset, metadata);
+}
+
+
+
+
+
+
+
+
+
+
 // Add new flashcard list
 void addList(char* dir){
 
@@ -482,27 +516,4 @@ void addDir(char* parentDir){
         exit(-1);
     }
     return;
-}
-void editList(char ListName[]){
-
-
-    //get file path 
-    char ListPath[PATH_MAX];
-    if(ListName[0] == '/' || ListName[0] == '~' || ( (ListName[0]& ~32) == 'C' && ListName[1] == ':' && (ListName[2] == '/' || ListName[2]=='\\'))){
-        strncpy(ListPath, ListName, PATH_MAX);
-    }
-    else{
-        strcpy(ListPath, config.flashcard_dir);
-        strncat(ListPath, ListName, PATH_MAX-strnlen(config.flashcard_dir, 128));
-    }
-    FlashcardSet* flashcardset=create_Flashcard_Set_Object();
-    struct EditorMetadata metadata= {ListPath, flashcardset};
-    
-
-    //populate list 
-    if (-1 == fillFlashcardSet(metadata.flashcardset, ListPath)) {
-        deleteSetPointer(&metadata.flashcardset);
-        return;
-    }
-    _editList(flashcardset, metadata);
 }

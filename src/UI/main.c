@@ -26,16 +26,15 @@ int render_main(void* menu){
     return 1;
 }
 
-int main_menu_resize(void*menu){
+int mainmenu_resize(void*menu){
     touchwin(stdscr); refresh();
     mvwin(((MENU*)menu)->window,(LINES-7)/2, (COLS-20)/2);
     wrefresh(((MENU*)menu)->window);
     return 1;
 }
 
-int main_menu_select(void * menu);
-int main_menu_keybinds(void* menu);
-void main_menu(void){
+int mainmenu_select(void * menu);
+void mainmenu(void){
     // keybind helper window
     if(config.showKeybindsHelp){
         keybindHelp = create_newwin(3, 18, LINES-4, (COLS-18)/2);
@@ -49,10 +48,10 @@ void main_menu(void){
     bind_keys(mainkeybinds, render_main, 7)
         {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
-        {10, "<enter>", "select", &main_menu_select},
+        {10, "<enter>", "select", &mainmenu_select},
         {27, "", "", &quit},
         {'q', "q", "quit", &quit},
-        {KEY_RESIZE, "?", "List Keybinds", &main_menu_resize}
+        {KEY_RESIZE, "?", "List Keybinds", &mainmenu_resize}
     };
 
 
@@ -86,7 +85,7 @@ void main_menu(void){
 
 
 // select option
-int main_menu_select(void * menu){
+int mainmenu_select(void * menu){
     if (keybindHelp != NULL){ // erase keybinds now
         erasewindow(keybindHelp);
         keybindHelp=NULL;

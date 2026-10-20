@@ -1,3 +1,4 @@
+#include <curses.h>
 #include <ncurses.h>
 #include <animation.h>
 #include <signal.h>
@@ -54,6 +55,7 @@ int run(void* window, struct _keybind* binds){
                 break;
             }
             render(window);
+            doupdate();
             poll(pfds,2, 100);
             if(pfds[1].revents&POLLIN){
                 struct signalfd_siginfo ignore;

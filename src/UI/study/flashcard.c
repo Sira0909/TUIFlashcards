@@ -37,7 +37,7 @@ int render_flashcards(void* metadata){
         wattroff(Metadata->text,A_BOLD);
         //wprintw(FlashcardWindow, "%d", order[currentcard]);
         printProgress(Metadata->FlashcardWindow, Metadata->currentcard, Metadata->numCards);
-        wrefresh(Metadata->FlashcardWindow);
+        wnoutrefresh(Metadata->FlashcardWindow);
         return 1;
 
 }

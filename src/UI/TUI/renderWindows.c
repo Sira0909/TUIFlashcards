@@ -77,7 +77,6 @@ int render_Menu(void *menu){
     box(p_menu->window, 0, 0);
     wmove(p_menu->window, 0, 1); waddch(p_menu->window, ACS_RTEE);wprintw(p_menu->window, "%s", p_menu->title); waddch(p_menu->window, ACS_LTEE);
     wnoutrefresh(p_menu->window);
-    doupdate();
     return 1;
 }
 
@@ -208,7 +207,6 @@ int render_Table(void *window){
 
 
     wnoutrefresh(p_table->window);
-    doupdate();
     
     return 1;
 }

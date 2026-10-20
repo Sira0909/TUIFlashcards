@@ -1,4 +1,4 @@
 #include <stdbool.h>
-void main_menu();
+void mainmenu();
 void init_ncurses();
 bool process_flags(int argc, char *argv[]);

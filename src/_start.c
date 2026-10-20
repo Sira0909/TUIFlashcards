@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
 
 
     
-    main_menu();
+    mainmenu();
 
     // clean up
     endwin();
@@ -110,17 +110,15 @@ void init_ncurses(void){
     curs_set(0);
     set_escdelay(100);
 
-    //windows doesnt need this
-#ifndef _WIN32
-    //allow ctrl+s
-    struct termios term;
-    tcgetattr(STDIN_FILENO, &term);
-    term.c_lflag &= ~(ICANON | ECHO);
-    //term.c_cc[VMIN] = 1;
-    term.c_cc[VSTOP] = _POSIX_VDISABLE;
-    term.c_cc[VSUSP] = _POSIX_VDISABLE;
-    tcsetattr(STDIN_FILENO, TCSANOW, &term);
-#endif
+    //allow ctrl+s. Windows doesnt need this
+    #ifndef _WIN32
+        struct termios term;
+        tcgetattr(STDIN_FILENO, &term);
+        term.c_lflag &= ~(ICANON | ECHO);
+        term.c_cc[VSTOP] = _POSIX_VDISABLE;
+        term.c_cc[VSUSP] = _POSIX_VDISABLE;
+        tcsetattr(STDIN_FILENO, TCSANOW, &term);
+    #endif
     // set background
     bkgd(COLOR_PAIR(1));
 

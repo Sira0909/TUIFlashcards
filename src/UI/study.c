@@ -26,8 +26,9 @@ struct modeMetadata {
 #define Metadata ((struct modeMetadata*)(metadata))
 
 int render_Mode(void* metadata);
-struct modeMetadata Mode_setup(char* list);
 int fill(struct modeMetadata metadata);
+struct modeMetadata Mode_setup(char* list);
+
 int Mode_down(void* metadata);
 int Mode_up(void* metadata);
 int Mode_left(void* metadata);
