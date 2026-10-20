@@ -1,5 +1,4 @@
 //unfinished
-#include <curses.h>
 #include <ncurses.h>
 #include <windows/table.h>
 #include <windows/window.h>
@@ -8,6 +7,8 @@
 #include <UI.h>
 
 
+int height = 8;
+int width = 58;
 
 
 struct settings_metadata {
@@ -16,19 +17,18 @@ struct settings_metadata {
 };
 #define Metadata ((struct settings_metadata*)(((TABLE*)Table)->metadata))
 
-char *global_settings_keybinds[10][2] = {
-    {config.keylayout.str_dkey,"down"},
-    {config.keylayout.str_ukey,"up"},
-    {" ", " "},
-    {"<enter>", "toggle"},
-    {" ", " "},
-    {"?", "list keybinds"}
-};
 //get settings 
 int settings_save(void* Table);
 int settings_select(void* Table);
-int settings_fixAfterKeybinds(void* Table);
 TABLE setup_global_settings_table(int width, int height, WINDOW* tablewindow);
+int settings_resize(void*Table){
+    touchwin(stdscr);refresh();
+    mvwin(Metadata->mainWindow,(LINES - height)/2, (COLS - 33)/2);
+    mvwin(((TABLE*)Table)->window,(LINES - height)/2+1, (COLS - 33)/2+1);
+    wrefresh(Metadata->mainWindow);
+    return 1;
+
+}
 int render_settings(void* Table){
     render_Table(Table);
     touchwin(Metadata->mainWindow);
@@ -42,12 +42,10 @@ bool get_global_settings(void){
         {10, "<enter>", "toggle", &settings_select},
         {27, "", "", &quit},
         {'q', "q / <esc>", "quit without saving", &quit},
-        {'?', "?", "List Keybinds", &settings_fixAfterKeybinds}
+        {KEY_RESIZE, "?", "List Keybinds", &settings_resize}
 
     };
 
-    int height = 8;
-    int width = 58;
     // create window for menu. 
     WINDOW* setting_window = create_newwin(height+2, 35, (LINES - height)/2, (COLS - 33)/2);
     WINDOW* tablewindow = derwin(setting_window, height, 33, 1, 1);
@@ -100,12 +98,6 @@ bool get_global_settings(void){
     tablewindow = NULL;
     settings_table.window = NULL;
     refresh();
-    return 1;
-}
-int settings_fixAfterKeybinds(void* Table){
-    touchwin(((struct settings_metadata*)(((TABLE*)Table)->metadata))->mainWindow);
-    wrefresh(((struct settings_metadata*)(((TABLE*)Table)->metadata))->mainWindow);
-    
     return 1;
 }
 

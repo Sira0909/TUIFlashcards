@@ -124,6 +124,8 @@ void type(FlashcardSet *flashcard_set){
     bool wasJustBacktick = false;
     bool wasJustTilde = false;
     struct pollfd pfds[1];
+    int l = LINES;
+    int c = COLS;
     pfds[0].fd = 0;
     pfds[0].events = POLLIN;
     while(1){
@@ -132,7 +134,14 @@ void type(FlashcardSet *flashcard_set){
             refresh();
             touchwin(form_win);
             touchwin(form_sub);
-            wrefresh(form_win);
+            wnoutrefresh(form_win);
+            doupdate();
+            if(is_term_resized(l, c)){
+                l=LINES;
+                c=COLS;
+                ungetch(KEY_RESIZE);
+                break;
+            }
             if(starWin!=NULL){
                 touchwin(starWin);
                 wrefresh(starWin);
@@ -141,7 +150,7 @@ void type(FlashcardSet *flashcard_set){
                 touchwin(resultWin);
                 wrefresh(resultWin);
             }
-            poll(pfds,1, 250);
+            poll(pfds,1, animation_delay_ms);
         }
         while(!(pfds[0].revents&POLLIN));
         ch=getch();
@@ -423,6 +432,13 @@ void type(FlashcardSet *flashcard_set){
                     }
                     break;
                 }
+            case KEY_RESIZE:
+                touchwin(stdscr);refresh();
+                mvwin(form_win,(LINES - 11)/2,(COLS - cols-2)/2);
+                mvwin(form_sub,(LINES - 11)/2+11,(COLS - cols-2)/2+2);
+                mvwin(text,(LINES - 11)/2+1,(COLS - cols-2)/2+1);
+                wrefresh(form_win);
+                break;
             default:
                 if(config.autoaccent>0){
                     if(wasJustBacktick){

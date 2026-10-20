@@ -11,13 +11,13 @@ WINDOW* background;
 pthread_t Clock;
 
 void init_Animation(CONFIGSTRUCT config){
-    background=newwin(LINES, COLS, 0, 0);
+    background=stdscr;
 
     sigset_t mask; sigemptyset(&mask);
     sigaddset(&mask,SIGALRM);
     sigprocmask(SIG_BLOCK, &mask, NULL);
     int clock_command;
-    Clock = setupClock(250, &clock_command);
+    Clock = setupClock(animation_delay_ms, &clock_command);
     
     wbkgd(background, COLOR_PAIR(1));
     scrollok(background,true);

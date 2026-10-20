@@ -1,3 +1,4 @@
+#include <curses.h>
 #include <study.h>
 #include <stdlib.h>
 #include <config.h>
@@ -54,6 +55,13 @@ int render_vector(void* Table){
     render_Table(Table);
     return 1;
 }
+int vector_resize(void*Table){
+    touchwin(stdscr); refresh();
+    mvwin(wgetparent(((TABLE*)Table)->window),(LINES-((TABLE*)Table)->height)/2, (COLS-((TABLE*)Table)->width)/2);
+    mvwin(((TABLE*)Table)->window,(LINES-((TABLE*)Table)->height)/2+1, (COLS-((TABLE*)Table)->width)/2+1);
+    wrefresh(((TABLE*)Table)->window);
+    return 1;
+}
 void editVectors(bool *vectorin,bool *vectorout,int vectorCount, char (*defnNames)[128]){
     struct vectorMetadata meta = {vectorin,vectorout,vectorCount};
     TABLE vectorTable;
@@ -99,7 +107,7 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount, char (*defnName
         {10, "<enter>", "toggle", &vector_select},
         {'a',"a", "select all", &vector_all},
         {'c',"c", "deselect all", &vector_none},
-        {-1," ", " ",NULL},
+        {KEY_RESIZE," ", " ",vector_resize},
         {'q', "q", "quit",&quit},
         {27, "?", "list keybinds",quit}
     };

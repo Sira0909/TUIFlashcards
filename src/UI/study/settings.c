@@ -80,6 +80,12 @@ int study_settings_select(void* menu){
     }
     return 1;
 }
+int study_settings_resize(void*menu){
+    touchwin(stdscr); refresh();
+    mvwin(((MENU*)menu)->window,(LINES-7)/2, (COLS-20)/2);
+    wrefresh(((MENU*)menu)->window);
+    return 1;
+}
 
 
 //get seettings for study section
@@ -114,7 +120,7 @@ bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle
         {10,"<enter>", "toggle",study_settings_select},
         {27," ", " ", quit},
         {'q',"q", "quit", quit},
-        {-1, "?", "list keybinds",NULL}
+        {KEY_RESIZE, "?", "list keybinds",&study_settings_resize}
     };
     run(&setting_menu,settings_keybinds);
     return meta.settings_done;

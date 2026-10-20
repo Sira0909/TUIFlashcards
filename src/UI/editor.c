@@ -36,6 +36,19 @@ int editor_quit(void* table);
 int editor_showkeybinds(void* table);
 int editor_removeDefinition(void* table);
 
+int editor_resize(void*table){
+    touchwin(stdscr); refresh();
+    int height = min(51, LINES - 5); 
+    int width =((TABLE*)table)->width;
+    WINDOW* parentwindow = wgetparent(((TABLE*)table)->window);
+    WINDOW* window = ((TABLE*)table)->window;
+    ((TABLE*)table)->height=height;
+    wresize(parentwindow, height+2, width+2);
+    mvwin(parentwindow,(LINES-height)/2-1, (COLS-width)/2);
+    mvwin(window,(LINES-height)/2, (COLS-width)/2+1);
+    wrefresh(parentwindow);
+    return 1;
+}
 
 int render_editor(void* Table){
     touchwin(wgetparent(((TABLE*)Table)->window));
@@ -112,7 +125,7 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
     wmove(edit_list_menu_window, 0, 1); waddch(edit_list_menu_window, ACS_RTEE);wprintw(edit_list_menu_window, "%s", "Editing Flashcards"); waddch(edit_list_menu_window, ACS_LTEE);
     wrefresh(edit_list_menu_window);
 
-    bind_keys(editkeybinds, render_editor, 17) 
+    bind_keys(editkeybinds, render_editor, 18) 
         {config.keylayout.lkey, config.keylayout.str_lkey, "left",&table_left},
         {config.keylayout.dkey, config.keylayout.str_dkey,"down",&table_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &table_up},
@@ -122,8 +135,9 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
         {config.keylayout.dkey, " ", " ", &editor_update},
         {'s', "s", "star flashcard",&editor_star},
         {'a', "a", "add flashcard", &editor_addCard},
-        {'A', "A", "add new definitions",&editor_addDefinition},
         {'d', "d", "delete flashcard",&editor_deleteCard},
+        {KEY_RESIZE, " ", " ", &editor_resize},
+        {'A', "A", "add new definitions",&editor_addDefinition},
         {'D', "D", "remove definitions",&editor_removeDefinition},
         {config.keylayout.ukey, " ", " ", &editor_update},
         {'w', "w", "save", &editor_writeSet},

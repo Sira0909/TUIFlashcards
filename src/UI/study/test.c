@@ -1,3 +1,4 @@
+//TODO: this doesnt react to KEY_RESIZE
 
 //
 // 

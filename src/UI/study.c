@@ -1,3 +1,4 @@
+#include <curses.h>
 #include <stdlib.h>
 
 #include <flashcards.h>
@@ -27,11 +28,21 @@ struct modeMetadata {
 int render_Mode(void* metadata);
 struct modeMetadata Mode_setup(char* list);
 int fill(struct modeMetadata metadata);
-int Mode_down(void* window);
-int Mode_up(void* window);
-int Mode_left(void* window);
-int Mode_right(void* window);
-int Mode_select(void* window);
+int Mode_down(void* metadata);
+int Mode_up(void* metadata);
+int Mode_left(void* metadata);
+int Mode_right(void* metadata);
+int Mode_select(void* metadata);
+int Mode_resize(void* metadata){
+    touchwin(stdscr); refresh();
+    mvwin(Metadata->mainPlayWindow, (LINES-23)/2, (COLS-74)/2);
+    for(int i = 0; i < 2; i++){
+        for(int j = 0; j < 3; j++){
+            mvwin(Metadata->games[i][j], (LINES-23)/2+1+9*i, (COLS-74)/2+2+24*j);
+        }
+    }
+    return 1;
+}
 
 
 
@@ -46,7 +57,7 @@ void pickMode(char* list){
         {10, "<enter>", "toggle", &Mode_select},
         {'q',"q / <esc>", "quit", &quit},
         {-1, " ", " ", NULL},
-        {-1, "?", "list keybinds", NULL},
+        {KEY_RESIZE, "?", "list keybinds", &Mode_resize},
     };
     struct modeMetadata metadata =Mode_setup(list);
     if (-1 == fill(metadata)) {

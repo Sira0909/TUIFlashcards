@@ -68,6 +68,11 @@ int getConfirmation(char *question, char* successmsg, char* failmsg){
             selection = false;
             break;
         }
+        if(ch==KEY_RESIZE){
+            touchwin(stdscr);refresh();
+            mvwin(confirmWindow, (LINES-5)/2,(COLS-(width-2))/2);
+            wrefresh(confirmWindow);
+        }
     }
     if(selection&&successmsg!=NULL){
         showmsg(successmsg);
@@ -196,6 +201,14 @@ char* getString(char* title, int maxsize, char* startingText){
                 wasJustBacktick = false;
                 wasJustTilde = false;
                 break;
+            case KEY_RESIZE:
+                touchwin(stdscr);refresh();
+                mvwin(my_form_win, (LINES - rows-2)/2,(COLS - boxwidth-2)/2);
+                mvwin(my_form_win, (LINES - rows-2)/2,(COLS - boxwidth-2)/2);
+                mvwin(form_sub(Form), (LINES - rows-2)/2+3,(COLS - boxwidth-2)/2+(boxwidth+4-cols)/2);
+                wrefresh(form_sub(Form));
+                break;
+
 
             handleAccents(Form)
         }
@@ -231,9 +244,7 @@ int makeSelection(int numOptions, char (*options)[128], char* title){
     MENU menu;
 
 
-    // create window for menu. this menu object is defined globally, see above
     WINDOW* menu_window = create_newwin(numOptions+3, 34, (LINES - numOptions)/2, (COLS - 32)/2);
-
     // init the menu
     init_Menu(&menu, numOptions, 34, numOptions+3, &menu_window, title, NULL, options);
 
@@ -246,3 +257,5 @@ int makeSelection(int numOptions, char (*options)[128], char* title){
         return menu.selected;
     }
 }
+//
+//repeatable UI elements, such as messages, confirmation boxes, and menus, go here.

@@ -42,9 +42,17 @@ int run(void* window, struct _keybind* binds){
     pfds[0].events = POLLIN;
     pfds[1].fd = signalfd(-1, &mask,0);
     pfds[1].events = POLLIN;
+    int l=LINES;
+    int c=COLS;
     
     while(1){
         do{
+            if(is_term_resized(l, c)){
+                l=LINES;
+                c=COLS;
+                ungetch(KEY_RESIZE);
+                break;
+            }
             render(window);
             poll(pfds,2, 100);
             if(pfds[1].revents&POLLIN){

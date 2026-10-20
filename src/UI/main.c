@@ -4,6 +4,7 @@
 #include <flashcards.h>
 #include <config.h>
 
+#include <ncurses.h>
 #include <windows/window.h>
 #include <windows/menu.h>
 
@@ -25,6 +26,12 @@ int render_main(void* menu){
     return 1;
 }
 
+int main_menu_resize(void*menu){
+    touchwin(stdscr); refresh();
+    mvwin(((MENU*)menu)->window,(LINES-7)/2, (COLS-20)/2);
+    wrefresh(((MENU*)menu)->window);
+    return 1;
+}
 
 int main_menu_select(void * menu);
 int main_menu_keybinds(void* menu);
@@ -45,7 +52,7 @@ void main_menu(void){
         {10, "<enter>", "select", &main_menu_select},
         {27, "", "", &quit},
         {'q', "q", "quit", &quit},
-        {-1, "?", "List Keybinds", NULL}
+        {KEY_RESIZE, "?", "List Keybinds", &main_menu_resize}
     };
 
 

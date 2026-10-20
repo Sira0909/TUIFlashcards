@@ -81,6 +81,11 @@ int flashcards_star(void*metadata){
             showmsg("Flashcard has been unstarred");
         return 1;
 }
+int flashcard_move(void*metadata){
+    touchwin(stdscr); refresh();
+    mvwin(Metadata->FlashcardWindow,(LINES-Metadata->maxlength/2)/2, (COLS-Metadata->maxlength-2)/2);
+    return 1;
+}
 
 void flashcard(FlashcardSet *flashcard_set){
 
@@ -102,7 +107,7 @@ void flashcard(FlashcardSet *flashcard_set){
         {'s', "s", "star current", &flashcards_star},
         {27, " ", " ", &quit},
         {'q', "q / <esc>", " ", &quit},
-        {-1, "?", "list keybinds", NULL}
+        {KEY_RESIZE, "?", "list keybinds", &flashcard_move}
     };
 
 

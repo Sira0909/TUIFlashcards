@@ -1,6 +1,8 @@
 ## Version 0.3:
+- Windows react to resizing
 - Background animations!
-- Definition names
+    - Can be toggled in settings
+- Definition names!
 
 ## Version 0.2.2:
 - running `$ make bootstrapConfig` will create a config directory and place an example list inside

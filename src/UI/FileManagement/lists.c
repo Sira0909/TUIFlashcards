@@ -46,6 +46,14 @@ static int getLists_move(void* menu);
 static int getLists_rename(void* menu);
 
 struct entries getEntries(char* dir);
+int get_entries_resize(void*menu){
+    touchwin(stdscr); refresh();
+    wresize(((MENU*)menu)->window, LINES-5, 34);
+    ((MENU*)menu)->height=LINES-8;
+    mvwin(((MENU*)menu)->window,3, (COLS-32)/2);
+    wrefresh(((MENU*)menu)->window);
+    return 1;
+}
 char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
     struct entries entries = getEntries(dir);
     char (*files)[128] = calloc(entries.numfiles+entries.numdirs, sizeof(char[128])); // visual entries, not actual filenames
@@ -80,18 +88,18 @@ char* _getLists(int start_at, char* dir, void (*to_call)(char*)){
     bind_keys(selectionkeybinds, render_Menu, 15)
         {config.keylayout.dkey, config.keylayout.str_dkey,"down", &menu_down},
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
-        {10, "<enter>",     "open list", getLists_open},
+        {10, "<enter>",     "open list", &getLists_open},
         {-1, " ",           " ",NULL},
-        {' ',"<space>",     "select list", getLists_select},
-        {'m',"m",           "move selected", getLists_move},
+        {' ',"<space>",     "select list", &getLists_select},
+        {'m',"m",           "move selected", &getLists_move},
         {-1, " ",           " ",NULL},
         {'a',"a",           "add list", &getLists_addlist},
         {'d',"d",           "delete list", &getLists_delete},
         {'r',"r",           "rename list", getLists_rename},
         {'f',"f",           "create folder", &getLists_createfolder},
-        {27, " ",           " ", getLists_quit}, //escape
-        {'q',"q / <esc>",   "quit", getLists_quit},
-        {-1, "?",           "list keybinds", NULL}
+        {27, " ",           " ", &getLists_quit}, //escape
+        {'q',"q / <esc>",   "quit", &getLists_quit},
+        {KEY_RESIZE, "?",  "list keybinds", &get_entries_resize}
     };
     
     run(&selectmenu, selectionkeybinds);
@@ -340,7 +348,7 @@ static int getLists_move(void* menu){
     char filename[PATH_MAX];
     strncpy(filename,newLoc,PATH_MAX);
     strncat(filename,"/",PATH_MAX-1);
-    for(int i = 0; i < ((MENU*)menu)->height;i++){
+    for(int i = 0; i < ((MENU*)menu)->numOptions;i++){
         if(((MENU*)menu)->highlighted[i]&0x2){
             filename[strnlen(newLoc, PATH_MAX-1)+1]=0;
             strncat(filename, Metadata->entryData.entries[i], PATH_MAX-1);

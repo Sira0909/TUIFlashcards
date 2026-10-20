@@ -72,7 +72,6 @@ int getquestion(void* metadata){
     int numCards = Metadata->question_count;
     Metadata->question =   (side<0)
                         ?currentflashcard.term
-                        //TODO: add defns
                         :currentflashcard.definition[abs(side)-1];
 
     int op[4] = {Metadata->currentcard, rand()%numCards, rand()%numCards, rand()%numCards};
@@ -270,6 +269,11 @@ bool MC_setup(struct MultipleChoice_metadata* metadata, FlashcardSet* flashcard_
 
 
 }
+int MultipleChoice_resize(void*metadata){
+    touchwin(stdscr); refresh();
+    mvwin(Metadata->responseWindow,(LINES-Metadata->maxlength/4)/2, (COLS-Metadata->maxlength)/2);
+    return 1;
+}
 
 void multipleChoice(FlashcardSet *flashcard_set){
     bind_keys(multipleChoiceKeybinds, renderMC, 11)
@@ -282,7 +286,7 @@ void multipleChoice(FlashcardSet *flashcard_set){
         {'S', "S", "star previous", &MultipleChoice_starprevious},
         {27, " ", " ", &quit},
         {'q', "q / <esc>", " ", &quit},
-        {-1, "?", "list keybinds", NULL}
+        {KEY_RESIZE, "?", "list keybinds", &MultipleChoice_resize}
     };
     struct MultipleChoice_metadata metadata;
 
