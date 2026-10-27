@@ -58,6 +58,7 @@ void updateAnimation(CONFIGSTRUCT config){
         for(int i = 0; i <= bc; i++){
             background[0][i]=' ';
         }
+        background[0][COLS]=0;
         for(int i=0; i <numchars; i++){
             background[0][rand()%COLS] = 'O';
         }
@@ -75,8 +76,7 @@ void updateAnimation(CONFIGSTRUCT config){
 
             }
         }
-        background[0][COLS-1]=0;
-        for(int i = 1; i < br-1; i++){
+        for(int i = 0; i < br; i++){
             mvprintw(i,0,"%s", background[i]);
         }
         wnoutrefresh(stdscr);

@@ -132,7 +132,6 @@ void type(FlashcardSet *flashcard_set){
     while(1){
         do{
             updateAnimation(config);
-            //refresh();
             touchwin(form_win);
             touchwin(form_sub);
             wnoutrefresh(form_win);
