@@ -64,7 +64,6 @@ void type(FlashcardSet *flashcard_set){
         if (strlen(flashcard_set->cards[order[i]].term)>maxlength){
             maxlength = strlen(flashcard_set->cards[order[i]].term);
         }
-        //TODO: add other defns
         for(int j = 0; j < flashcard_set->num_columns-1;j++){
             if (strlen(flashcard_set->cards[order[i]].definition[j])>maxlength){
                 maxlength = strlen(flashcard_set->cards[order[i]].definition[j]);
