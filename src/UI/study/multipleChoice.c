@@ -96,7 +96,9 @@ int renderMC(void* metadata){
         wbkgd(Metadata->ans[Metadata->selectedx][Metadata->selectedy], COLOR_PAIR(3));
         wbkgd(Metadata->ansBox[Metadata->selectedx][Metadata->selectedy], COLOR_PAIR(3));
         touchwin(Metadata->responseWindow);
+        touchwin(Metadata->resultwin);
         wrefresh(Metadata->responseWindow);
+        wrefresh(Metadata->resultwin);
         return 1;
 }
 int MultipleChoice_starcurrent(void* window);

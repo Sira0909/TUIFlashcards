@@ -51,17 +51,18 @@ int run(void* window, struct _keybind* binds){
             if(is_term_resized(l, c)){
                 l=LINES;
                 c=COLS;
+                resize_animation();
                 ungetch(KEY_RESIZE);
                 break;
             }
-            render(window);
-            doupdate();
-            poll(pfds,2, 100);
             if(pfds[1].revents&POLLIN){
                 struct signalfd_siginfo ignore;
                 read(pfds[1].fd, &ignore, sizeof(ignore));
                 updateAnimation(config);
             }
+            render(window);
+            doupdate();
+            poll(pfds,2, 100);
         }
         while(!(pfds[0].revents&POLLIN));
         int ch = getch();

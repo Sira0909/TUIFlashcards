@@ -87,11 +87,11 @@ int render_Mode(void* metadata){
                     wbkgd(Metadata->games[i][j], COLOR_PAIR(3));
                 } else
                     wbkgd(Metadata->games[i][j], COLOR_PAIR(2));
-                wrefresh(Metadata->games[i][j]);
+                wnoutrefresh(Metadata->games[i][j]);
             }
         }
         
-        wrefresh(Metadata->mainPlayWindow);
+        wnoutrefresh(Metadata->mainPlayWindow);
         return 1;
 }
 struct modeMetadata Mode_setup(char* list){

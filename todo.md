@@ -11,7 +11,9 @@ stuff for version 0.3
 - animations
     - why is it bugging
         - answer: kitty hates me
+        - correction: scroll hates me
     - how do I fix kitty
+        - answer: don't scroll
 - test for bugs
 
 

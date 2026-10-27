@@ -57,6 +57,7 @@ void mainmenu(void){
 
     // create MENU object for main menu (see MENU.c, MENU.h)
     MENU mainmenu;
+    
 
     // list of options
     char items[8][128] = {"Study\0", "\0", "New List\0", "Edit List\0", "\0", "Settings", "Quit\0", "\0"};

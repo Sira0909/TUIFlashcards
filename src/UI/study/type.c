@@ -65,8 +65,10 @@ void type(FlashcardSet *flashcard_set){
             maxlength = strlen(flashcard_set->cards[order[i]].term);
         }
         //TODO: add other defns
-        if (strlen(flashcard_set->cards[order[i]].definition[0])>maxlength){
-            maxlength = strlen(flashcard_set->cards[order[i]].definition[0]);
+        for(int j = 0; j < flashcard_set->num_columns-1;j++){
+            if (strlen(flashcard_set->cards[order[i]].definition[j])>maxlength){
+                maxlength = strlen(flashcard_set->cards[order[i]].definition[j]);
+            }
         }
     }
 
@@ -131,7 +133,7 @@ void type(FlashcardSet *flashcard_set){
     while(1){
         do{
             updateAnimation(config);
-            refresh();
+            //refresh();
             touchwin(form_win);
             touchwin(form_sub);
             wnoutrefresh(form_win);
@@ -139,6 +141,7 @@ void type(FlashcardSet *flashcard_set){
             if(is_term_resized(l, c)){
                 l=LINES;
                 c=COLS;
+                resize_animation();
                 ungetch(KEY_RESIZE);
                 break;
             }
