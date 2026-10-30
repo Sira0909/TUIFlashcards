@@ -33,6 +33,8 @@ else ifdef APPDATA
 CONFIGHOME?= "${APPDATA}/TUIFlashcards/"
 else ifdef HOME
 CONFIGHOME?= "${HOME}/.config/TUIFlashcards/"
+else
+CONFIGHOME?= "~/.config/TUIFlashcards/"
 endif
 bootstrapConfig:
 	mkdir $(CONFIGHOME)

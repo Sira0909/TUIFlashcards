@@ -14,6 +14,18 @@ A TUI program for studying flashcards, using the NCURSES library.
 <h1> TO BE ADDED:</h1>
 - More modes of study <br />
 - Maybe word wrap eventually <br />
+- See todo.md
+
+<h1> Installation</h1>
+- assuming you have all dependencies, just run:
+```
+$ make
+```
+- to bootstrap a basic config file and an example vocab list, run:
+```
+$ make bootstrapConfig
+```
+
 
 <h1> DEPENDENCIES:</h1>
 - ncurses <br />
