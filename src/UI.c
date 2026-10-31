@@ -32,17 +32,20 @@ void list_keybinds(struct _keybind* binds){
 
 }
 int run(void* window, struct _keybind* binds){
-    int count = binds[0].keycode;
+    int count = binds[0].keycode; //number of keybinds to handle
     int (*render)(void* structure) = binds[0].effect;
 
+    // set up signals from animation.
     sigset_t mask; sigemptyset(&mask);
     sigaddset(&mask,SIGALRM);
     sigprocmask(SIG_BLOCK, &mask, NULL);
     struct pollfd pfds[2];
-    pfds[0].fd = 0;
+    // we want poll to listen for stdin and the signal from animation
+    pfds[0].fd = 0; //stdin
     pfds[0].events = POLLIN;
-    pfds[1].fd = signalfd(-1, &mask,0);
+    pfds[1].fd = signalfd(-1, &mask,0);//animation
     pfds[1].events = POLLIN;
+    //to detect terminal window resizing
     int l=LINES;
     int c=COLS;
     
@@ -52,10 +55,10 @@ int run(void* window, struct _keybind* binds){
                 l=LINES;
                 c=COLS;
                 resize_animation();
-                ungetch(KEY_RESIZE);
+                ungetch(KEY_RESIZE);//so that getch has something to read after break
                 break;
             }
-            if(pfds[1].revents&POLLIN){
+            if(pfds[1].revents&POLLIN){ //signaled by animation
                 struct signalfd_siginfo ignore;
                 read(pfds[1].fd, &ignore, sizeof(ignore));
                 updateAnimation(config);
@@ -72,7 +75,7 @@ int run(void* window, struct _keybind* binds){
         for(int i = 1; i<count; i++){
             if(ch == binds[i].keycode){
                 int ret = binds[i].effect(window);
-                if(ret !=1){
+                if(ret !=1){ // 1 on success and continue. typically, I use 0 for regular quit and 2 for special purposes such as main_menu needing to refresh its keybinds after settings change.
                     return ret;
                 }
             }

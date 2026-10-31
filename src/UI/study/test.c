@@ -29,8 +29,12 @@
 #include <UI.h>
 
 #define MIN_LEN 51
-#define spacing 4
-
+#define spacing 5
+static void ensureNotEqual(int* a, int numCards, int b, int c, int d){
+    while (*a == b || *a==c ||*a==d){
+        *a = rand()%numCards;
+    }
+}
 
 void test(FlashcardSet *flashcard_set){
 //    return;// not really usable yet. delete this if you want
@@ -40,6 +44,9 @@ void test(FlashcardSet *flashcard_set){
 
 //    int maxlength = MIN_LEN;
     
+    if(!getConfirmation("Hello! This study mode is currently incomplete. Continue anyway?", NULL, "Returning.")){
+        return;
+    }
 
 
     //no cards match criteria
@@ -47,14 +54,14 @@ void test(FlashcardSet *flashcard_set){
 
     WINDOW* mainquiz = create_newwin( LINES-2, 52, 1, (COLS-50)/2);
     wbkgd(mainquiz, COLOR_PAIR(2));
-    WINDOW* formwin = derwin(mainquiz, LINES-4, 25, 1, 26);
+    WINDOW* numberwin = derwin(mainquiz, LINES-4, 3,  1, 2);
     WINDOW* qstionwin = derwin(mainquiz, LINES-4, 21, 1, 5);
-    WINDOW* numberwin = derwin(mainquiz, LINES-4, 3, 1, 2);
+    WINDOW* formwin =   derwin(mainquiz, LINES-4, 25, 1, 26);
+    WINDOW* choicewin = derwin(mainquiz, LINES-4, 20, 1, 29);
 //    wbkgd(formwin, COLOR_PAIR(3));
     //wbkgd(qstionwin, COLOR_PAIR(3));
 
 
-    WINDOW* answerwin = derwin(mainquiz, LINES-4, 20, 1, 30);
 
 
     keypad(mainquiz, TRUE);
@@ -66,12 +73,12 @@ void test(FlashcardSet *flashcard_set){
     FIELD *nfield[numCards+2]; //numbers
     FIELD *rfield[numCards+2]; //response
     FIELD *qfield[numCards+2]; //question
-    FIELD *afield[numCards+2]; //answer choices
+    FIELD *cfield[numCards+2]; //answer choices
     for(int i = 0; i<numCards+2; i++){
         nfield[i]=NULL;
         rfield[i]=NULL;
         qfield[i]=NULL;
-        afield[i]=NULL;
+        cfield[i]=NULL;
     }
     FORM *numbers;
     FORM *response;
@@ -90,15 +97,15 @@ void test(FlashcardSet *flashcard_set){
         nfield[i] = new_field(1, 3, spacing*(i%perPage), 0, 2, 1);
         rfield[i] = new_field(1, 1, spacing*(i%perPage), 1, 0, 1);
         qfield[i] = new_field(1, 15, spacing*(i%perPage), 0, MAX_FLASHCARD_SET_ITEM_SIZE/15, 0);
-        afield[i] = new_field(1, 15, spacing*(i%perPage), 0, MAX_FLASHCARD_SET_DEFN_SIZE/15, 0);
-        if(afield[i]==NULL){
+        cfield[i] = new_field(1, 15, spacing*(i%perPage), 0, MAX_FLASHCARD_SET_DEFN_SIZE/15, 0);
+        if(cfield[i]==NULL){
             endwin();
             perror("error:");
         }
         set_field_back(rfield[i], COLOR_PAIR(3) | A_UNDERLINE);
         set_field_back(qfield[i], COLOR_PAIR(2));
         set_field_back(nfield[i], COLOR_PAIR(2) | A_BOLD);
-        set_field_back(afield[i], COLOR_PAIR(2));
+        set_field_back(cfield[i], COLOR_PAIR(2));
         field_opts_on(rfield[i], O_AUTOSKIP);
         //field_opts_off(qfield[i], O_EDIT);
         //set_field_type(field[i], TYPE_ALPHA, 0);
@@ -106,7 +113,7 @@ void test(FlashcardSet *flashcard_set){
             set_new_page(rfield[i], TRUE);
             set_new_page(qfield[i], TRUE);
             set_new_page(nfield[i], TRUE);
-            set_new_page(afield[i], TRUE);
+            set_new_page(cfield[i], TRUE);
             pages++;
         }
     }
@@ -116,7 +123,7 @@ void test(FlashcardSet *flashcard_set){
         int numchoices = perPage;
         if( page == pages){
             // account for final page being shorter
-            numchoices = perSect%perPage;
+            numchoices = perSect-1%perPage+1;
         }
 
         for(int i = 0; i < numchoices; i++){
@@ -134,7 +141,7 @@ void test(FlashcardSet *flashcard_set){
             char ans[2] = {(char)('a'+answers[i]), 0};
             set_field_buffer(rfield[page*perPage+i], 1, ans);
             //TODO: add defns
-            set_field_buffer(afield[page*perPage+i], 0, flashcard_set->cards[order[page*perPage+answers[i]]].definition[0]);
+            set_field_buffer(cfield[page*perPage+i], 0, flashcard_set->cards[order[page*perPage+answers[i]]].definition[0]);
             set_field_buffer(qfield[page*perPage+i], 0, flashcard_set->cards[order[page*perPage+i]].term);
             set_field_buffer(nfield[page*perPage+i], 0, num);
             num[0]=(num[0]=='z')?'a':num[0]+1;
@@ -152,13 +159,13 @@ void test(FlashcardSet *flashcard_set){
 
         rfield[perSect+i] = new_field(1, 20, spacing*(i%perPage), 1, strlen(answerstr)/20, 1);
         qfield[perSect+i] = new_field(1, 20, spacing*(i%perPage), 1, strlen(answerstr)/20, 1);
-        afield[perSect+i] = new_field(1, 1, spacing*(i%perPage), 0, 0, 0); 
+        cfield[perSect+i] = new_field(1, 1, spacing*(i%perPage), 0, 0, 0); 
         nfield[perSect+i] = new_field(1, 3, spacing*(i%perPage), 0, 0, 0); 
         set_field_back(rfield[perSect+i], COLOR_PAIR(3) | A_UNDERLINE);
         set_field_back(nfield[perSect+i], COLOR_PAIR(2) | A_BOLD);
         set_field_back(qfield[perSect+i], COLOR_PAIR(2));
-        set_field_back(afield[perSect+i], COLOR_PAIR(2));
-        field_opts_off(afield[perSect+i], O_VISIBLE);
+        set_field_back(cfield[perSect+i], COLOR_PAIR(2));
+        field_opts_off(cfield[perSect+i], O_VISIBLE);
         set_field_buffer(rfield[perSect+i], 1, answerstr);
         set_field_buffer(qfield[perSect+i], 0, questionstr);
         set_field_buffer(nfield[perSect+i], 0, num);
@@ -167,7 +174,7 @@ void test(FlashcardSet *flashcard_set){
         if (i%perPage==0){
             set_new_page(rfield[perSect+i], TRUE);
             set_new_page(qfield[perSect+i], TRUE);
-            set_new_page(afield[perSect+i], TRUE);
+            set_new_page(cfield[perSect+i], TRUE);
             set_new_page(nfield[perSect+i], TRUE);
         }
     }
@@ -179,52 +186,78 @@ void test(FlashcardSet *flashcard_set){
         nfield[2*perSect+i] = new_field(1, 3, spacing*(i%perPage), 0, 2, 1);
         rfield[2*perSect+i] = new_field(1, 1, spacing*(i%perPage), 1, 0, 1);
         qfield[2*perSect+i] = new_field(1, 15, spacing*(i%perPage), 0, MAX_FLASHCARD_SET_ITEM_SIZE/15, 0);
-        afield[2*perSect+i] = new_field(1, 15, spacing*(i%perPage), 0, MAX_FLASHCARD_SET_DEFN_SIZE/15, 0);
+        cfield[2*perSect+i] = new_field(4, 16, spacing*(i%perPage), 0, 0, 0);
         set_field_back(rfield[2*perSect+i], COLOR_PAIR(3) | A_UNDERLINE);
         set_field_back(qfield[2*perSect+i], COLOR_PAIR(2));
         set_field_back(nfield[2*perSect+i], COLOR_PAIR(2) | A_BOLD);
-        set_field_back(afield[2*perSect+i], COLOR_PAIR(2));
+        set_field_back(cfield[2*perSect+i], COLOR_PAIR(2));
         field_opts_on(rfield[2*perSect+i], O_AUTOSKIP);
         //field_opts_off(qfield[i], O_EDIT);
         //set_field_type(field[i], TYPE_ALPHA, 0);
         set_field_buffer(qfield[2*perSect+i], 0, term);
-        set_field_buffer(afield[2*perSect+i], 0, term);
         set_field_buffer(nfield[2*perSect+i], 0, num);
+
+        //set up choices
+        char buffer[16*4];
+        memset(buffer, ' ', 15*4);
+        //TODO multiple sides
+        int op[4] = {order[perSect*2+i], rand()%numCards, rand()%numCards, rand()%numCards};
+        ensureNotEqual(&op[1], numCards, op[0], -1, -1);
+        ensureNotEqual(&op[2], numCards, op[0], op[1], -1);
+        ensureNotEqual(&op[3], numCards, op[0], op[1], op[2]);
+        int correctans = rand()%4;
+        int placeholder=op[0];
+        op[0]=op[correctans];
+        op[correctans]=placeholder;
+        strcpy(buffer,"a) ");
+        strcpy(buffer+16,"b) ");
+        strcpy(buffer+32,"c) ");
+        strcpy(buffer+48,"d) ");
+        for(int j =0; j<4;j++){
+            strlcpy(buffer+(16*j)+3,flashcard_set->cards[op[j]].definition[0],13);
+            buffer[strlen(buffer)]=' ';
+            //buffer[15*j+14]=' ';
+        }
+        buffer[15*4-1]='\0';
+
+        set_field_buffer(cfield[2*perSect+i], 0, buffer);
+
+        field_buffer(rfield[2*perSect+i], 1)[0]='0'+correctans;
         num[0]=(num[0]=='z')?'a':num[0]+1;
         if (i%perPage==0){
             set_new_page(rfield[2*perSect+i], TRUE);
             set_new_page(qfield[2*perSect+i], TRUE);
             set_new_page(nfield[2*perSect+i], TRUE);
-            set_new_page(afield[2*perSect+i], TRUE);
-            pages++;
+            set_new_page(cfield[2*perSect+i], TRUE);
         }
     }
     rfield[3*perSect] = NULL;
     qfield[3*perSect] = NULL;
-    afield[3*perSect] = NULL;
+    cfield[3*perSect] = NULL;
     nfield[3*perSect] = NULL;
 
 
     response = new_form(rfield);
     numbers = new_form(nfield);
     question = new_form(qfield);
-    choices = new_form(afield);
+    choices = new_form(cfield);
 
     box(mainquiz, 0, 0);
     set_form_win(numbers, mainquiz);
     set_form_sub(numbers, numberwin);
     post_form(numbers);
 
-    set_form_win(response, mainquiz);
-    set_form_sub(response, formwin);
-    post_form(response);
-
     set_form_win(question, mainquiz);
     set_form_sub(question, qstionwin);
     post_form(question);
 
+    set_form_win(response, mainquiz);
+    set_form_sub(response, formwin);
+    post_form(response);
+
+
     set_form_win(choices, mainquiz);
-    set_form_sub(choices, answerwin);
+    set_form_sub(choices, choicewin);
     post_form(choices);
 
     
@@ -255,17 +288,25 @@ void test(FlashcardSet *flashcard_set){
                             break;
                     case 261:
                             form_driver(numbers, REQ_NEXT_PAGE);
-                            form_driver(choices, REQ_NEXT_PAGE);
                             form_driver(question, REQ_NEXT_PAGE);
                             form_driver(response, REQ_NEXT_PAGE);
-                            overlay(answerwin,formwin);
+                            form_driver(choices, REQ_NEXT_PAGE);
+                            if (!(field_opts(current_field(choices))&O_VISIBLE)){
+                                form_driver(response, REQ_PREV_PAGE);
+                                form_driver(response, REQ_NEXT_PAGE);
+                            }
+                            wmove(mainquiz, 1,27);
                             break;
                     case 260:
                             form_driver(numbers, REQ_PREV_PAGE);
-                            form_driver(choices, REQ_PREV_PAGE);
                             form_driver(question, REQ_PREV_PAGE);
                             form_driver(response, REQ_PREV_PAGE);
-                            overlay(answerwin,formwin);
+                            form_driver(choices, REQ_PREV_PAGE);
+                            if (!(field_opts(current_field(choices))&O_VISIBLE)){
+                                form_driver(response, REQ_PREV_PAGE);
+                                form_driver(response, REQ_NEXT_PAGE);
+                            }
+                            wmove(mainquiz, 1,27);
                             break;
                     case KEY_BACKSPACE:
                     case 127:
@@ -284,12 +325,12 @@ void test(FlashcardSet *flashcard_set){
                                 if(rfield[i]!=NULL){
                                     free_field(rfield[i]);
                                     free_field(qfield[i]);
-                                    free_field(afield[i]);
+                                    free_field(cfield[i]);
                                     free_field(nfield[i]);
                                 }
                             }
                             erasewindow(formwin);
-                            erasewindow(answerwin);
+                            erasewindow(choicewin);
                             erasewindow(qstionwin);
                             erasewindow(numberwin);
                             erasewindow(mainquiz);
