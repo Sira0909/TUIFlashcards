@@ -1,6 +1,6 @@
 A TUI program for studying flashcards, using the NCURSES library.
 
-Operating system differences can be found in [incompatabilities](documentation/incompatabilites.md)
+Operating system differences can be found in [incompatabilities](documentation/incompatabilities.md)
 <h1> FEATURES: </h1>
 - Create and edit flashcard sets from within the program <br />
 - Good looking (IMO) UI <br />
