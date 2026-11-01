@@ -33,4 +33,6 @@ $ make bootstrapConfig
 
 <h1> DEPENDENCIES:</h1>
 - ncurses <br />
-- msys2 (windows only)
+- msys2 (building windows only)
+- make (building only)
+- a c compiler (building only)

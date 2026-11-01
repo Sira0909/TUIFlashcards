@@ -39,7 +39,7 @@ endif
 bootstrapConfig:
 	mkdir $(CONFIGHOME)
 	mkdir $(CONFIGHOME)/Lists/
-	cp ./doc/exampleList.list $(CONFIGHOME)/Lists/exampleList.list
+	cp ./doc/examples/exampleList.list $(CONFIGHOME)/Lists/exampleList.list
 
 
 	

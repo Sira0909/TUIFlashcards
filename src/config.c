@@ -164,7 +164,7 @@ void fill_defaults(CONFIGSTRUCT *config){
     strcpy(config->flashcard_dir, cardDir);
     config->showKeybindsHelp = 1;
     config->autoaccent = 1;
-    config->animations = 0;
+    config->animations = 1;
 }
 #define LINE_MAX_SIZE 256 
 #if LINE_MAX_SIZE>PATH_MAX //im too tired to use strncpy
