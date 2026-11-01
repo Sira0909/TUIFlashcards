@@ -23,7 +23,7 @@ CONFIGSTRUCT config;
 
 int main(int argc, char *argv[]){
 #ifdef _WIN32
-    printf("Warning. Windows compatibility is only partial. Some things may not work perfectly. use Linux (or mac) for better results. Press <enter> to continue anyway");
+    printf("Warning. Windows compatibility is only partial. Some things may not work perfectly. See [documentation/incompatabilities.md] for specifics. Use Linux (or mac) for better results. Press <enter> to continue anyway");
     getc(stdin);
 #endif
     //seed rng
