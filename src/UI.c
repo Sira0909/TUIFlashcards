@@ -4,11 +4,18 @@
 #include <animation.h>
 #include <signal.h>
 #include <unistd.h>
-#include <sys/signalfd.h>
 #include <windows/window.h>
 #include <string.h>
 #include <UI.h>
 #include <poll.h>
+#ifdef __linux__
+#include <sys/signalfd.h>
+#endif
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/event.h>
+#endif
 
 void list_keybinds(struct _keybind* binds){
     int numBinds = binds[0].keycode;
@@ -40,12 +47,24 @@ int run(void* window, struct _keybind* binds){
     sigset_t mask; sigemptyset(&mask);
     sigaddset(&mask,SIGALRM);
     sigprocmask(SIG_BLOCK, &mask, NULL);
+#ifdef __linux__
     struct pollfd pfds[2];
     // we want poll to listen for stdin and the signal from animation
     pfds[0].fd = 0; //stdin
     pfds[0].events = POLLIN;
     pfds[1].fd = signalfd(-1, &mask,0);//animation
     pfds[1].events = POLLIN;
+#endif
+#ifdef __APPLE__
+    int queue =  kqueue();
+    struct kevent kfds[2];
+    EV_SET(kfds,0, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
+    EV_SET(kfds+1,SIGALRM, EVFILT_SIGNAL, EV_ADD | EV_ENABLE,0,0,0);
+    struct kevent kchangelist[2];
+    kevent(queue,kfds, 2, NULL, 0, NULL);
+    int nev=0;
+
+#endif
     //to detect terminal window resizing
     int l=LINES;
     int c=COLS;
@@ -59,6 +78,7 @@ int run(void* window, struct _keybind* binds){
                 ungetch(KEY_RESIZE);//so that getch has something to read after break
                 break;
             }
+#ifdef __linux__
             if(pfds[1].revents&POLLIN){ //signaled by animation
                 struct signalfd_siginfo ignore;
                 read(pfds[1].fd, &ignore, sizeof(ignore));
@@ -68,7 +88,19 @@ int run(void* window, struct _keybind* binds){
             doupdate();
             poll(pfds,2, 100);
         }
-        while(!(pfds[0].revents&POLLIN));
+	while(!(pfds[0].revents&POLLIN));
+#endif
+#ifdef __APPLE__
+            if(nev!=0 && kchangelist[0].ident==SIGALRM){ //signaled by animation
+                updateAnimation(config);
+            }
+            render(window);
+            doupdate();
+            nev = kevent(queue, NULL, 0, kchangelist, 1, NULL);
+	}
+	while(nev==0 || kchangelist[0].ident != 0);
+
+#endif
         int ch = getch();
 	if(ch == '?'){//comes before so callers can do post-operations
 	    list_keybinds(binds);

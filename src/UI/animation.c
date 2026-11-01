@@ -6,7 +6,7 @@
 #include <animation.h>
 #include <signal.h>
 #ifndef _WIN32
-#include <sys/signalfd.h>
+//#include <sys/signalfd.h>
 #endif
 #include <clock.h>
 

@@ -1,6 +1,5 @@
 #ifndef _WIN32
 //template for later mostly
-#include <bits/types/sigevent_t.h>
 #include <pthread.h>
 #include <poll.h>
 #include <unistd.h>
@@ -28,7 +27,12 @@ void* Metronome(void* arg){//arg is a clock_data
                 read(params.pipein,&params.ms,sizeof(params.ms));
             }
             else{
+#ifdef __APPLE__
+                kill(getpid(), SIGALRM);
+#endif
+#ifdef __linux__
                 pthread_kill(params.parent, SIGALRM);
+#endif
             }
         }
     pthread_cleanup_pop(0);
