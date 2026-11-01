@@ -72,7 +72,7 @@ int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DE
     if(defnName==NULL){
         strcpy(flashcard_set->defnNames[flashcard_set->num_columns-2], "definition ");
 
-        itoa(flashcard_set->num_columns-1, flashcard_set->defnNames[flashcard_set->num_columns-2]+11);
+        my_itoa(flashcard_set->num_columns-1, flashcard_set->defnNames[flashcard_set->num_columns-2]+11);
     }
     else{
         strcpy(flashcard_set->defnNames[flashcard_set->num_columns-2], defnName);

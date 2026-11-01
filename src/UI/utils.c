@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-int itoa(int i, char* a){
+int my_itoa(int i, char* a){
     if(i>=10){
-        int off = itoa(i/10,a);
+        int off = my_itoa(i/10,a);
         a[off]='0'+i%10;
         return off+1;
     }
