@@ -4,7 +4,6 @@
 #include <windows/window.h>
 #include <ncurses.h>
 #include <config.h>
-#include <poll.h>
 #include <animation.h>
 #include <UI.h>
 //#include <stdlib.h>

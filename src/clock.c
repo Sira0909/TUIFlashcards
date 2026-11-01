@@ -1,3 +1,4 @@
+#ifndef _WIN32
 //template for later mostly
 #include <bits/types/sigevent_t.h>
 #include <pthread.h>
@@ -54,3 +55,4 @@ void endClock(pthread_t *thread){
     pthread_cancel(*thread);
     *thread=0;
 }
+#endif

@@ -43,6 +43,15 @@ void test(FlashcardSet *flashcard_set){
     int order[flashcard_set->num_items];
 
 //    int maxlength = MIN_LEN;
+
+    //theres no way im adding compatibility to an unfinished feature. if its windows, "no"
+#ifdef _WIN32
+    showmsg("This feature is incomplete on all OSs, and compatibility has not been added for windows. Returning.");
+    return;
+
+}
+
+#else
     
     if(!getConfirmation("Hello! This study mode is currently incomplete. Continue anyway?", NULL, "Returning.")){
         return;
@@ -342,3 +351,4 @@ void test(FlashcardSet *flashcard_set){
             }
     }
 }
+#endif

@@ -2,7 +2,9 @@
 #include <string.h>
 #include <study.h>
 #include <animation.h>
+#ifndef _WIN32
 #include <poll.h>
+#endif
 
 
 #define _XOPEN_SOURCE 600
@@ -124,12 +126,19 @@ void type(FlashcardSet *flashcard_set){
 
     bool wasJustBacktick = false;
     bool wasJustTilde = false;
-    struct pollfd pfds[1];
     int l = LINES;
     int c = COLS;
+#ifndef _WIN32
+    struct pollfd pfds[1];
     pfds[0].fd = 0;
     pfds[0].events = POLLIN;
+#endif
     while(1){
+#ifdef _WIN32
+        
+        nodelay(stdscr, true);
+
+#endif
         do{
             updateAnimation(config);
             touchwin(form_win);
@@ -151,10 +160,16 @@ void type(FlashcardSet *flashcard_set){
                 touchwin(resultWin);
                 wrefresh(resultWin);
             }
+#ifndef _WIN32
             poll(pfds,1, animation_delay_ms);
         }
         while(!(pfds[0].revents&POLLIN));
         ch=getch();
+#else
+        }
+        while((ch=getch())==ERR); 
+        nodelay(stdscr, false);
+#endif
         touchwin(form_win);
         if(starWin!=NULL){
             erasewindow(starWin);

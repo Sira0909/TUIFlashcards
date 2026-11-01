@@ -1,3 +1,4 @@
+#ifndef _WIN32
 #include <curses.h>
 #include <ncurses.h>
 #include <animation.h>
@@ -85,3 +86,4 @@ int run(void* window, struct _keybind* binds){
 int quit(__attribute__((unused)) void* window){
     return -1;
 }
+#endif

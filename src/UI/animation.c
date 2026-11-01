@@ -5,20 +5,26 @@
 #include <string.h>
 #include <animation.h>
 #include <signal.h>
+#ifndef _WIN32
 #include <sys/signalfd.h>
+#endif
 #include <clock.h>
 
 //WINDOW* background;
+#ifndef _WIN32
 pthread_t Clock;
+#endif
 
 void init_Animation(CONFIGSTRUCT config){
     //background=stdscr;
 
+#ifndef _WIN32
     sigset_t mask; sigemptyset(&mask);
     sigaddset(&mask,SIGALRM);
     sigprocmask(SIG_BLOCK, &mask, NULL);
     int clock_command;
     Clock = setupClock(animation_delay_ms, &clock_command);
+#endif
     
     scrollok(stdscr,false);
     resize_animation();
