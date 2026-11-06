@@ -32,7 +32,7 @@ int render_flashcards(void* metadata){
         touchwin(Metadata->FlashcardWindow);
         wbkgd(Metadata->text, COLOR_PAIR(2));
         wattron(Metadata->text,A_BOLD);
-        wprintctr(Metadata->text, (Metadata->maxlength/4)*2-1, Metadata->maxlength+1,  card_text);
+        wprintctr(Metadata->text, (Metadata->maxlength/4)*2-1, Metadata->maxlength+2,  card_text);
         wattroff(Metadata->text,A_BOLD);
         //wprintw(FlashcardWindow, "%d", order[currentcard]);
         printProgress(Metadata->FlashcardWindow, Metadata->currentcard, Metadata->numCards);

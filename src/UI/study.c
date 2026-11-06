@@ -122,6 +122,7 @@ struct modeMetadata Mode_setup(char* list){
     mvwprintw(topleft, 4, (23- 10)/2, "Flashcards" );
     mvwprintw(top, 4, (23 - 15)/2, "Multiple Choice" );
     mvwprintw(topright, 4, (23 - 4)/2, "Type" );
+    mvwprintw(bottomleft, 4, (23 - 4)/2, "Test" );
 
 
     

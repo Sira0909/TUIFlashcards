@@ -3,6 +3,7 @@
 - Background animations! <br />
     - Can be toggled in settings <br />
 - Definition names! <br />
+- At long last, test mode has been added! <br />
 ## Version 0.2.2: <br />
 - running `$ make bootstrapConfig` will create a config directory and place an example list inside <br />
 - get_lists can show no lists without prompting user to add a list <br />

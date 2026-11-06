@@ -12,5 +12,6 @@ void erasewindow(WINDOW* window);
 void wprintctr(WINDOW* window, unsigned int height, unsigned int width, char* string);
 void wprintctrx(WINDOW* window, int y, unsigned int width, char* string);
 void printProgress(WINDOW* win, int current, int max);
+void printHeader(WINDOW* win, char* string);
 
 #endif

@@ -30,6 +30,7 @@ char* trim_whitespaces(char *str);
 
 int is_all_space(char *string);
 void shufflePreserveGraphemes(char* string);
+unsigned int stringlen(const char* string);
 
 #define handleAccents(Form) \
                     case '`': \

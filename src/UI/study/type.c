@@ -63,12 +63,12 @@ void type(FlashcardSet *flashcard_set){
         } while ((sides[i]>0&&vectorsin[sides[i]-1]==false)||(sides[i]<0&&vectorsout[-sides[i]-1]==false));
     }
     for(int i = 0; i<question_count;i++){
-        if (strlen(flashcard_set->cards[order[i]].term)>maxlength){
-            maxlength = strlen(flashcard_set->cards[order[i]].term);
+        if (stringlen(flashcard_set->cards[order[i]].term)>maxlength){
+            maxlength = stringlen(flashcard_set->cards[order[i]].term);
         }
         for(int j = 0; j < flashcard_set->num_columns-1;j++){
-            if (strlen(flashcard_set->cards[order[i]].definition[j])>maxlength){
-                maxlength = strlen(flashcard_set->cards[order[i]].definition[j]);
+            if (stringlen(flashcard_set->cards[order[i]].definition[j])>maxlength){
+                maxlength = stringlen(flashcard_set->cards[order[i]].definition[j]);
             }
         }
     }
@@ -256,7 +256,7 @@ void type(FlashcardSet *flashcard_set){
                     else {
                         sides[mistakeindex]=sides[currentcard];
                         order[mistakeindex++]=order[currentcard];
-                        resultWin = create_newwin(1, 16+strlen(correctanswer), LINES-3, (COLS-16-strlen(correctanswer))/2);
+                        resultWin = create_newwin(1, 16+stringlen(correctanswer), LINES-3, (COLS-16-stringlen(correctanswer))/2);
                         wbkgd(resultWin, COLOR_PAIR(3));
                         mvwprintw(resultWin, 0, 0, "Correct answer: %s", correctanswer);
                         wrefresh(resultWin);

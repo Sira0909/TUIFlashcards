@@ -22,7 +22,7 @@ int render_Menu(void *menu){
     else center = p_menu->selected;
 
     for(int i = center - ideal; (i < center - ideal + p_menu->height) && (i < p_menu->numOptions); i++){
-        int size = strlen(p_menu->menuitems[i]); 
+        int size = stringlen(p_menu->menuitems[i]); 
 
         // too long 
         if(size > p_menu->width){
@@ -125,7 +125,7 @@ int render_Table(void *window){
             }
 
             // if non-selected item is longer than length, trim it to length
-            else if(strlen(p_table->table_data[col][center - ideal +i]) > max_length){
+            else if(stringlen(p_table->table_data[col][center - ideal +i]) > max_length){
                 char *item = calloc(p_table->width, sizeof(char));
                 strncpy(item, p_table->table_data[col][center - ideal +i], max_length-3);
                 strcat(item, "...");

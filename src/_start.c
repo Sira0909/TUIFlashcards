@@ -80,7 +80,7 @@ void init_ncurses(void){
 
     //start color
     start_color();
-    scrollok(stdscr,true);
+    scrollok(stdscr,false);
 
 
 

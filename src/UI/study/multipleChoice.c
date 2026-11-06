@@ -230,14 +230,13 @@ bool MC_setup(struct MultipleChoice_metadata* metadata, FlashcardSet* flashcard_
 #define MIN_LEN 51
     metadata->maxlength = MIN_LEN;
     for(int i = 0; i<Metadata->question_count;i++){
-        if (strlen(flashcard_set->cards[metadata->order[i]].term)> metadata->maxlength)
+        if (stringlen(flashcard_set->cards[metadata->order[i]].term)> metadata->maxlength)
         {
-            metadata->maxlength = 
-                strlen(flashcard_set->cards[metadata->order[i]].term);
+            metadata->maxlength = stringlen(flashcard_set->cards[metadata->order[i]].term);
         }
         for(int j = 0; i<flashcard_set->num_columns;i++){
-            if (strlen(flashcard_set->cards[metadata->order[i]].definition[j])>metadata->maxlength){
-                metadata->maxlength = strlen(flashcard_set->cards[metadata->order[i]].definition[j]);
+            if (stringlen(flashcard_set->cards[metadata->order[i]].definition[j])>metadata->maxlength){
+                metadata->maxlength = stringlen(flashcard_set->cards[metadata->order[i]].definition[j]);
             }
         }
     }

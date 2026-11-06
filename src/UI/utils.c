@@ -46,7 +46,17 @@ int is_all_space(char *string){
 
 
 
-
+unsigned int stringlen(const char* string){
+    int i=0;
+    int j=0;
+    while(string[i]!=0){
+        if(string[i]==195-256){
+            j++;
+        }
+        i++;
+    }
+    return i-j;
+}
 
 void shufflePreserveGraphemes(char* string){
     wchar_t splitgraphemes[strlen(string)];

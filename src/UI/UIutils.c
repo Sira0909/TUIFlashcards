@@ -107,7 +107,7 @@ char* getString(char* title, int maxsize, char* startingText){
     
     //assign window
     scale_form(Form, &rows, &cols);
-    int boxwidth = max(30,strlen(title)); 
+    int boxwidth = max(30,stringlen(title)); 
     my_form_win = newwin(rows+4, boxwidth+4,(LINES - rows-2)/2,(COLS - boxwidth-2)/2);
 
     // if we have starting text, use it
@@ -124,7 +124,7 @@ char* getString(char* title, int maxsize, char* startingText){
 
     box(my_form_win, 0, 0);
     //wmove(my_form_win, 0, 1); waddch(my_form_win, ACS_RTEE);wprintw(my_form_win, "%s", "double escape to cancel"); waddch(my_form_win, ACS_LTEE);
-    mvwprintw(my_form_win, 1, (boxwidth+4-strlen(title))/2, "%s", title);
+    mvwprintw(my_form_win, 1, (boxwidth+4-stringlen(title))/2, "%s", title);
 
     post_form(Form);
     form_driver(Form, REQ_END_FIELD);
