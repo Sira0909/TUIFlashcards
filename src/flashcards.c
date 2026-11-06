@@ -19,6 +19,8 @@ FlashcardSet* create_Flashcard_Set_Object(void){
     flashcard_set->num_columns = 1;
     flashcard_set->cards = (Flashcard* )calloc(flashcard_set->capacity, sizeof(Flashcard));
     flashcard_set->defnNames = calloc(1, sizeof(char[128]));
+    flashcard_set->vectorsin = calloc(1, sizeof(bool));
+    flashcard_set->vectorsout = calloc(1, sizeof(bool));
     //strncpy(flashcard_set->defnNames[0], "definition 1",13);
 
     return flashcard_set;
@@ -67,6 +69,8 @@ int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DE
         //update fields
         flashcard_set->defn_capacity*= 2;
         flashcard_set->defnNames = newNames;
+        flashcard_set->vectorsin = realloc(flashcard_set->vectorsin, flashcard_set->defn_capacity*sizeof(bool));
+        flashcard_set->vectorsout = realloc(flashcard_set->vectorsout, flashcard_set->defn_capacity*sizeof(bool));
     }
     flashcard_set->num_columns++;
     if(defnName==NULL){
@@ -103,6 +107,7 @@ int delDefn(FlashcardSet* flashcard_set, int index){
                 return -1;
             }
         }
+        memset(flashcard_set->vectorsin,true, flashcard_set->defn_capacity*sizeof(bool));
     }
     return 1;
 }
@@ -162,12 +167,17 @@ int writeFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX], int 
     if(VocabFile == NULL){
         return -1;
     }
-    fprintf(VocabFile, "\"Version\":%d\n", 2); //denotes flashcard version
+    fprintf(VocabFile, "\"Version\":%d\n", 3); //denotes flashcard version
     fprintf(VocabFile, "\"Columns\":%d\n", flashcard_set->num_columns);
     fprintf(VocabFile, "\"Terms\":%d\n", flashcard_set->num_items);
     fprintf(VocabFile, "\"Definitions\":{\n");
     for(int i = 0; i<flashcard_set->num_columns-1;i++){
         fprintf(VocabFile, "%s\n", flashcard_set->defnNames[i]);
+    }
+    fprintf(VocabFile, "}\n");
+    fprintf(VocabFile, "\"Vectors\":{\n");
+    for(int i = 0; i < flashcard_set->num_columns-1; i++){
+        fprintf(VocabFile, "%d %d\n",flashcard_set->vectorsin[i],flashcard_set->vectorsout[i]);
     }
     fprintf(VocabFile, "}\n");
 
@@ -276,7 +286,7 @@ int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
     fscanf(VocabFile, "\"Version\":%d\n", &version); //denotes flashcard version
     fscanf(VocabFile, "\"Columns\":%d\n", &(num_columns));
     fscanf(VocabFile, "\"Terms\":%d\n", &num_items);
-    if(version == 2){
+    if(version >= 2){
         fscanf(VocabFile, "\"Definitions\":{\n");
         for(int i = 0; i < num_columns-1; i++){
             char defn[128];
@@ -295,6 +305,16 @@ int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
             addDefn(flashcard_set, NULL,NULL);
         }
         
+    }
+    if(version>=3){
+        fscanf(VocabFile, "\"Vectors\":{\n");
+        for(int i = 0; i < flashcard_set->num_columns-1; i++){
+            int in,ou;
+            fscanf(VocabFile, "%d %d\n",&in,&ou);
+            flashcard_set->vectorsin[i] =in;
+            flashcard_set->vectorsout[i]=ou;
+        }
+        fscanf(VocabFile, "}\n");
     }
 
 

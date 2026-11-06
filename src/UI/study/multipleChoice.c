@@ -149,17 +149,10 @@ bool MC_setup(struct MultipleChoice_metadata* metadata, FlashcardSet* flashcard_
     Metadata->question_count=flashcard_set->num_items;
     Metadata->starred_only=false;
     Metadata->shuffle=false;
-    Metadata->vectorsin=calloc(flashcard_set->num_columns-1,sizeof(bool));
-    Metadata->vectorsout=calloc(flashcard_set->num_columns-1,sizeof(bool));
-
-    for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
-        Metadata->vectorsin[i]=true;
-        Metadata->vectorsout[i]=true;
-    }
+    Metadata->vectorsin =flashcard_set->vectorsin;
+    Metadata->vectorsout=flashcard_set->vectorsout;
 
     if (!get_settings(flashcard_set, &(Metadata->starred_only), &(Metadata->shuffle), &(Metadata->question_count), (Metadata->vectorsin), Metadata->vectorsout, flashcard_set->defnNames)){
-        free(Metadata->vectorsin);
-        free(Metadata->vectorsout);
         return false;
     }
 
@@ -171,8 +164,7 @@ bool MC_setup(struct MultipleChoice_metadata* metadata, FlashcardSet* flashcard_
         }
     }
     if (!validvectors){
-        free(Metadata->vectorsin);
-        free(Metadata->vectorsout);
+        showmsg("No vectors selected");
         return false;
     }
 
@@ -195,15 +187,11 @@ bool MC_setup(struct MultipleChoice_metadata* metadata, FlashcardSet* flashcard_
 
     //no cards match criteria
     if (!numCards){
-        free(Metadata->vectorsin);
-        free(Metadata->vectorsout);
         free(Metadata->order);
         return false;
     }
     if (numCards < 4){
         showmsg("Not enough cards. 4 required.");
-        free(Metadata->vectorsin);
-        free(Metadata->vectorsout);
         free(Metadata->order);
         return false;
     }
@@ -307,8 +295,6 @@ void multipleChoice(FlashcardSet *flashcard_set){
     run(&metadata, multipleChoiceKeybinds);
     free(metadata.order);
     free(metadata.sides);
-    free(metadata.vectorsin);
-    free(metadata.vectorsout);
     move(LINES-3, 0);
     clrtoeol();
     

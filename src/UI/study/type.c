@@ -21,19 +21,13 @@
 void type(FlashcardSet *flashcard_set){
     bool starred_only = 0;
     bool shuffle = 0;
-    bool (vectorsin)[flashcard_set->num_columns-1];// ___->term
-    bool (vectorsout)[flashcard_set->num_columns-1];// term->____
     int question_count=flashcard_set->num_items;
-    for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
-        vectorsin[i]=true;
-        vectorsout[i]=true;
-    }
-    if (!get_settings(flashcard_set, &starred_only, &shuffle,&question_count, vectorsin, vectorsout, flashcard_set->defnNames)){
+    if (!get_settings(flashcard_set, &starred_only, &shuffle,&question_count, flashcard_set->vectorsin, flashcard_set->vectorsout, flashcard_set->defnNames)){
         return;
     }
     bool validvectors = false;
     for(int i = 0 ; i < flashcard_set->num_columns-1; i++){
-        if(vectorsin[i] || vectorsout[i]){
+        if(flashcard_set->vectorsin[i] || flashcard_set->vectorsout[i]){
             validvectors = true;
             break;
         }
@@ -60,7 +54,7 @@ void type(FlashcardSet *flashcard_set){
         do{
         sides[i]= rand()%(flashcard_set->num_columns-1)+1;//plus 1 eliminates 0
         sides[i]*=(rand()%2==0)?1:-1;
-        } while ((sides[i]>0&&vectorsin[sides[i]-1]==false)||(sides[i]<0&&vectorsout[-sides[i]-1]==false));
+        } while ((sides[i]>0&&flashcard_set->vectorsin[sides[i]-1]==false)||(sides[i]<0&&flashcard_set->vectorsout[-sides[i]-1]==false));
     }
     for(int i = 0; i<question_count;i++){
         if (stringlen(flashcard_set->cards[order[i]].term)>maxlength){

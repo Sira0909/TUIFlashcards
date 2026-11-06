@@ -20,6 +20,8 @@ typedef struct _FLASHCARDSET{   // vector of flashcards
     int defn_capacity;
     int capacity;
     char (*defnNames)[128];
+    bool (*vectorsin);// ___->term
+    bool (*vectorsout);// term->____
     Flashcard* cards;
 } FlashcardSet;
     
