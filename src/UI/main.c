@@ -37,7 +37,7 @@ int mainmenu_select(void * menu);
 void mainmenu(void){
     // keybind helper window
     if(config.showKeybindsHelp){
-        keybindHelp = create_newwin(3, 18, LINES-4, (COLS-18)/2);
+        keybindHelp = create_newwin(3, 18, (LINES-1)/2+8, (COLS-16)/2);
         wattron(keybindHelp, A_BOLD | COLOR_PAIR(5));
         box(keybindHelp, 0,0);
         mvwprintw(keybindHelp, 1, 1, "'?' for keybinds");

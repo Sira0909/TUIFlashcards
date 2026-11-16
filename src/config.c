@@ -1,4 +1,5 @@
 #include <const.h>
+#include <errno.h>
 
 #include <macros.h>
 
@@ -14,7 +15,7 @@
 
 FILE* get_config_file(CONFIGSTRUCT *config){
     //get directory for config files
-    char *config_DIR = (char *) calloc(PATH_MAX, sizeof(char));
+    char *config_baseDir = (char *) calloc(PATH_MAX, sizeof(char));
 #ifndef _WIN32
     //start by checking $XDG_CONFIG_HOME environment var
     char *conf_home = getenv("XDG_CONFIG_HOME");
@@ -25,22 +26,24 @@ FILE* get_config_file(CONFIGSTRUCT *config){
 #endif
     //if $XDG_CONFIG_HOME has been set, set config_DIR to it.
     if(conf_home != NULL){
-        strncpy(config_DIR,conf_home, PATH_MAX);
+        strncpy(config_baseDir,conf_home, PATH_MAX);
     }
     else{
         //else, try $HOME env variable
         conf_home = getenv("HOME");
         if(conf_home == NULL){
             //if neither exist, error.
-            free(config_DIR); 
+            free(config_baseDir); 
             printf("Please set either a $HOME env variable or a $XDG_CONFIG_HOME env variable in order to make a configuration");
             exit(-1);
         }
 
         // if $HOME does exist, use it, add ".config", and set config_DIR to that.
-        strncpy(config_DIR,conf_home, PATH_MAX);
-        strcat(config_DIR, "/.config");
+        strncpy(config_baseDir,conf_home, PATH_MAX);
+        strcat(config_baseDir, "/.config");
     }
+    char config_DIR[PATH_MAX];
+    strcpy(config_DIR, config_baseDir);
     strcat(config_DIR, "/TUIFlashcards");
 
     //file name for config file
@@ -54,9 +57,14 @@ FILE* get_config_file(CONFIGSTRUCT *config){
     if(!(config_File = fopen(cFile, "r"))){
         FILE* writeconfig;
         if(!(writeconfig = fopen(cFile, "w"))){
+            if (makedir(config_baseDir,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1 &&errno!=EEXIST){
+                printf("Error occurred while creating config base directory. Does ~/.config (Linux/Mac) or ~/AppData (Windows) exist? Try creating them.");
+                free(config_baseDir); 
+                exit(-1);
+            }
             if (makedir(config_DIR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == -1){ // "mkdir configDIR"
-                printf("error occurred while creating config directory. does ~/.config exist?");
-                free(config_DIR); 
+                printf("Error occurred while creating config directory. Does ~/.config exist?");
+                free(config_baseDir); 
                 exit(-1);
             }
             writeconfig = fopen(cFile, "w"); // make config file
@@ -87,11 +95,11 @@ FILE* get_config_file(CONFIGSTRUCT *config){
         
         
         // if file still doesnt exist, error
-        if(!(config_File = fopen(cFile, "r"))){printf("error occured making config file"); free(config_DIR); exit(-1);} 
+        if(!(config_File = fopen(cFile, "r"))){printf("error occured making config file"); free(config_baseDir); exit(-1);} 
 
     }
     strcpy(config->config_dir,config_DIR);
-    free(config_DIR);
+    free(config_baseDir);
     return(config_File);
 
 }

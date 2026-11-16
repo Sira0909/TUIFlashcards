@@ -13,6 +13,6 @@ summary of differences on Operating Systems <br/>
 - almost all features are supported. exceptions: <br/>
 - windows terminal does not support changing colors <br/>
 - when adding definitions, the new column does not appear until you move <br/>
-- animations are SIGNIFICANTLY faster, as I don't have access to poll <br/>
+- animations are SIGNIFICANTLY faster, as I don't have access to poll to slow them down<br/>
 - there may be more, so I recommend using a different OS for now. <br/>
 
