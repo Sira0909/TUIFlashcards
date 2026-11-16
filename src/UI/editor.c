@@ -141,7 +141,7 @@ void _editList(FlashcardSet* flashcardset, struct EditorMetadata metadata ){
         {'D', "D", "remove definitions",&editor_removeDefinition},
         {config.keylayout.ukey, " ", " ", &editor_update},
         {'w', "w", "save", &editor_writeSet},
-        {'q', "q", "quit without save", &editor_quit},
+        {'q', "q / <esc>", "quit without save", &editor_quit},
         {27, "?", "list keybinds", &editor_quit}
     };
 

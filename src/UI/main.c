@@ -53,7 +53,7 @@ void mainmenu(void){
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
         {10, "<enter>", "select", &mainmenu_select},
         {27, "", "", &quit},
-        {'q', "q", "quit", &quit},
+        {'q', "q / <esc>", "quit", &quit},
         {KEY_RESIZE, "?", "List Keybinds", &mainmenu_resize}
     };
 

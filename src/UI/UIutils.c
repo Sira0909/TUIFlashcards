@@ -235,7 +235,7 @@ int makeSelection(int numOptions, char (*options)[128], char* title){
         {config.keylayout.ukey, config.keylayout.str_ukey,"up", &menu_up},
         {10, "<enter>", "select", &_select},
         {27, "", "", &quit},
-        {'q', "q", "quit/cancel", &quit},
+        {'q', "q / <esc>", "quit/cancel", &quit},
         {-1, "?", "List Keybinds", NULL}
     };
 

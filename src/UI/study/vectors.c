@@ -108,7 +108,7 @@ void editVectors(bool *vectorin,bool *vectorout,int vectorCount, char (*defnName
         {'a',"a", "select all", &vector_all},
         {'c',"c", "deselect all", &vector_none},
         {KEY_RESIZE," ", " ",vector_resize},
-        {'q', "q", "quit",&quit},
+        {'q', "q / <esc>", "quit",&quit},
         {27, "?", "list keybinds",quit}
     };
 

@@ -119,7 +119,7 @@ bool get_settings(FlashcardSet *flashcard_set, bool* starred_only, bool* shuffle
         {-1, " ", " ",NULL},
         {10,"<enter>", "toggle",study_settings_select},
         {27," ", " ", quit},
-        {'q',"q", "quit", quit},
+        {'q',"q / <esc>", "quit", quit},
         {KEY_RESIZE, "?", "list keybinds",&study_settings_resize}
     };
     run(&setting_menu,settings_keybinds);
