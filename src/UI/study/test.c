@@ -51,7 +51,7 @@ void test(FlashcardSet *flashcard_set){
     //no cards match criteria
     int numCards = getOrder(flashcard_set, order, 1, 0);
     if(numCards<8){
-        showmsg("not enough cards");
+        showmsg("not enough cards. Test mode requires at least 8");
         return;
     }
 

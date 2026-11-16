@@ -316,6 +316,13 @@ int fillFlashcardSet(FlashcardSet* flashcard_set, char filePath[PATH_MAX]){
         }
         fscanf(VocabFile, "}\n");
     }
+    else{
+        for(int i = 0; i < flashcard_set->num_columns-1; i++){
+            flashcard_set->vectorsin[i] =true;
+            flashcard_set->vectorsout[i]=true;
+        }
+
+    }
 
 
     fscanf(VocabFile, "\"Flashcards\":{\n");

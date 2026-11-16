@@ -1,4 +1,5 @@
 //this quiz is excepted from using run() because ? is required for smth else and I don't want to deal with that :(
+#include "UI.h"
 #include <string.h>
 #include <study.h>
 #include <animation.h>
@@ -33,6 +34,7 @@ void type(FlashcardSet *flashcard_set){
         }
     }
     if (!validvectors){
+        showmsg("No study vectors were selected. Please select at least one.");
         return;
     }
     int order[flashcard_set->num_items];
