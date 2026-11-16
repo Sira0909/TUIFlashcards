@@ -81,7 +81,7 @@ void test(FlashcardSet *flashcard_set){
     FORM *numbers,*response,*question,*choices;
     curs_set(1);
 
-    int perPage = min((LINES-4)/spacing,26);
+    int perPage = min(min((LINES-4)/spacing,26),perSect);
     int pages= 0;
 
     char num[3] = "a.";
@@ -379,7 +379,7 @@ void test(FlashcardSet *flashcard_set){
                                         return;
 
                                     }
-                                    else if(getConfirmation("Submit form?", NULL, NULL)){
+                                    else if(getConfirmation("Submit test?", NULL, NULL)){
                                         submitted = 1;
                                         int score = 0;
                                         for(int i = 0 ; i < 4*perSect;i++){
