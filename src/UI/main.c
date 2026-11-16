@@ -29,6 +29,9 @@ int render_main(void* menu){
 int mainmenu_resize(void*menu){
     touchwin(stdscr); refresh();
     mvwin(((MENU*)menu)->window,(LINES-7)/2, (COLS-20)/2);
+    if(keybindHelp!=NULL){
+        mvwin(keybindHelp,(LINES-1)/2+8, (COLS-16)/2);
+    }
     wrefresh(((MENU*)menu)->window);
     return 1;
 }
