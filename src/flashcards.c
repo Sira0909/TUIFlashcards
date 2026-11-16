@@ -1,4 +1,5 @@
 #include "const.h"
+#include <curses.h>
 #include <macros.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -56,6 +57,7 @@ int addcard(FlashcardSet* flashcard_set, char term[MAX_FLASHCARD_SET_ITEM_SIZE],
     return 0;
 }
 int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DEFN_SIZE], char defnName[128]){
+    flashcard_set->num_columns++;
     if (flashcard_set->num_columns > flashcard_set->defn_capacity){
 
         //size doubles
@@ -72,7 +74,6 @@ int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DE
         flashcard_set->vectorsin = realloc(flashcard_set->vectorsin, flashcard_set->defn_capacity*sizeof(bool));
         flashcard_set->vectorsout = realloc(flashcard_set->vectorsout, flashcard_set->defn_capacity*sizeof(bool));
     }
-    flashcard_set->num_columns++;
     if(defnName==NULL){
         strcpy(flashcard_set->defnNames[flashcard_set->num_columns-2], "definition ");
 
@@ -93,6 +94,8 @@ int addDefn(FlashcardSet* flashcard_set, char definitions[][MAX_FLASHCARD_SET_DE
             strcpy(flashcard_set->cards[i].definition[flashcard_set->num_columns-2], definitions[i]); //use definitions list
         }
     }
+    flashcard_set->vectorsin[flashcard_set->num_columns-2]=true;
+    flashcard_set->vectorsout[flashcard_set->num_columns-2]=true;
     return 1;
 }
 int delDefn(FlashcardSet* flashcard_set, int index){
@@ -107,7 +110,8 @@ int delDefn(FlashcardSet* flashcard_set, int index){
                 return -1;
             }
         }
-        memset(flashcard_set->vectorsin,true, flashcard_set->defn_capacity*sizeof(bool));
+        memset(flashcard_set->vectorsin,true, (flashcard_set->num_columns-1)*sizeof(bool));
+        memset(flashcard_set->vectorsout,true, (flashcard_set->num_columns-1)*sizeof(bool));
     }
     return 1;
 }
